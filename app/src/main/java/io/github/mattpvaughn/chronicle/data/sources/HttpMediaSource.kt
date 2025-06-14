@@ -16,7 +16,10 @@ interface HttpMediaSource : MediaSource {
     suspend fun fetchStream(url: String): ResponseBody
 
     /** Updates the playback progress of a [MediaItemTrack] to the server */
-    suspend fun updateProgress(mediaItemTrack: MediaItemTrack, playbackState: String)
+    suspend fun updateProgress(
+        mediaItemTrack: MediaItemTrack,
+        playbackState: String,
+    )
 
     /** Informs the server that a media session has begun */
     suspend fun sendMediaSessionStartCommand()
@@ -28,7 +31,7 @@ interface HttpMediaSource : MediaSource {
     fun makeDownloadRequest(trackUrl: String): Request
 
     /** Makes a [LazyHeaders] with the needed HTTP headers */
-    fun makeGlideHeaders(): Object?
+    fun makeGlideHeaders(): Any?
 
     /** Appends a relative path (i.e. [MediaItemTrack.media]) to the media source's base url */
     fun toServerString(relativePathForResource: String): String
