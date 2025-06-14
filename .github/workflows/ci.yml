@@ -5,6 +5,13 @@ on:
     branches: [ main, master, develop ]
   pull_request:
     branches: [ main, master, develop ]
+  workflow_dispatch:
+    inputs:
+      run_instrumented_tests:
+        description: 'Run instrumented tests'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   lint:
@@ -112,6 +119,7 @@ jobs:
   instrumented-test:
     name: Instrumented Tests
     runs-on: ubuntu-latest
+    if: github.event.inputs.run_instrumented_tests == 'true' || (github.event_name == 'push' && contains(fromJson('["main", "master"]'), github.ref_name))
     strategy:
       matrix:
         api-level: [27, 30]
@@ -124,6 +132,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Cache Gradle packages
         uses: actions/cache@v4
