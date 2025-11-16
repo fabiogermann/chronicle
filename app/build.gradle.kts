@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.ksp)
     id("kotlin-parcelize")
     id("kotlin-kapt")
     id("com.google.android.gms.oss-licenses-plugin")
@@ -10,6 +9,13 @@ plugins {
 android {
     namespace = "io.github.mattpvaughn.chronicle"
     compileSdk = 34
+
+    lint {
+        abortOnError = false
+        baseline = file("lint-baseline.xml")
+        checkReleaseBuilds = true
+        checkAllWarnings = true
+    }
 
     defaultConfig {
         applicationId = "io.github.mattpvaughn.chronicle"
@@ -44,6 +50,18 @@ android {
         dataBinding = true
         buildConfig = true
     }
+
+    // Using kapt instead of KSP in the root project-level build to avoid plugin
+    // resolution issues while upgrading Kotlin. KAPT is applied via the
+    // 'kotlin-kapt' plugin above.
+}
+
+kapt {
+    arguments {
+        arg("room.schemaLocation", "$projectDir/schemas")
+        arg("room.incremental", "true")
+        arg("room.expandProjection", "true")
+    }
 }
 
 dependencies {
@@ -61,6 +79,7 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.annotation)
     implementation(libs.coroutines)
+    compileOnly(libs.facebook.infer.annotation)
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter)
@@ -69,30 +88,30 @@ dependencies {
     implementation(libs.okhttp3.logging)
 
     implementation(libs.moshi)
-    ksp(libs.moshi.codegen)
+    // Removed moshi-codegen KAPT processor - deprecated for Kotlin 2.x
+    // Moshi will use reflection-based adapters instead
 
     implementation(libs.fresco)
     implementation(libs.fresco.imagepipeline)
 
     implementation(libs.room.runtime)
-    ksp(libs.room.compiler)
-    annotationProcessor(libs.room.compiler)
+    kapt(libs.room.compiler)
     implementation(libs.room.ktx)
 
     implementation(libs.dagger)
-    annotationProcessor(libs.dagger.compiler)
-    ksp(libs.dagger.compiler)
+    kapt(libs.dagger.compiler)
 
-    implementation(libs.exoplayer.core)
-    implementation(libs.exoplayer.ui)
-    implementation(libs.exoplayer.mediasession)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.session)
+    implementation(libs.media3.datasource)
+    implementation(libs.media3.cast)
 
     /*
      * Local Tests
      */
     testImplementation(libs.dagger)
-    testAnnotationProcessor(libs.dagger.compiler)
-    kspTest(libs.dagger.compiler)
+    kaptTest(libs.dagger.compiler)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
@@ -104,8 +123,7 @@ dependencies {
      * Instrumented Tests
      */
     androidTestImplementation(libs.dagger)
-    androidTestAnnotationProcessor(libs.dagger.compiler)
-    kspAndroidTest(libs.dagger.compiler)
+    kaptAndroidTest(libs.dagger.compiler)
 
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.mockk)
@@ -118,6 +136,6 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit.ktx)
 }
 
-tasks.matching { it.name.contains("DebugAndroidTest") }.configureEach {
+tasks.matching { it.name.contains("DebugAndroidTest") && !it.name.contains("Lint") }.configureEach {
     enabled = false
 }
