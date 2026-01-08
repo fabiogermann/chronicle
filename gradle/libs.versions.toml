@@ -14,7 +14,7 @@ espresso = "3.6.2"
 fetch = "3.3.0"
 fresco = "3.4.0" # 3.5.0 causes KSP processing errors
 glide = "4.16.0" # 4.17.0 not yet available
-hamcrest = "1.3" # 3.0 is major version, not tested
+hamcrest = "3.0"
 iapWrapper = "1.7.0" # 1.8.0 causes KSP/Dagger compatibility issues
 inferAnnotation = "0.18.0"
 junit = "4.13.2"
@@ -31,10 +31,10 @@ oss = "17.1.0" # 17.2.0 causes KSP/Dagger compatibility issues
 ossPlugin = "0.10.7"
 result = "1.1.18"
 retrofit = "2.11.0"
-room = "2.6.1" # 2.7.0 causes KSP/Dagger compatibility issues
+room = "2.7.0"
 seismic = "1.0.3"
 swiperefresh = "1.2.0"
-timber = "4.7.1" # 5.0.1 is major version, not tested
+timber = "5.0.1"
 work = "2.9.1" # 2.10.0 causes KSP/Dagger compatibility issues
 
 [libraries]
