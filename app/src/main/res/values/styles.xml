@@ -32,6 +32,11 @@
         <item name="android:colorBackground">@color/colorPrimaryDark</item>
         <item name="colorOnBackground">@color/textPrimary</item>
         
+        <!-- Edge-to-edge window configuration -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/colorPrimaryDark</item>
+        <item name="android:windowLightStatusBar">false</item>
+        
         <!-- Custom font -->
         <item name="android:fontFamily">@font/lato</item>
         
@@ -138,8 +143,15 @@
 
     <!-- Bottom Navigation -->
     <style name="Widget.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="backgroundTint">@color/colorPrimaryDark</item>
+        <item name="itemIconTint">@color/chip_background_color</item>
+        <item name="itemTextColor">@color/chip_background_color</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="itemIconSize">24dp</item>
+        <item name="itemPaddingTop">8dp</item>
+        <item name="itemPaddingBottom">12dp</item>
+        <item name="android:minHeight">80dp</item>
         <item name="fontFamily">@font/lato_bold</item>
-        <item name="android:minHeight">0dp</item> // Fix for BottomNavigationView label above icon → https://stackoverflow.com/questions/70773346/bottomnavigationview-shows-label-over-icon
     </style>
 
 </resources>

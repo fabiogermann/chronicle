@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.ksp) apply false
 
     alias(libs.plugins.ktlint)
 }
@@ -8,10 +9,7 @@ plugins {
 allprojects {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
-    // Add this part: configure KAPT task arguments reflectively to avoid compile-time
-    // dependency on Kotlin Gradle plugin types in the root script.
-    // This finds tasks whose implementation class is org.jetbrains.kotlin.gradle.tasks.KaptTask
-    // and invokes the kaptArgs.arg(...) method via reflection.
+    // KAPT configuration for Kotlin 2.x (needed for data binding which doesn't fully support KSP)
     tasks.matching { it.javaClass.name == "org.jetbrains.kotlin.gradle.tasks.KaptTask" }
         .configureEach {
             try {
@@ -39,8 +37,6 @@ allprojects {
                     }
                 }
             } catch (e: Exception) {
-                // Swallow any reflection errors here; if reflection fails then the
-                // specific Gradle/Kotlin plugin version may not expose the same API.
                 logger.debug("Failed to configure kaptArgs via reflection: ${e.message}")
             }
         }

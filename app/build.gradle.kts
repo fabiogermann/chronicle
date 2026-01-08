@@ -1,8 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
     id("kotlin-parcelize")
-    id("kotlin-kapt")
+    id("kotlin-kapt")  // Still needed for data binding
     id("com.google.android.gms.oss-licenses-plugin")
 }
 
@@ -51,20 +52,22 @@ android {
         buildConfig = true
     }
 
-    // Using kapt instead of KSP in the root project-level build to avoid plugin
-    // resolution issues while upgrading Kotlin. KAPT is applied via the
-    // 'kotlin-kapt' plugin above.
 }
 
+// KSP configuration for Room
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.incremental", "true")
+    arg("room.expandProjection", "true")
+}
+
+// KAPT still needed for data binding (doesn't fully support KSP yet)
 kapt {
-    arguments {
-        arg("room.schemaLocation", "$projectDir/schemas")
-        arg("room.incremental", "true")
-        arg("room.expandProjection", "true")
-    }
+    correctErrorTypes = true
 }
 
 dependencies {
+
     implementation(libs.material)
     implementation(libs.glide)
     implementation(libs.timber)
@@ -95,11 +98,11 @@ dependencies {
     implementation(libs.fresco.imagepipeline)
 
     implementation(libs.room.runtime)
-    kapt(libs.room.compiler)
+    ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 
     implementation(libs.dagger)
-    kapt(libs.dagger.compiler)
+    ksp(libs.dagger.compiler)
 
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.ui)
@@ -111,7 +114,7 @@ dependencies {
      * Local Tests
      */
     testImplementation(libs.dagger)
-    kaptTest(libs.dagger.compiler)
+    kspTest(libs.dagger.compiler)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
@@ -123,7 +126,7 @@ dependencies {
      * Instrumented Tests
      */
     androidTestImplementation(libs.dagger)
-    kaptAndroidTest(libs.dagger.compiler)
+    kspAndroidTest(libs.dagger.compiler)
 
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.mockk)
