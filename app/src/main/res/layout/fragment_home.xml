@@ -7,11 +7,11 @@
 
         <variable
             name="viewModel"
-            type="io.github.mattpvaughn.chronicle.features.home.HomeViewModel" />
+            type="local.oss.chronicle.features.home.HomeViewModel" />
 
         <variable
             name="plexConfig"
-            type="io.github.mattpvaughn.chronicle.data.sources.plex.PlexConfig" />
+            type="local.oss.chronicle.data.sources.plex.PlexConfig" />
 
         <import type="android.view.View" />
 
@@ -87,7 +87,7 @@
                 android:text="@string/disable_offline_mode" />
         </LinearLayout>
 
-        <io.github.mattpvaughn.chronicle.views.HorizontalChildReadySwipeRefreshLayout
+        <local.oss.chronicle.views.HorizontalChildReadySwipeRefreshLayout
             android:id="@+id/swipe_to_refresh"
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -183,7 +183,7 @@
                         tools:listitem="@layout/grid_item_audiobook" />
                 </LinearLayout>
             </ScrollView>
-        </io.github.mattpvaughn.chronicle.views.HorizontalChildReadySwipeRefreshLayout>
+        </local.oss.chronicle.views.HorizontalChildReadySwipeRefreshLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/search_results_list"

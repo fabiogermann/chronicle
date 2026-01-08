@@ -7,11 +7,11 @@
 
         <variable
             name="user"
-            type="io.github.mattpvaughn.chronicle.data.sources.plex.model.PlexUser" />
+            type="local.oss.chronicle.data.sources.plex.model.PlexUser" />
 
         <variable
             name="clickListener"
-            type="io.github.mattpvaughn.chronicle.features.login.UserClickListener" />
+            type="local.oss.chronicle.features.login.UserClickListener" />
 
     </data>
 
@@ -24,7 +24,7 @@
         android:orientation="vertical"
         tools:layout_width="100dp">
 
-    <io.github.mattpvaughn.chronicle.views.ChronicleDraweeView
+    <local.oss.chronicle.views.ChronicleDraweeView
             android:id="@+id/user_thumb"
             android:layout_width="match_parent"
             fresco:placeholderImage="@drawable/ic_person_white"

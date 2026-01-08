@@ -1,0 +1,59 @@
+package local.oss.chronicle.features.currentlyplaying
+
+import android.transition.TransitionManager
+import android.view.View
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
+import androidx.constraintlayout.widget.ConstraintSet.*
+import androidx.databinding.BindingAdapter
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import androidx.transition.AutoTransition
+import local.oss.chronicle.R
+import local.oss.chronicle.application.MainActivityViewModel
+import local.oss.chronicle.application.MainActivityViewModel.BottomSheetState.*
+import timber.log.Timber
+
+@BindingAdapter("bottomSheetState")
+fun setBottomSheetState(
+    parent: ConstraintLayout,
+    state: MainActivityViewModel.BottomSheetState,
+) {
+    Timber.i("Bottom sheet state is $state")
+    val constraints = ConstraintSet()
+    constraints.clone(parent)
+    when (state) {
+        EXPANDED -> expandConstraint(constraints)
+        COLLAPSED -> collapseConstraint(constraints)
+        HIDDEN -> hideConstraint(constraints)
+    }
+
+    val transition = AutoTransition()
+    transition.interpolator = FastOutSlowInInterpolator()
+    transition.duration = parent.context.resources.getInteger(R.integer.short_animation_ms).toLong()
+    TransitionManager.beginDelayedTransition(parent)
+    parent.setConstraintSet(constraints)
+    constraints.applyTo(parent)
+
+    val bottomSheetHandle = parent.findViewById<View>(R.id.currently_playing_handle)
+    bottomSheetHandle.visibility = if (state == COLLAPSED) View.VISIBLE else View.GONE
+}
+
+private fun collapseConstraint(constraintSet: ConstraintSet) {
+    constraintSet.connect(
+        R.id.currently_playing_container,
+        TOP,
+        R.id.currently_playing_collapsed_top,
+        BOTTOM,
+    )
+    constraintSet.connect(R.id.currently_playing_container, BOTTOM, R.id.bottom_nav, TOP)
+}
+
+private fun expandConstraint(constraintSet: ConstraintSet) {
+    constraintSet.connect(R.id.currently_playing_container, TOP, PARENT_ID, TOP)
+    constraintSet.connect(R.id.currently_playing_container, BOTTOM, R.id.bottom_nav, TOP)
+}
+
+private fun hideConstraint(constraintSet: ConstraintSet) {
+    constraintSet.connect(R.id.currently_playing_container, TOP, R.id.bottom_nav, TOP)
+    constraintSet.connect(R.id.currently_playing_container, BOTTOM, R.id.bottom_nav, TOP)
+}

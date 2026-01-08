@@ -8,10 +8,12 @@
     <!-- Required to post notifications on Android 13+ (runtime permission still required at runtime) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- Required for foreground service with mediaPlayback type on Android 14+ (API 34+) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-configuration android:name="com.android.vending.BILLING" />
 
     <application
-        android:name="io.github.mattpvaughn.chronicle.application.ChronicleApplication"
+        android:name="local.oss.chronicle.application.ChronicleApplication"
         android:allowBackup="true"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
@@ -24,7 +26,7 @@
 
         <activity
             android:exported="true"
-            android:name="io.github.mattpvaughn.chronicle.application.MainActivity"
+            android:name="local.oss.chronicle.application.MainActivity"
             android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,7 +38,7 @@
 
 
         <service
-            android:name="io.github.mattpvaughn.chronicle.features.player.MediaPlayerService"
+            android:name="local.oss.chronicle.features.player.MediaPlayerService"
             android:enabled="true"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback">

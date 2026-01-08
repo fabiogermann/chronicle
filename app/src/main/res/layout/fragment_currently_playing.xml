@@ -7,11 +7,11 @@
 
         <variable
             name="viewModel"
-            type="io.github.mattpvaughn.chronicle.features.currentlyplaying.CurrentlyPlayingViewModel" />
+            type="local.oss.chronicle.features.currentlyplaying.CurrentlyPlayingViewModel" />
 
         <variable
             name="plexConfig"
-            type="io.github.mattpvaughn.chronicle.data.sources.plex.PlexConfig" />
+            type="local.oss.chronicle.data.sources.plex.PlexConfig" />
 
         <import type="android.view.View" />
     </data>
@@ -272,7 +272,7 @@
                         android:orientation="vertical"
                         app:layout_constraintGuide_end="@dimen/screen_horizontal_padding" />
 
-                    <io.github.mattpvaughn.chronicle.views.ChronicleDraweeView
+                    <local.oss.chronicle.views.ChronicleDraweeView
                         android:id="@+id/details_artwork"
                         serverConnected="@{plexConfig.isConnected()}"
                         srcRounded="@{viewModel.audiobook.thumb}"
@@ -343,14 +343,14 @@
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             app:layout_constraintTop_toTopOf="@id/tracks" />
 
-        <io.github.mattpvaughn.chronicle.views.BottomSheetChooser
+        <local.oss.chronicle.views.BottomSheetChooser
             android:id="@+id/bottom_sheet_chooser"
             bottomChooserState="@{viewModel.bottomChooserState}"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:elevation="4dp" />
 
-        <io.github.mattpvaughn.chronicle.views.BottomSheetChooser
+        <local.oss.chronicle.views.BottomSheetChooser
             android:id="@+id/sleep_timer_chooser"
             bottomChooserState="@{viewModel.sleepTimerChooserState}"
             android:layout_width="match_parent"

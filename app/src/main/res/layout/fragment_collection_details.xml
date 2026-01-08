@@ -6,7 +6,7 @@
     <data>
         <variable
             name="viewModel"
-            type="io.github.mattpvaughn.chronicle.features.collections.CollectionDetailsViewModel" />
+            type="local.oss.chronicle.features.collections.CollectionDetailsViewModel" />
 
         <import type="android.view.View" />
     </data>

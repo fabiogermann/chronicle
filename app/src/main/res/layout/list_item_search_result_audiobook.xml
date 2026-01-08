@@ -7,7 +7,7 @@
 
         <variable
             name="audiobook"
-            type="io.github.mattpvaughn.chronicle.data.model.Audiobook" />
+            type="local.oss.chronicle.data.model.Audiobook" />
 
         <variable
             name="serverConnected"
@@ -15,7 +15,7 @@
 
         <variable
             name="searchResultClick"
-            type="io.github.mattpvaughn.chronicle.features.library.LibraryFragment.AudiobookClick" />
+            type="local.oss.chronicle.features.library.LibraryFragment.AudiobookClick" />
 
         <import type="android.view.View" />
 
@@ -44,7 +44,7 @@
             app:layout_constraintEnd_toEndOf="@+id/book_cover_img"
             app:layout_constraintTop_toTopOf="@+id/book_cover_img" />
 
-    <io.github.mattpvaughn.chronicle.views.ChronicleDraweeView
+    <local.oss.chronicle.views.ChronicleDraweeView
             android:id="@+id/book_cover_img"
             srcRounded="@{audiobook.thumb}"
             serverConnected="@{serverConnected}"

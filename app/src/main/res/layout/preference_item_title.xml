@@ -6,7 +6,7 @@
 
         <variable
             name="model"
-            type="io.github.mattpvaughn.chronicle.features.settings.PreferenceModel" />
+            type="local.oss.chronicle.features.settings.PreferenceModel" />
 
     </data>
 

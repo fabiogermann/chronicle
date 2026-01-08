@@ -6,11 +6,11 @@
 
         <variable
             name="server"
-            type="io.github.mattpvaughn.chronicle.data.model.ServerModel" />
+            type="local.oss.chronicle.data.model.ServerModel" />
 
         <variable
             name="clickListener"
-            type="io.github.mattpvaughn.chronicle.features.login.ServerClickListener" />
+            type="local.oss.chronicle.features.login.ServerClickListener" />
 
     </data>
 

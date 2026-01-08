@@ -7,11 +7,11 @@
 
         <variable
             name="viewModel"
-            type="io.github.mattpvaughn.chronicle.features.login.ChooseUserViewModel" />
+            type="local.oss.chronicle.features.login.ChooseUserViewModel" />
 
         <import type="android.view.View" />
 
-        <import type="io.github.mattpvaughn.chronicle.data.model.LoadingStatus" />
+        <import type="local.oss.chronicle.data.model.LoadingStatus" />
     </data>
 
 

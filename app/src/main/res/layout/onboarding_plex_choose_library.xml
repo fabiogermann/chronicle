@@ -5,7 +5,7 @@
 
         <variable
             name="chooseLibraryViewModel"
-            type="io.github.mattpvaughn.chronicle.features.login.ChooseLibraryViewModel" />
+            type="local.oss.chronicle.features.login.ChooseLibraryViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"

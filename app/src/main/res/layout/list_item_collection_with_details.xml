@@ -7,11 +7,11 @@
 
         <variable
             name="collection"
-            type="io.github.mattpvaughn.chronicle.data.model.Collection" />
+            type="local.oss.chronicle.data.model.Collection" />
 
         <variable
             name="collectionClick"
-            type="io.github.mattpvaughn.chronicle.features.collections.CollectionsFragment.CollectionClick" />
+            type="local.oss.chronicle.features.collections.CollectionsFragment.CollectionClick" />
 
         <variable
             name="serverConnected"
@@ -61,7 +61,7 @@
                 android:src="@drawable/ic_not_played_dog_ear"
                 android:visibility="@{View.VISIBLE}" />
 
-            <io.github.mattpvaughn.chronicle.views.ChronicleDraweeView
+            <local.oss.chronicle.views.ChronicleDraweeView
                 android:id="@+id/book_cover_img"
                 serverConnected="@{serverConnected}"
                 srcRounded="@{collection.thumb}"

@@ -7,19 +7,19 @@
 
         <variable
             name="viewModel"
-            type="io.github.mattpvaughn.chronicle.features.bookdetails.AudiobookDetailsViewModel" />
+            type="local.oss.chronicle.features.bookdetails.AudiobookDetailsViewModel" />
 
         <variable
             name="inputAudiobook"
-            type="io.github.mattpvaughn.chronicle.data.model.Audiobook" />
+            type="local.oss.chronicle.data.model.Audiobook" />
 
         <variable
             name="plexConfig"
-            type="io.github.mattpvaughn.chronicle.data.sources.plex.PlexConfig" />
+            type="local.oss.chronicle.data.sources.plex.PlexConfig" />
 
-        <import type="io.github.mattpvaughn.chronicle.data.sources.plex.ICachedFileManager.CacheStatus" />
+        <import type="local.oss.chronicle.data.sources.plex.ICachedFileManager.CacheStatus" />
 
-        <import type="io.github.mattpvaughn.chronicle.data.sources.plex.PlexConfig.ConnectionState" />
+        <import type="local.oss.chronicle.data.sources.plex.PlexConfig.ConnectionState" />
 
         <import type="android.view.View" />
     </data>
@@ -60,7 +60,7 @@
                         android:orientation="vertical"
                         app:layout_constraintGuide_end="@dimen/screen_horizontal_padding" />
 
-                    <io.github.mattpvaughn.chronicle.views.ChronicleDraweeView
+                    <local.oss.chronicle.views.ChronicleDraweeView
                         android:id="@+id/details_artwork"
                         serverConnected="@{plexConfig.isConnected()}"
                         srcRounded="@{viewModel.audiobook.thumb}"
@@ -287,7 +287,7 @@
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-        <io.github.mattpvaughn.chronicle.views.BottomSheetChooser
+        <local.oss.chronicle.views.BottomSheetChooser
             bottomChooserState="@{viewModel.bottomChooserState}"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

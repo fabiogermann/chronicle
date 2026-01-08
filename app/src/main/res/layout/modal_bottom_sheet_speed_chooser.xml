@@ -5,7 +5,7 @@
     <data>
         <variable name="speed" type="Float" />
         <import type="android.view.View" />
-        <import type="io.github.mattpvaughn.chronicle.features.currentlyplaying.CurrentlyPlayingViewModel" />
+        <import type="local.oss.chronicle.features.currentlyplaying.CurrentlyPlayingViewModel" />
     </data>
 
         <LinearLayout

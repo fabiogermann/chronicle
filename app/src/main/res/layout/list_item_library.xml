@@ -6,11 +6,11 @@
 
         <variable
             name="library"
-            type="io.github.mattpvaughn.chronicle.data.model.PlexLibrary" />
+            type="local.oss.chronicle.data.model.PlexLibrary" />
 
         <variable
             name="clickListener"
-            type="io.github.mattpvaughn.chronicle.features.login.LibraryClickListener" />
+            type="local.oss.chronicle.features.login.LibraryClickListener" />
 
     </data>
 

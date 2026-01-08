@@ -7,11 +7,11 @@
 
         <variable
             name="audiobook"
-            type="io.github.mattpvaughn.chronicle.data.model.Audiobook" />
+            type="local.oss.chronicle.data.model.Audiobook" />
 
         <variable
             name="audiobookClick"
-            type="io.github.mattpvaughn.chronicle.features.library.LibraryFragment.AudiobookClick" />
+            type="local.oss.chronicle.features.library.LibraryFragment.AudiobookClick" />
 
         <import type="android.view.View" />
 

@@ -7,11 +7,11 @@
 
         <variable
             name="viewModel"
-            type="io.github.mattpvaughn.chronicle.application.MainActivityViewModel" />
+            type="local.oss.chronicle.application.MainActivityViewModel" />
 
         <variable
             name="plexConfig"
-            type="io.github.mattpvaughn.chronicle.data.sources.plex.PlexConfig" />
+            type="local.oss.chronicle.data.sources.plex.PlexConfig" />
 
         <import type="android.view.View" />
     </data>
@@ -68,7 +68,7 @@
                 android:background="@drawable/mini_player_background"
                 android:elevation="8dp">
 
-                <io.github.mattpvaughn.chronicle.views.ChronicleDraweeView
+                <local.oss.chronicle.views.ChronicleDraweeView
                     android:id="@+id/currently_playing_thumb"
                     serverConnected="@{plexConfig.isConnected()}"
                     srcRounded="@{viewModel.audiobook.thumb}"

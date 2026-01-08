@@ -8,11 +8,11 @@
 
         <variable
             name="audiobook"
-            type="io.github.mattpvaughn.chronicle.data.model.Audiobook" />
+            type="local.oss.chronicle.data.model.Audiobook" />
 
         <variable
             name="audiobookClick"
-            type="io.github.mattpvaughn.chronicle.features.library.LibraryFragment.AudiobookClick" />
+            type="local.oss.chronicle.features.library.LibraryFragment.AudiobookClick" />
 
         <variable
             name="isVertical"
@@ -79,7 +79,7 @@
                 android:translationZ="2dp"
                 android:visibility="@{audiobook.progress > 0L ? View.VISIBLE : View.GONE}" />
 
-            <io.github.mattpvaughn.chronicle.views.ChronicleDraweeView
+            <local.oss.chronicle.views.ChronicleDraweeView
                 android:id="@+id/book_cover_img"
                 serverConnected="@{serverConnected}"
                 srcRounded="@{audiobook.thumb}"

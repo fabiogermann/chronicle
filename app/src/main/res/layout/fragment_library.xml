@@ -7,17 +7,17 @@
 
         <variable
             name="viewModel"
-            type="io.github.mattpvaughn.chronicle.features.library.LibraryViewModel" />
+            type="local.oss.chronicle.features.library.LibraryViewModel" />
 
         <variable
             name="plexConfig"
-            type="io.github.mattpvaughn.chronicle.data.sources.plex.PlexConfig" />
+            type="local.oss.chronicle.data.sources.plex.PlexConfig" />
 
         <import type="android.view.View" />
 
-        <import type="io.github.mattpvaughn.chronicle.data.model.Audiobook" />
+        <import type="local.oss.chronicle.data.model.Audiobook" />
 
-        <import type="io.github.mattpvaughn.chronicle.data.sources.plex.model.MediaTypes" />
+        <import type="local.oss.chronicle.data.sources.plex.model.MediaTypes" />
 
         <import type="androidx.recyclerview.widget.GridLayoutManager" />
 
@@ -135,7 +135,7 @@
                     android:visibility="@{viewModel.searchResults.isEmpty() &amp;&amp; viewModel.isSearchActive() &amp;&amp; !viewModel.isQueryEmpty() ? View.VISIBLE : View.GONE}" />
             </LinearLayout>
 
-            <io.github.mattpvaughn.chronicle.views.BottomSheetChooser
+            <local.oss.chronicle.views.BottomSheetChooser
                 android:id="@+id/bottom_sheet_chooser"
                 bottomChooserState="@{viewModel.bottomChooserState}"
                 android:layout_width="match_parent"

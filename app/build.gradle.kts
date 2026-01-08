@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "io.github.mattpvaughn.chronicle"
+    namespace = "local.oss.chronicle"
     compileSdk = 36
 
     lint {
@@ -19,13 +19,13 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.mattpvaughn.chronicle"
+        applicationId = "local.oss.chronicle"
         minSdk = 33
         targetSdk = 36
         versionCode = 28
         versionName = "0.56.0"
 
-        testInstrumentationRunner = "io.github.mattpvaughn.chronicle.application.ChronicleTestRunner"
+        testInstrumentationRunner = "local.oss.chronicle.application.ChronicleTestRunner"
     }
 
     buildTypes {

@@ -1,0 +1,75 @@
+package local.oss.chronicle.features.login
+
+import android.net.Uri
+import androidx.lifecycle.*
+import local.oss.chronicle.application.Injector
+import local.oss.chronicle.data.sources.plex.IPlexLoginRepo
+import local.oss.chronicle.data.sources.plex.model.OAuthResponse
+import local.oss.chronicle.util.Event
+import local.oss.chronicle.util.postEvent
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+class LoginViewModel(private val plexLoginRepo: IPlexLoginRepo) : ViewModel() {
+    class Factory
+        @Inject
+        constructor(private val plexLoginRepo: IPlexLoginRepo) :
+        ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
+                    return LoginViewModel(plexLoginRepo) as T
+                }
+                throw IllegalArgumentException("Unknown ViewHolder class")
+            }
+        }
+
+    private var _authEvent = MutableLiveData<Event<OAuthResponse?>>()
+    val authEvent: LiveData<Event<OAuthResponse?>>
+        get() = _authEvent
+
+    private var _errorEvent = MutableLiveData<Event<String>>()
+    val errorEvent: LiveData<Event<String>>
+        get() = _errorEvent
+
+    private var hasLaunched = false
+
+    val isLoading =
+        plexLoginRepo.loginEvent.map { loginState ->
+            return@map loginState.peekContent() == IPlexLoginRepo.LoginState.AWAITING_LOGIN_RESULTS
+        }
+
+    fun loginWithOAuth() {
+        viewModelScope.launch(Injector.get().unhandledExceptionHandler()) {
+            try {
+                val pin = plexLoginRepo.postOAuthPin()
+                _authEvent.postEvent(pin)
+            } catch (e: Exception) {
+                _errorEvent.postEvent("Login failed: ${e.message}")
+                timber.log.Timber.e(e, "OAuth login failed")
+            }
+        }
+    }
+
+    fun makeOAuthLoginUrl(
+        id: String,
+        code: String,
+    ): Uri {
+        return plexLoginRepo.makeOAuthUrl(id, code)
+    }
+
+    /** Whether the custom tab has been launched to login */
+    fun setLaunched(b: Boolean) {
+        hasLaunched = b
+    }
+
+    fun checkForAccess() {
+        if (hasLaunched) {
+            viewModelScope.launch(Injector.get().unhandledExceptionHandler()) {
+                // Check for access, if the login repo gains access, then our observer in
+                // MainActivity will handle navigation
+                plexLoginRepo.checkForOAuthAccessToken()
+            }
+        }
+    }
+}

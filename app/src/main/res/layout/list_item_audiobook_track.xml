@@ -10,7 +10,7 @@
 
         <variable
             name="chapter"
-            type="io.github.mattpvaughn.chronicle.data.model.Chapter" />
+            type="local.oss.chronicle.data.model.Chapter" />
 
         <variable
             name="audiobookProgress"
@@ -18,7 +18,7 @@
 
         <variable
             name="clickListener"
-            type="io.github.mattpvaughn.chronicle.features.bookdetails.TrackClickListener" />
+            type="local.oss.chronicle.features.bookdetails.TrackClickListener" />
 
         <import type="android.view.View" />
     </data>

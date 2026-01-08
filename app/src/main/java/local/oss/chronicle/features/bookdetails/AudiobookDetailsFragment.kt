@@ -1,0 +1,209 @@
+package local.oss.chronicle.features.bookdetails
+
+import android.content.Context
+import android.graphics.drawable.AnimatedVectorDrawable
+import android.os.Bundle
+import android.view.*
+import android.widget.Toast
+import android.widget.Toast.LENGTH_SHORT
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import local.oss.chronicle.R
+import local.oss.chronicle.application.MainActivity
+import local.oss.chronicle.data.local.IBookRepository
+import local.oss.chronicle.data.local.ITrackRepository
+import local.oss.chronicle.data.local.PrefsRepo
+import local.oss.chronicle.data.model.Audiobook
+import local.oss.chronicle.data.model.Chapter
+import local.oss.chronicle.data.sources.MediaSource
+import local.oss.chronicle.data.sources.plex.PlexConfig
+import local.oss.chronicle.databinding.FragmentAudiobookDetailsBinding
+import local.oss.chronicle.features.player.MediaServiceConnection
+import local.oss.chronicle.navigation.Navigator
+import local.oss.chronicle.util.observeEvent
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import timber.log.Timber
+import javax.inject.Inject
+
+@ExperimentalCoroutinesApi
+class AudiobookDetailsFragment : Fragment() {
+    companion object {
+        fun newInstance() = AudiobookDetailsFragment()
+
+        const val TAG = "details tag"
+        const val ARG_AUDIOBOOK_ID = "audiobook_id"
+        const val ARG_AUDIOBOOK_TITLE = "ARG_AUDIOBOOK_TITLE"
+        const val ARG_IS_AUDIOBOOK_CACHED = "is_audiobook_cached"
+    }
+
+    @Inject
+    lateinit var prefsRepo: PrefsRepo
+
+    @Inject
+    lateinit var navigator: Navigator
+
+    @Inject
+    lateinit var trackRepository: ITrackRepository
+
+    @Inject
+    lateinit var bookRepository: IBookRepository
+
+    @Inject
+    lateinit var plexConfig: PlexConfig
+
+    @Inject
+    lateinit var mediaServiceConnection: MediaServiceConnection
+
+    @Inject
+    lateinit var viewModelFactory: AudiobookDetailsViewModel.Factory
+
+    lateinit var viewModel: AudiobookDetailsViewModel
+
+    override fun onAttach(context: Context) {
+        (requireActivity() as MainActivity).activityComponent!!.inject(this)
+        Timber.i("AudiobookDetailsFragment onAttach()")
+        super.onAttach(context)
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View? {
+        Timber.i("AudiobookDetailsFragment onCreateView()")
+
+        val binding = FragmentAudiobookDetailsBinding.inflate(inflater, container, false)
+
+        val inputId = requireArguments().getInt(ARG_AUDIOBOOK_ID)
+        val bookTitle = requireArguments().getString(ARG_AUDIOBOOK_TITLE) ?: ""
+        val inputCached = requireArguments().getBoolean(ARG_IS_AUDIOBOOK_CACHED)
+
+        viewModelFactory.inputAudiobook =
+            Audiobook(
+                id = inputId,
+                title = bookTitle,
+                source = MediaSource.NO_SOURCE_FOUND,
+                isCached = inputCached,
+            )
+        viewModel =
+            ViewModelProvider(this, viewModelFactory)[AudiobookDetailsViewModel::class.java]
+
+        binding.viewModel = viewModel
+        binding.lifecycleOwner = viewLifecycleOwner
+        binding.plexConfig = plexConfig
+
+        val adapter =
+            ChapterListAdapter(
+                object : TrackClickListener {
+                    override fun onClick(chapter: Chapter) {
+                        Timber.i("Starting chapter with name: ${chapter.title}")
+                        viewModel.jumpToChapter(
+                            offset = chapter.startTimeOffset,
+                            trackId = chapter.trackId,
+                        )
+                    }
+                },
+            )
+        binding.tracks.adapter = adapter
+
+        // TODO casting
+//        val menu = binding.detailsToolbar.menu
+//        val mediaRouteButton = menu.findItem(R.id.media_route_menu_item).actionView
+//
+//        if (castContext.castState != CastState.NO_DEVICES_AVAILABLE) {
+//            mediaRouteButton.visibility = View.VISIBLE
+//        }
+//
+//        castContext.addCastStateListener { state ->
+//            if (state == CastState.NO_DEVICES_AVAILABLE) {
+//                mediaRouteButton.visibility = View.GONE
+//            } else {
+//                if (mediaRouteButton.visibility == View.GONE) {
+//                    mediaRouteButton.visibility = View.VISIBLE
+//                }
+//            }
+//        }
+
+        (activity as AppCompatActivity).setSupportActionBar(binding.detailsToolbar)
+        binding.detailsToolbar.title = null
+
+        binding.detailsToolbar.setNavigationOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+
+        viewModel.messageForUser.observeEvent(viewLifecycleOwner) { message ->
+            Toast.makeText(context, message.format(resources), LENGTH_SHORT).show()
+        }
+
+        viewModel.activeChapter.observe(viewLifecycleOwner) { chapter ->
+            Timber.i(
+                "Updating current chapter: (${chapter.trackId}, ${chapter.discNumber}, ${chapter.index})",
+            )
+            adapter.updateCurrentChapter(
+                trackId = chapter.trackId,
+                discNumber = chapter.discNumber,
+                chapterIndex = chapter.index,
+            )
+        }
+
+        viewModel.forceSyncInProgress.observe(viewLifecycleOwner) { isSyncing ->
+            val syncMenuItem = binding.detailsToolbar.menu.findItem(R.id.force_sync)
+            val syncIcon = syncMenuItem.icon
+            if (syncIcon is AnimatedVectorDrawable) {
+                if (isSyncing) syncIcon.start() else syncIcon.stop()
+            }
+        }
+
+        viewModel.isWatchedIcon.observe(viewLifecycleOwner) { icon ->
+            Timber.d("isWatchedIcon.observe called")
+            binding.detailsToolbar.menu.findItem(R.id.toggle_watched).setIcon(icon)
+        }
+
+        return binding.root
+    }
+
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(
+            object : MenuProvider {
+                override fun onCreateMenu(
+                    menu: Menu,
+                    menuInflater: MenuInflater,
+                ) {
+                    menuInflater.inflate(R.menu.audiobook_details_menu, menu)
+                }
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    return when (menuItem.itemId) {
+                        R.id.toggle_watched -> {
+                            viewModel.toggleWatched()
+                            true
+                        }
+
+                        R.id.force_sync -> {
+                            viewModel.forceSyncBook(hasUserConfirmation = false)
+                            true
+                        }
+
+                        else -> false
+                    }
+                }
+            },
+            viewLifecycleOwner,
+            Lifecycle.State.RESUMED,
+        )
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
+}

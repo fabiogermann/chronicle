@@ -5,7 +5,7 @@
 
         <variable
             name="sectionHeader"
-            type="io.github.mattpvaughn.chronicle.features.bookdetails.ChapterListAdapter.SectionHeaderModel" />
+            type="local.oss.chronicle.features.bookdetails.ChapterListAdapter.SectionHeaderModel" />
 
         <import type="android.view.View" />
     </data>

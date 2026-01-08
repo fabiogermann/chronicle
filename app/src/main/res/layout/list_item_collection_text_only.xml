@@ -7,11 +7,11 @@
 
         <variable
             name="collection"
-            type="io.github.mattpvaughn.chronicle.data.model.Collection" />
+            type="local.oss.chronicle.data.model.Collection" />
 
         <variable
             name="collectionClick"
-            type="io.github.mattpvaughn.chronicle.features.collections.CollectionsFragment.CollectionClick" />
+            type="local.oss.chronicle.features.collections.CollectionsFragment.CollectionClick" />
 
         <import type="android.view.View" />
 
