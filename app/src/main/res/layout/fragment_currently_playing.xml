@@ -156,6 +156,7 @@
 
                     <com.google.android.material.slider.Slider
                         android:id="@+id/chapter_progress_seekbar"
+                        style="@style/Widget.Material3.Slider"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="@dimen/margin_normal"
@@ -168,10 +169,10 @@
                         app:layout_constraintRight_toRightOf="@id/right_gutter"
                         app:layout_constraintTop_toBottomOf="@id/progress"
                         app:thumbColor="@color/progressTintColor"
-                        app:thumbRadius="8dp"
+                        app:thumbRadius="10dp"
                         app:trackColorActive="@color/progressTintColor"
                         app:trackColorInactive="@color/progressTrackTintColor"
-                        app:trackHeight="3dp" />
+                        app:trackHeight="4dp" />
 
                     <TextView
                         android:id="@+id/progress"
@@ -225,6 +226,7 @@
                         android:lines="1"
                         android:text="@{viewModel.currentChapter.title.isEmpty() ? viewModel.currentTrack.title : viewModel.currentChapter.title}"
                         android:textAlignment="center"
+                        android:visibility="gone"
                         app:layout_constraintLeft_toLeftOf="@id/left_gutter"
                         app:layout_constraintRight_toRightOf="@id/right_gutter"
                         app:layout_constraintTop_toBottomOf="@id/chapter_progress"
@@ -239,6 +241,7 @@
                         android:lines="1"
                         android:text="@{viewModel.audiobook.title}"
                         android:textAlignment="center"
+                        android:visibility="gone"
                         app:layout_constraintLeft_toLeftOf="@id/left_gutter"
                         app:layout_constraintRight_toRightOf="@id/right_gutter"
                         app:layout_constraintTop_toBottomOf="@id/chapter_title"

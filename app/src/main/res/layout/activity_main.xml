@@ -64,7 +64,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/bottom_sheet_handle_height"
                 android:layout_gravity="top"
-                android:background="@color/colorPrimaryDark"
+                android:background="@drawable/mini_player_background"
                 android:elevation="1dp">
 
                 <io.github.mattpvaughn.chronicle.views.ChronicleDraweeView
