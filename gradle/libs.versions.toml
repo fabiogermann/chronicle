@@ -1,89 +1,91 @@
+# All entries are alphabetically sorted
+
 [versions]
 agp = "8.13.2"
-kotlin = "2.1.0"
-coroutines = "1.9.0"
-material = "1.12.0"
-room = "2.6.1"
-ksp = "2.1.0-1.0.29"
-kotlinStdlib = "2.1.0"
-glide = "4.16.0"
-fresco = "3.4.0"
-timber = "4.7.1"
-dagger = "2.52"
-iapWrapper = "1.7.0"
-moshi = "1.15.1"
-media3 = "1.5.0"
-fetch = "3.3.0"
-work = "2.9.1"
-result = "1.1.18"
-retrofit = "2.11.0"
-swiperefresh = "1.2.0-alpha01"
-seismic = "1.0.3"
-okhttp3 = "4.12.0"
-browserx = "1.8.0"
-oss = "17.1.0"
-appcompat = "1.7.0"
-annotation = "1.8.2"
-ktlint = "12.1.1"
-junit = "4.13.2"
-mockk = "1.13.13"
-hamcrest = "1.3"
-coreTesting = "2.2.0"
-espresso = "3.6.1"
 androidxTest = "1.6.1"
 androidxTestExt = "1.2.1"
-ossPlugin = "0.10.6"
+annotation = "1.8.2"
+appcompat = "1.7.0"
+browserx = "1.8.0"
+coreTesting = "2.2.0"
+coroutines = "1.9.0"
+dagger = "2.52"
+espresso = "3.6.1"
+fetch = "3.3.0"
+fresco = "3.4.0"
+glide = "4.16.0"
+hamcrest = "1.3"
+iapWrapper = "1.7.0"
 inferAnnotation = "0.18.0"
+junit = "4.13.2"
+kotlin = "2.1.0"
+kotlinStdlib = "2.1.0"
+ksp = "2.1.0-1.0.29"
+ktlint = "12.1.1"
+material = "1.12.0"
+media3 = "1.5.0"
+mockk = "1.13.13"
+moshi = "1.15.1"
+okhttp3 = "4.12.0"
+oss = "17.1.0"
+ossPlugin = "0.10.6"
+result = "1.1.18"
+retrofit = "2.11.0"
+room = "2.6.1"
+seismic = "1.0.3"
+swiperefresh = "1.2.0-alpha01"
+timber = "4.7.1"
+work = "2.9.1"
 
 [libraries]
-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
-glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
-fresco = { group = "com.facebook.fresco", name = "fresco", version.ref = "fresco" }
-fresco-imagepipeline = { group = "com.facebook.fresco", name = "imagepipeline-okhttp3", version.ref = "fresco" }
-timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
+androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "coreTesting" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExt" }
+androidx-test-ext-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
+androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidxTest" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTest" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+browserx = { group = "androidx.browser", name = "browser", version.ref = "browserx" }
+coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 dagger = { group = "com.google.dagger", name = "dagger", version.ref = "dagger" }
 dagger-compiler = { group = "com.google.dagger", name = "dagger-compiler", version.ref = "dagger" }
+espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espresso" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+facebook-infer-annotation = { group = "com.facebook.infer.annotation", name = "infer-annotation", version.ref = "inferAnnotation" }
+fetch = { group = "com.github.tonyofrancis.Fetch", name = "fetch2", version.ref = "fetch" }
+fresco = { group = "com.facebook.fresco", name = "fresco", version.ref = "fresco" }
+fresco-imagepipeline = { group = "com.facebook.fresco", name = "imagepipeline-okhttp3", version.ref = "fresco" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+hamcrest = { group = "org.hamcrest", name = "hamcrest-all", version.ref = "hamcrest" }
 iapwrapper = { group = "com.github.akshaaatt", name = "Google-IAP", version.ref = "iapWrapper" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+media3-cast = { group = "androidx.media3", name = "media3-cast", version.ref = "media3" }
+media3-datasource = { group = "androidx.media3", name = "media3-datasource", version.ref = "media3" }
+media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
+media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 moshi = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi" }
 moshi-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshi" }
-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
-media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
-media3-datasource = { group = "androidx.media3", name = "media3-datasource", version.ref = "media3" }
-media3-cast = { group = "androidx.media3", name = "media3-cast", version.ref = "media3" }
-fetch = { group = "com.github.tonyofrancis.Fetch", name = "fetch2", version.ref = "fetch" }
-work = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
+okhttp3 = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp3" }
+okhttp3-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp3" }
+oss = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "oss" }
+oss-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "ossPlugin" }
 result = { group = "com.michael-bull.kotlin-result", name = "kotlin-result", version.ref = "result" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit-converter = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit" }
-swiperefresh = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefresh" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 seismic = { group = "com.squareup", name = "seismic", version.ref = "seismic" }
-okhttp3 = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp3" }
-okhttp3-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp3" }
-browserx = { group = "androidx.browser", name = "browser", version.ref = "browserx" }
-oss = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "oss" }
-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
-hamcrest = { group = "org.hamcrest", name = "hamcrest-all", version.ref = "hamcrest" }
-androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "coreTesting" }
-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
-espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espresso" }
-androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTest" }
-androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidxTest" }
-androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExt" }
-androidx-test-ext-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
-oss-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "ossPlugin" }
-facebook-infer-annotation = { group = "com.facebook.infer.annotation", name = "infer-annotation", version.ref = "inferAnnotation" }
+swiperefresh = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefresh" }
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+work = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
