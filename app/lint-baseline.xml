@@ -1,155 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.2.2" type="baseline" client="gradle" dependencies="false" name="AGP (8.2.2)" variant="all" version="8.2.2">
-
-    <issue
-        id="ObsoleteLintCustomCheck"
-        message="Library lint checks reference invalid APIs; these checks **will be skipped**!&#xA;&#xA;Lint found an issue registry (`androidx.lifecycle.lint.LiveDataCoreIssueRegistry`)&#xA;which contains some references to invalid API:&#xA;org.jetbrains.kotlin.analysis.api.session.KtAnalysisSessionProvider: org.jetbrains.kotlin.analysis.api.lifetime.KtLifetimeTokenFactory getTokenFactory()&#xA;(Referenced from androidx/lifecycle/lint/NonNullableMutableLiveDataDetector$createUastHandler$1.class)&#xA;&#xA;Therefore, this lint check library is **not** included&#xA;in analysis. This affects the following lint checks:&#xA;`NullSafeMutableLiveData`&#xA;&#xA;To use this lint check, upgrade to a more recent version&#xA;of the library.">
-        <location
-            file="$GRADLE_USER_HOME/caches/8.13/transforms/56049e59fb46fb527b433be5f265186b/transformed/lifecycle-livedata-core-2.8.3/jars/lint.jar"/>
-    </issue>
-
-    <issue
-        id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release"
-        errorLine1="        get() = TODO(&quot;Not yet implemented&quot;)"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/local/LocalMediaSource.kt"
-            line="20"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release"
-        errorLine1="        TODO(&quot;Not yet implemented&quot;)"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/local/LocalMediaSource.kt"
-            line="23"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release"
-        errorLine1="        TODO(&quot;Not yet implemented&quot;)"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/local/LocalMediaSource.kt"
-            line="27"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release"
-        errorLine1="            TODO(&quot;Not yet implemented&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/plex/PlexMediaSource.kt"
-            line="40"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release"
-        errorLine1="            TODO(&quot;Not yet implemented&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/plex/PlexMediaSource.kt"
-            line="44"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release"
-        errorLine1="            TODO(&quot;Not yet implemented&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/plex/PlexMediaSource.kt"
-            line="48"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release"
-        errorLine1="            TODO(&quot;Not yet implemented&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/plex/PlexMediaSource.kt"
-            line="52"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release"
-        errorLine1="            TODO(&quot;Not yet implemented&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/plex/PlexMediaSource.kt"
-            line="59"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release"
-        errorLine1="            TODO(&quot;Not yet implemented&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/plex/PlexMediaSource.kt"
-            line="63"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release"
-        errorLine1="            TODO(&quot;Not yet implemented&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/plex/PlexMediaSource.kt"
-            line="67"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release"
-        errorLine1="            TODO(&quot;Not yet implemented&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/plex/PlexMediaSource.kt"
-            line="71"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release"
-        errorLine1="            TODO(&quot;Not yet implemented&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/plex/PlexMediaSource.kt"
-            line="75"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release"
-        errorLine1="            TODO(&quot;Not yet implemented&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/plex/PlexMediaSource.kt"
-            line="79"
-            column="13"/>
-    </issue>
+<issues format="6" by="lint 8.13.2" type="baseline" client="gradle" dependencies="false" name="AGP (8.13.2)" variant="all" version="8.13.2">
 
     <issue
         id="MissingPermission"
@@ -157,7 +7,7 @@
         errorLine1="                    notificationManager.notify(result.bookName.hashCode(), notification)"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/download/DownloadNotificationWorker.kt"
+            file="src/main/java/local/oss/chronicle/features/download/DownloadNotificationWorker.kt"
             line="158"
             column="21"/>
     </issue>
@@ -168,7 +18,7 @@
         errorLine1="                    notificationManager.notify(DOWNLOADS_FINISHED_NOTIF_SUMMARY_ID, summary)"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/download/DownloadNotificationWorker.kt"
+            file="src/main/java/local/oss/chronicle/features/download/DownloadNotificationWorker.kt"
             line="164"
             column="21"/>
     </issue>
@@ -179,7 +29,7 @@
         errorLine1="                    notificationManager.notify(bookId, notification)"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/download/DownloadNotificationWorker.kt"
+            file="src/main/java/local/oss/chronicle/features/download/DownloadNotificationWorker.kt"
             line="365"
             column="21"/>
     </issue>
@@ -190,7 +40,7 @@
         errorLine1="        notificationManager.notify(TRANSFER_ERROR_NOTIF_ID, notif)"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/download/MoveSyncLocationWorker.kt"
+            file="src/main/java/local/oss/chronicle/features/download/MoveSyncLocationWorker.kt"
             line="72"
             column="9"/>
     </issue>
@@ -201,7 +51,7 @@
         errorLine1="                        notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/player/OnMediaChangedCallback.kt"
+            file="src/main/java/local/oss/chronicle/features/player/OnMediaChangedCallback.kt"
             line="109"
             column="25"/>
     </issue>
@@ -212,174 +62,173 @@
         errorLine1="                        notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/player/OnMediaChangedCallback.kt"
+            file="src/main/java/local/oss/chronicle/features/player/OnMediaChangedCallback.kt"
             line="119"
             column="25"/>
     </issue>
 
     <issue
-        id="InlinedApi"
-        message="Field requires API level 33 (current min is 27): `android.content.Context#RECEIVER_NOT_EXPORTED`"
-        errorLine1="                context.registerReceiver(this, noisyIntentFilter, Context.RECEIVER_NOT_EXPORTED)"
-        errorLine2="                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="            return@map String.format(&quot;%.2f&quot;, speed) + &quot;x&quot;"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/player/BecomingNoisyReceiver.kt"
-            line="31"
-            column="67"/>
+            file="src/main/java/local/oss/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
+            line="149"
+            column="24"/>
     </issue>
 
     <issue
-        id="InlinedApi"
-        message="Field requires API level 33 (current min is 27): `android.content.Context#RECEIVER_NOT_EXPORTED`"
-        errorLine1="                Context.RECEIVER_NOT_EXPORTED,"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="            String.format(&quot;%.2f&quot;, value) + &quot;x&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/data/sources/plex/CachedFileManager.kt"
-            line="285"
+            file="src/main/java/local/oss/chronicle/views/ModalBottomSheetSpeedChooser.kt"
+            line="51"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="DuplicateDefinition"
+        message="`colorPrimary` has already been defined in this `&lt;style>`"
+        errorLine1="        &lt;item name=&quot;colorPrimary&quot;>@color/colorPrimary&lt;/item>"
+        errorLine2="              ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/styles.xml"
+            line="14"
+            column="15"/>
+        <location
+            file="src/main/res/values/styles.xml"
+            line="8"
+            column="9"
+            message="Previously defined here"/>
+    </issue>
+
+    <issue
+        id="ImplicitSamInstance"
+        message="`updateProgressAction` is an implicit SAM conversion, so the instance you are removing here will not match anything. To fix this, use for example `val runnable = Runnable { updateProgressAction() }` and post and remove the `runnable` val instead."
+        errorLine1="            handler.removeCallbacks(updateProgressAction)"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/ProgressUpdater.kt"
+            line="242"
+            column="37"/>
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/ProgressUpdater.kt"
+            line="107"
+            column="33"
+            message="Different instance than the one for `removeCallbacks()` due to SAM conversion; wrap with a shared `Runnable`"/>
+    </issue>
+
+    <issue
+        id="MemberExtensionConflict"
+        message="`observe` is defined both as a member in class `androidx.lifecycle.LiveData` and an extension in package `androidx.lifecycle`. The defined behavior for this is to use the member, but since the extension is explicitly imported into this file, there&apos;s a chance that this was not expected. (One common way this happens is for members to be added to a class after code was already written to use an extension)."
+        errorLine1="    observe(owner) { it.getContentIfNotHandled()?.let(onEventUnhandledContent) }"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/util/LifecycleExt.kt"
+            line="11"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="MemberExtensionConflict"
+        message="`cancel` is defined both as a member in class `kotlinx.coroutines.Job` and an extension in package `kotlinx.coroutines`. The defined behavior for this is to use the member, but since the extension is explicitly imported into this file, there&apos;s a chance that this was not expected. (One common way this happens is for members to be added to a class after code was already written to use an extension)."
+        errorLine1="        serviceJob.cancel()"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt"
+            line="483"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="MemberExtensionConflict"
+        message="`cancel` is defined both as a member in class `kotlinx.coroutines.Job` and an extension in package `kotlinx.coroutines`. The defined behavior for this is to use the member, but since the extension is explicitly imported into this file, there&apos;s a chance that this was not expected. (One common way this happens is for members to be added to a class after code was already written to use an extension)."
+        errorLine1="        serviceJob.cancel()"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt"
+            line="515"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="MemberExtensionConflict"
+        message="`isActive` is defined both as a member in class `kotlinx.coroutines.Job` and an extension in package `kotlinx.coroutines`. The defined behavior for this is to use the member, but since the extension is explicitly imported into this file, there&apos;s a chance that this was not expected. (One common way this happens is for members to be added to a class after code was already written to use an extension)."
+        errorLine1="                while (deferredConnections.any { it.isActive }) {"
+        errorLine2="                                                    ~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt"
+            line="250"
+            column="53"/>
+    </issue>
+
+    <issue
+        id="AndroidGradlePluginVersion"
+        message="A newer version of Gradle than 8.13 is available: 8.14.3"
+        errorLine1="distributionUrl=https\://services.gradle.org/distributions/gradle-8.13-bin.zip"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/wrapper/gradle-wrapper.properties"
+            line="3"
             column="17"/>
     </issue>
 
     <issue
-        id="OldTargetApi"
-        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the android.os.Build.VERSION_CODES javadoc for details."
-        errorLine1="        targetSdk = 34"
-        errorLine2="        ~~~~~~~~~~~~~~">
-        <location
-            file="build.gradle.kts"
-            line="24"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="ForegroundServicePermission"
-        message="foregroundServiceType:mediaPlayback requires permission:[android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK]"
-        errorLine1="        &lt;service"
-        errorLine2="        ^">
-        <location
-            file="src/main/AndroidManifest.xml"
-            line="38"
-            column="9"/>
-    </issue>
-
-    <issue
         id="GradleDependency"
-        message="A newer version of androidx.media:media than 1.6.0 is available: 1.7.1"
-        errorLine1="    implementation(&quot;androidx.media:media:1.6.0&quot;)"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        message="A newer version of androidx.test:rules than 1.6.1 is available: 1.7.0"
+        errorLine1="androidxTest = &quot;1.6.1&quot; # 1.7.0 causes KSP/Dagger compatibility issues"
+        errorLine2="               ~~~~~~~">
         <location
-            file="build.gradle.kts"
-            line="101"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.mediarouter:mediarouter than 1.6.0 is available: 1.8.1"
-        errorLine1="    implementation(&quot;androidx.mediarouter:mediarouter:1.6.0&quot;)"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="build.gradle.kts"
-            line="103"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of com.android.application than 8.2.2 is available: 8.13.0"
-        errorLine1="agp = &quot;8.2.2&quot;"
-        errorLine2="      ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="2"
-            column="7"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of com.google.android.material:material than 1.9.0 is available: 1.13.0"
-        errorLine1="material = &quot;1.9.0&quot;"
-        errorLine2="           ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
             line="5"
-            column="12"/>
+            column="16"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.room:room-compiler than 2.6.1 is available: 2.8.3"
-        errorLine1="room = &quot;2.6.1&quot;"
-        errorLine2="       ~~~~~~~">
+        message="A newer version of androidx.test:runner than 1.6.1 is available: 1.7.0"
+        errorLine1="androidxTest = &quot;1.6.1&quot; # 1.7.0 causes KSP/Dagger compatibility issues"
+        errorLine2="               ~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="5"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.test.ext:junit than 1.2.2 is available: 1.3.0"
+        errorLine1="androidxTestExt = &quot;1.2.2&quot;"
+        errorLine2="                  ~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
             line="6"
-            column="8"/>
+            column="19"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.room:room-ktx than 2.6.1 is available: 2.8.3"
-        errorLine1="room = &quot;2.6.1&quot;"
-        errorLine2="       ~~~~~~~">
+        message="A newer version of androidx.test.ext:junit-ktx than 1.2.2 is available: 1.3.0"
+        errorLine1="androidxTestExt = &quot;1.2.2&quot;"
+        errorLine2="                  ~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
             line="6"
-            column="8"/>
+            column="19"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.room:room-runtime than 2.6.1 is available: 2.8.3"
-        errorLine1="room = &quot;2.6.1&quot;"
-        errorLine2="       ~~~~~~~">
+        message="A newer version of androidx.annotation:annotation than 1.8.2 is available: 1.9.1"
+        errorLine1="annotation = &quot;1.8.2&quot; # 1.9.0 causes KSP/Dagger compatibility issues"
+        errorLine2="             ~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="6"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of com.google.devtools.ksp than 1.9.0-1.0.13 is available: 1.9.24-1.0.20"
-        errorLine1="ksp = &quot;1.9.0-1.0.13&quot;"
-        errorLine2="      ~~~~~~~~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
             line="7"
-            column="7"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.work:work-runtime-ktx than 2.9.1 is available: 2.11.0"
-        errorLine1="work = &quot;2.9.1&quot;"
-        errorLine2="       ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="16"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.browser:browser than 1.8.0 is available: 1.9.0"
-        errorLine1="browserx = &quot;1.8.0&quot;"
-        errorLine2="           ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="22"
-            column="12"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of com.google.android.gms:play-services-oss-licenses than 17.1.0 is available: 17.3.0"
-        errorLine1="oss = &quot;17.1.0&quot;"
-        errorLine2="      ~~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="23"
-            column="7"/>
+            column="14"/>
     </issue>
 
     <issue
@@ -388,206 +237,327 @@
         errorLine1="appcompat = &quot;1.7.0&quot;"
         errorLine2="            ~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="24"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="8"
             column="13"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.annotation:annotation than 1.6.0 is available: 1.9.1"
-        errorLine1="annotation = &quot;1.6.0&quot;"
+        message="A newer version of androidx.browser:browser than 1.8.0 is available: 1.9.0"
+        errorLine1="browserx = &quot;1.8.0&quot; # 1.9.0 causes KSP/Dagger compatibility issues"
+        errorLine2="           ~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="9"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.test.espresso:espresso-contrib than 3.6.2 is available: 3.7.0"
+        errorLine1="espresso = &quot;3.6.2&quot;"
+        errorLine2="           ~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="13"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.test.espresso:espresso-core than 3.6.2 is available: 3.7.0"
+        errorLine1="espresso = &quot;3.6.2&quot;"
+        errorLine2="           ~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="13"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of com.github.akshaaatt:Google-IAP than 1.7.0 is available: 1.8.0"
+        errorLine1="iapWrapper = &quot;1.7.0&quot; # 1.8.0 causes KSP/Dagger compatibility issues"
         errorLine2="             ~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="25"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="18"
             column="14"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.test.espresso:espresso-contrib than 3.5.1 is available: 3.7.0"
-        errorLine1="espresso = &quot;3.5.1&quot;"
-        errorLine2="           ~~~~~~~">
+        message="A newer version of com.google.android.material:material than 1.12.0 is available: 1.13.0"
+        errorLine1="material = &quot;1.12.0&quot; # 1.13.0 causes KSP/Dagger compatibility issues"
+        errorLine2="           ~~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="31"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="25"
             column="12"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.test.espresso:espresso-core than 3.5.1 is available: 3.7.0"
-        errorLine1="espresso = &quot;3.5.1&quot;"
-        errorLine2="           ~~~~~~~">
+        message="A newer version of androidx.media3:media3-cast than 1.5.0 is available: 1.9.0"
+        errorLine1="media3 = &quot;1.5.0&quot; # 1.6.0 causes KSP/Dagger compatibility issues"
+        errorLine2="         ~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="31"
-            column="12"/>
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="26"
+            column="10"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.test:rules than 1.5.0 is available: 1.7.0"
-        errorLine1="androidxTest = &quot;1.5.0&quot;"
-        errorLine2="               ~~~~~~~">
+        message="A newer version of androidx.media3:media3-datasource than 1.5.0 is available: 1.9.0"
+        errorLine1="media3 = &quot;1.5.0&quot; # 1.6.0 causes KSP/Dagger compatibility issues"
+        errorLine2="         ~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="32"
-            column="16"/>
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="26"
+            column="10"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.test:runner than 1.5.0 is available: 1.7.0"
-        errorLine1="androidxTest = &quot;1.5.0&quot;"
-        errorLine2="               ~~~~~~~">
+        message="A newer version of androidx.media3:media3-exoplayer than 1.5.0 is available: 1.9.0"
+        errorLine1="media3 = &quot;1.5.0&quot; # 1.6.0 causes KSP/Dagger compatibility issues"
+        errorLine2="         ~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="32"
-            column="16"/>
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="26"
+            column="10"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.test.ext:junit than 1.1.5 is available: 1.3.0"
-        errorLine1="androidxTestExt = &quot;1.1.5&quot;"
-        errorLine2="                  ~~~~~~~">
+        message="A newer version of androidx.media3:media3-session than 1.5.0 is available: 1.9.0"
+        errorLine1="media3 = &quot;1.5.0&quot; # 1.6.0 causes KSP/Dagger compatibility issues"
+        errorLine2="         ~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="33"
-            column="19"/>
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="26"
+            column="10"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.test.ext:junit-ktx than 1.1.5 is available: 1.3.0"
-        errorLine1="androidxTestExt = &quot;1.1.5&quot;"
-        errorLine2="                  ~~~~~~~">
+        message="A newer version of androidx.media3:media3-ui than 1.5.0 is available: 1.9.0"
+        errorLine1="media3 = &quot;1.5.0&quot; # 1.6.0 causes KSP/Dagger compatibility issues"
+        errorLine2="         ~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="33"
-            column="19"/>
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="26"
+            column="10"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of com.google.android.gms:oss-licenses-plugin than 0.10.6 is available: 0.10.9"
-        errorLine1="ossPlugin = &quot;0.10.6&quot;"
+        message="A newer version of com.google.android.gms:play-services-oss-licenses than 17.1.0 is available: 17.3.0"
+        errorLine1="oss = &quot;17.1.0&quot; # 17.2.0 causes KSP/Dagger compatibility issues"
+        errorLine2="      ~~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="30"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of com.google.android.gms:oss-licenses-plugin than 0.10.7 is available: 0.10.10"
+        errorLine1="ossPlugin = &quot;0.10.7&quot;"
         errorLine2="            ~~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="34"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="31"
             column="13"/>
     </issue>
 
     <issue
-        id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlin.android than 1.9.0 is available: 2.2.21"
-        errorLine1="kotlin = &quot;1.9.0&quot;"
-        errorLine2="         ~~~~~~~">
+        id="GradleDependency"
+        message="A newer version of androidx.room:room-compiler than 2.7.0 is available: 2.8.4"
+        errorLine1="room = &quot;2.7.0&quot;"
+        errorLine2="       ~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="3"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="34"
+            column="8"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.room:room-ktx than 2.7.0 is available: 2.8.4"
+        errorLine1="room = &quot;2.7.0&quot;"
+        errorLine2="       ~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="34"
+            column="8"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.room:room-runtime than 2.7.0 is available: 2.8.4"
+        errorLine1="room = &quot;2.7.0&quot;"
+        errorLine2="       ~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="34"
+            column="8"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.work:work-runtime-ktx than 2.9.1 is available: 2.11.0"
+        errorLine1="work = &quot;2.9.1&quot; # 2.10.0 causes KSP/Dagger compatibility issues"
+        errorLine2="       ~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="38"
+            column="8"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-android than 1.9.0 is available: 1.10.2"
+        errorLine1="coroutines = &quot;1.9.0&quot; # 1.10.1 causes KSP/Dagger compatibility issues"
+        errorLine2="             ~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="11"
+            column="14"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-test than 1.9.0 is available: 1.10.2"
+        errorLine1="coroutines = &quot;1.9.0&quot; # 1.10.1 causes KSP/Dagger compatibility issues"
+        errorLine2="             ~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="11"
+            column="14"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of com.google.dagger:dagger than 2.52 is available: 2.57.2"
+        errorLine1="dagger = &quot;2.52&quot; # 2.54 causes KSP/Dagger compatibility issues"
+        errorLine2="         ~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="12"
             column="10"/>
     </issue>
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-android than 1.7.3 is available: 1.10.2"
-        errorLine1="coroutines = &quot;1.7.3&quot;"
-        errorLine2="             ~~~~~~~">
+        message="A newer version of com.google.dagger:dagger-compiler than 2.52 is available: 2.57.2"
+        errorLine1="dagger = &quot;2.52&quot; # 2.54 causes KSP/Dagger compatibility issues"
+        errorLine2="         ~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="4"
-            column="14"/>
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="12"
+            column="10"/>
     </issue>
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-test than 1.7.3 is available: 1.10.2"
-        errorLine1="coroutines = &quot;1.7.3&quot;"
-        errorLine2="             ~~~~~~~">
+        message="A newer version of com.facebook.fresco:fresco than 3.4.0 is available: 3.6.0"
+        errorLine1="fresco = &quot;3.4.0&quot; # 3.5.0 causes KSP processing errors"
+        errorLine2="         ~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="4"
-            column="14"/>
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="15"
+            column="10"/>
     </issue>
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of com.github.bumptech.glide:glide than 4.11.0 is available: 4.16.0"
-        errorLine1="glide = &quot;4.11.0&quot;"
+        message="A newer version of com.facebook.fresco:imagepipeline-okhttp3 than 3.4.0 is available: 3.6.0"
+        errorLine1="fresco = &quot;3.4.0&quot; # 3.5.0 causes KSP processing errors"
+        errorLine2="         ~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="15"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of com.github.bumptech.glide:glide than 4.16.0 is available: 5.0.5"
+        errorLine1="glide = &quot;4.16.0&quot; # 4.17.0 not yet available"
         errorLine2="        ~~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="8"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="16"
             column="9"/>
     </issue>
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of com.facebook.fresco:fresco than 3.5.0 is available: 3.6.0"
-        errorLine1="fresco = &quot;3.5.0&quot;"
+        message="A newer version of org.jetbrains.kotlin.android than 2.1.0 is available: 2.3.0"
+        errorLine1="kotlin = &quot;2.1.0&quot;"
         errorLine2="         ~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="9"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="21"
             column="10"/>
     </issue>
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of com.facebook.fresco:imagepipeline-okhttp3 than 3.5.0 is available: 3.6.0"
-        errorLine1="fresco = &quot;3.5.0&quot;"
-        errorLine2="         ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="9"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.jakewharton.timber:timber than 4.7.1 is available: 5.0.1"
-        errorLine1="timber = &quot;4.7.1&quot;"
-        errorLine2="         ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="10"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.google.dagger:dagger than 2.54 is available: 2.56.2"
-        errorLine1="dagger = &quot;2.54&quot;"
-        errorLine2="         ~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="11"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.google.dagger:dagger-compiler than 2.54 is available: 2.56.2"
-        errorLine1="dagger = &quot;2.54&quot;"
-        errorLine2="         ~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="11"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.michael-bull.kotlin-result:kotlin-result than 1.1.11 is available: 2.0.1"
-        errorLine1="result = &quot;1.1.11&quot; # OUT OF DATE"
+        message="A newer version of org.jlleitschuh.gradle.ktlint than 12.1.2 is available: 14.0.1"
+        errorLine1="ktlint = &quot;12.1.2&quot;"
         errorLine2="         ~~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="17"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="24"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of io.mockk:mockk than 1.13.14 is available: 1.14.7"
+        errorLine1="mockk = &quot;1.13.14&quot;"
+        errorLine2="        ~~~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="27"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of com.squareup.okhttp3:logging-interceptor than 4.12.0 is available: 5.3.2"
+        errorLine1="okhttp3 = &quot;4.12.0&quot; # 4.13.0 not yet available"
+        errorLine2="          ~~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="29"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of com.squareup.okhttp3:okhttp than 4.12.0 is available: 5.3.2"
+        errorLine1="okhttp3 = &quot;4.12.0&quot; # 4.13.0 not yet available"
+        errorLine2="          ~~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="29"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of com.michael-bull.kotlin-result:kotlin-result than 1.1.18 is available: 2.1.0"
+        errorLine1="result = &quot;1.1.18&quot;"
+        errorLine2="         ~~~~~~~~">
+        <location
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="32"
             column="10"/>
     </issue>
 
@@ -597,8 +567,8 @@
         errorLine1="retrofit = &quot;2.11.0&quot;"
         errorLine2="           ~~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="18"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="33"
             column="12"/>
     </issue>
 
@@ -608,31 +578,196 @@
         errorLine1="retrofit = &quot;2.11.0&quot;"
         errorLine2="           ~~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="18"
+            file="$HOME/source/github/chronicle/gradle/libs.versions.toml"
+            line="33"
             column="12"/>
     </issue>
 
     <issue
-        id="NewerVersionAvailable"
-        message="A newer version of org.jlleitschuh.gradle.ktlint than 12.1.2 is available: 13.1.0"
-        errorLine1="ktlint = &quot;12.1.2&quot;"
-        errorLine2="         ~~~~~~~~">
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="                dataSourceFactory.setDefaultRequestProperties("
+        errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="26"
+            file="src/main/java/local/oss/chronicle/features/player/AudiobookMediaSessionCallback.kt"
+            line="372"
+            column="35"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="                        player.setMediaSources(mediaSources)"
+        errorLine2="                               ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/AudiobookMediaSessionCallback.kt"
+            line="385"
+            column="32"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="fun MediaMetadataCompat.toMediaSource(dataSourceFactory: DataSource.Factory): ProgressiveMediaSource {"
+        errorLine2="                                                                              ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaMetadataCompatExt.kt"
+            line="273"
+            column="79"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="    return ProgressiveMediaSource.Factory(dataSourceFactory)"
+        errorLine2="                                  ~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaMetadataCompatExt.kt"
+            line="274"
+            column="35"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="        .createMediaSource("
+        errorLine2="         ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaMetadataCompatExt.kt"
+            line="275"
             column="10"/>
     </issue>
 
     <issue
-        id="NewerVersionAvailable"
-        message="A newer version of io.mockk:mockk than 1.10.6 is available: 1.14.3"
-        errorLine1="mockk = &quot;1.10.6&quot;"
-        errorLine2="        ~~~~~~~~">
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="): List&lt;ProgressiveMediaSource> {"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="../gradle/libs.versions.toml"
-            line="28"
+            file="src/main/java/local/oss/chronicle/features/player/MediaMetadataCompatExt.kt"
+            line="307"
             column="9"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="        (currentPlayer as? ExoPlayer)?.skipSilenceEnabled = prefsRepo.skipSilence"
+        errorLine2="                                       ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt"
+            line="372"
+            column="40"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="        ExoPlayer.Builder(service).setLoadControl("
+        errorLine2="                                   ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/injection/modules/ServiceModule.kt"
+            line="58"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="            DefaultLoadControl.Builder().setBackBuffer(EXOPLAYER_BACK_BUFFER_DURATION_MILLIS, true)"
+        errorLine2="                               ~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/injection/modules/ServiceModule.kt"
+            line="60"
+            column="32"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="            DefaultLoadControl.Builder().setBackBuffer(EXOPLAYER_BACK_BUFFER_DURATION_MILLIS, true)"
+        errorLine2="                                         ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/injection/modules/ServiceModule.kt"
+            line="60"
+            column="42"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="                .setBufferDurationsMs("
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/injection/modules/ServiceModule.kt"
+            line="61"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="                    DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,"
+        errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/injection/modules/ServiceModule.kt"
+            line="64"
+            column="40"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="                    DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS,"
+        errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/injection/modules/ServiceModule.kt"
+            line="65"
+            column="40"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="                .build(),"
+        errorLine2="                 ~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/injection/modules/ServiceModule.kt"
+            line="67"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="        dataSourceFactory.setUserAgent(Util.getUserAgent(service, APP_NAME))"
+        errorLine2="                          ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/injection/modules/ServiceModule.kt"
+            line="134"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="        dataSourceFactory.setUserAgent(Util.getUserAgent(service, APP_NAME))"
+        errorLine2="                                            ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/injection/modules/ServiceModule.kt"
+            line="134"
+            column="45"/>
+    </issue>
+
+    <issue
+        id="UnsafeOptInUsageError"
+        message="This declaration is opt-in and its usage should be marked with `@androidx.media3.common.util.UnstableApi` or `@OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)`"
+        errorLine1="        dataSourceFactory.setDefaultRequestProperties("
+        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/injection/modules/ServiceModule.kt"
+            line="136"
+            column="27"/>
     </issue>
 
     <issue
@@ -641,8 +776,8 @@
         errorLine1="                        resources.getDrawable("
         errorLine2="                        ^">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/login/LoginFragment.kt"
-            line="91"
+            file="src/main/java/local/oss/chronicle/features/login/LoginFragment.kt"
+            line="92"
             column="25"/>
     </issue>
 
@@ -686,7 +821,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="134"
+            line="135"
             column="5"/>
     </issue>
 
@@ -697,8 +832,19 @@
         errorLine2="         ~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="38"
+            line="44"
             column="10"/>
+    </issue>
+
+    <issue
+        id="DataExtractionRules"
+        message="The attribute `android:allowBackup` is deprecated from Android 12 and the default allows backup"
+        errorLine1="        android:allowBackup=&quot;true&quot;"
+        errorLine2="                             ~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="21"
+            column="30"/>
     </issue>
 
     <issue
@@ -707,7 +853,7 @@
         errorLine1="            notifyDataSetChanged()"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/library/AudiobookAdapter.kt"
+            file="src/main/java/local/oss/chronicle/features/library/AudiobookAdapter.kt"
             line="34"
             column="13"/>
     </issue>
@@ -718,7 +864,7 @@
         errorLine1="        notifyDataSetChanged()"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/library/AudiobookAdapter.kt"
+            file="src/main/java/local/oss/chronicle/features/library/AudiobookAdapter.kt"
             line="87"
             column="9"/>
     </issue>
@@ -729,7 +875,7 @@
         errorLine1="        notifyDataSetChanged()"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/library/AudiobookSearchAdapter.kt"
+            file="src/main/java/local/oss/chronicle/features/library/AudiobookSearchAdapter.kt"
             line="32"
             column="9"/>
     </issue>
@@ -740,7 +886,7 @@
         errorLine1="    adapter.notifyDataSetChanged()"
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/views/BottomSheetChooserBindingAdapters.kt"
+            file="src/main/java/local/oss/chronicle/views/BottomSheetChooserBindingAdapters.kt"
             line="56"
             column="5"/>
     </issue>
@@ -751,7 +897,7 @@
         errorLine1="            notifyDataSetChanged()"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/collections/CollectionsAdapter.kt"
+            file="src/main/java/local/oss/chronicle/features/collections/CollectionsAdapter.kt"
             line="32"
             column="13"/>
     </issue>
@@ -762,164 +908,208 @@
         errorLine1="        notifyDataSetChanged()"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/collections/CollectionsAdapter.kt"
+            file="src/main/java/local/oss/chronicle/features/collections/CollectionsAdapter.kt"
             line="85"
             column="9"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 14"
+        message="Unnecessary; `SDK_INT` is always >= 14"
         errorLine1="@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)"
         errorLine2="~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/views/BindingAdapters.kt"
-            line="78"
+            file="src/main/java/local/oss/chronicle/views/BindingAdapters.kt"
+            line="87"
             column="1"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 27"
+        message="Unnecessary; `SDK_INT` is always >= 33"
         errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/application/ChronicleApplication.kt"
+            file="src/main/java/local/oss/chronicle/application/ChronicleApplication.kt"
             line="139"
             column="13"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 27"
+        message="Unnecessary; `SDK_INT` is always >= 33"
         errorLine1="val mediaSkipForwardCode = if (Build.VERSION.SDK_INT >= M) KEYCODE_MEDIA_SKIP_FORWARD else 272"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/player/CustomActions.kt"
-            line="114"
+            file="src/main/java/local/oss/chronicle/features/player/CustomActions.kt"
+            line="80"
             column="32"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 27"
+        message="Unnecessary; `SDK_INT` is always >= 33"
         errorLine1="val mediaSkipBackwardCode = if (Build.VERSION.SDK_INT >= M) KEYCODE_MEDIA_SKIP_BACKWARD else 273"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/player/CustomActions.kt"
-            line="115"
+            file="src/main/java/local/oss/chronicle/features/player/CustomActions.kt"
+            line="81"
             column="33"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 27"
+        message="Unnecessary; `SDK_INT` is always >= 33"
         errorLine1="val mediaSkipToNextCode = if (Build.VERSION.SDK_INT >= M) KEYCODE_MEDIA_NEXT else 87"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/player/CustomActions.kt"
-            line="116"
+            file="src/main/java/local/oss/chronicle/features/player/CustomActions.kt"
+            line="82"
             column="31"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 27"
+        message="Unnecessary; `SDK_INT` is always >= 33"
         errorLine1="val mediaSkipToPreviousCode = if (Build.VERSION.SDK_INT >= M) KEYCODE_MEDIA_PREVIOUS else 88"
         errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/player/CustomActions.kt"
-            line="117"
+            file="src/main/java/local/oss/chronicle/features/player/CustomActions.kt"
+            line="83"
             column="35"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 27"
+        message="Unnecessary; `SDK_INT` is always >= 33"
         errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/download/DownloadNotificationWorker.kt"
+            file="src/main/java/local/oss/chronicle/features/download/DownloadNotificationWorker.kt"
             line="184"
             column="13"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 27"
-        errorLine1="                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {"
-        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        message="Unnecessary; `SDK_INT` is always >= 33"
+        errorLine1="            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/login/LoginFragment.kt"
-            line="102"
-            column="37"/>
+            file="src/main/java/local/oss/chronicle/features/download/DownloadNotificationWorker.kt"
+            line="377"
+            column="17"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 27"
+        message="Unnecessary; `SDK_INT` is always >= 33"
+        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt"
+            line="858"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; `SDK_INT` is always >= 33"
         errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/download/MoveSyncLocationWorker.kt"
+            file="src/main/java/local/oss/chronicle/features/download/MoveSyncLocationWorker.kt"
             line="76"
             column="13"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 27"
+        message="Unnecessary; `SDK_INT` is always >= 33"
         errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/download/MoveSyncLocationWorker.kt"
+            file="src/main/java/local/oss/chronicle/features/download/MoveSyncLocationWorker.kt"
             line="115"
             column="13"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 27"
+        message="Unnecessary; `SDK_INT` is always >= 33"
+        errorLine1="            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/download/MoveSyncLocationWorker.kt"
+            line="158"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; `SDK_INT` is always >= 33"
         errorLine1="        private fun shouldCreateChannel() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &amp;&amp; !nowPlayingChannelExists()"
         errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/player/NotificationBuilder.kt"
+            file="src/main/java/local/oss/chronicle/features/player/NotificationBuilder.kt"
             line="269"
             column="45"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 26"
+        message="Unnecessary; `SDK_INT` is always >= 26"
         errorLine1="        @RequiresApi(Build.VERSION_CODES.O)"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/player/NotificationBuilder.kt"
+            file="src/main/java/local/oss/chronicle/features/player/NotificationBuilder.kt"
             line="271"
             column="9"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 26"
+        message="Unnecessary; `SDK_INT` is always >= 26"
         errorLine1="        @RequiresApi(Build.VERSION_CODES.O)"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/player/NotificationBuilder.kt"
+            file="src/main/java/local/oss/chronicle/features/player/NotificationBuilder.kt"
             line="274"
             column="9"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="This folder configuration (`v24`) is unnecessary; `minSdkVersion` is 27. Merge all the resources in this folder into `drawable`.">
+        message="Unnecessary; `SDK_INT` is always >= 33"
+        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/util/PackageValidator.kt"
+            line="204"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; `SDK_INT` is always >= 33"
+        errorLine1="            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/util/PackageValidator.kt"
+            line="230"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="This folder configuration (`v24`) is unnecessary; `minSdkVersion` is 33. Merge all the resources in this folder into `drawable`.">
         <location
             file="src/main/res/drawable-v24"/>
     </issue>
 
     <issue
         id="ObsoleteSdkInt"
-        message="This folder configuration (`v26`) is unnecessary; `minSdkVersion` is 27. Merge all the resources in this folder into `mipmap-anydpi`.">
+        message="This folder configuration (`v26`) is unnecessary; `minSdkVersion` is 33. Merge all the resources in this folder into `mipmap-anydpi`.">
         <location
             file="src/main/res/mipmap-anydpi-v26"/>
     </issue>
@@ -981,17 +1171,6 @@
 
     <issue
         id="VectorPath"
-        message="Very long vector path (2232 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector."
-        errorLine1="        android:pathData=&quot;M4.7012,8.1113L2.3867,10.1016L2.7441,10.6016C2.7655,10.63 2.7945,10.6568 2.8301,10.6816C2.8692,10.703 2.9128,10.7198 2.959,10.7305C3.0088,10.7411 3.0599,10.7411 3.1133,10.7305C3.1702,10.7162 3.224,10.6872 3.2773,10.6445L4.5098,9.6055C4.4991,9.7832 4.4941,9.9563 4.4941,10.127L4.4941,14.9375L2.8945,14.9375L2.8945,15.8086L7.0801,15.8086L7.0801,14.9375L5.6348,14.9375L5.6348,8.1113L4.7012,8.1113zM10.8457,8.127L10.8457,8.9063C10.8457,8.9774 10.8724,9.0408 10.9258,9.0977C10.9791,9.151 11.0402,9.1777 11.1113,9.1777L14.9473,9.1777C14.8762,9.2595 14.8108,9.3447 14.7539,9.4336C14.697,9.5225 14.6409,9.6222 14.584,9.7324L11.4902,15.8086L12.3164,15.8086C12.4764,15.8086 12.6052,15.77 12.7012,15.6953C12.8007,15.6171 12.8764,15.522 12.9297,15.4082L15.9648,9.2324C15.9968,9.1684 16.0285,9.0905 16.0605,8.998C16.0925,8.9056 16.1094,8.7841 16.1094,8.6348L16.1094,8.127L10.8457,8.127zM16.6484,10.3672L18.457,13.002L16.5742,15.8086L17.5977,15.8086C17.6759,15.8086 17.7389,15.7845 17.7852,15.7383C17.8349,15.6921 17.8789,15.6409 17.918,15.584L19.0547,13.8887C19.108,13.7998 19.1496,13.6932 19.1816,13.5723L20.4355,15.584C20.4675,15.6409 20.5088,15.6921 20.5586,15.7383C20.6119,15.7845 20.6826,15.8086 20.7715,15.8086L21.8691,15.8086L19.9863,12.9551L21.7949,10.3672L20.7441,10.3672C20.6339,10.3672 20.5438,10.4279 20.4727,10.5488L19.4316,12.1113C19.3641,12.218 19.3152,12.3299 19.2832,12.4473L18.0508,10.5273C18.0188,10.474 17.9821,10.435 17.9395,10.4102C17.9003,10.3817 17.8369,10.3672 17.748,10.3672L16.6484,10.3672zM9.0488,14.4004C8.9457,14.4004 8.8483,14.4199 8.7559,14.459C8.667,14.4981 8.589,14.5516 8.5215,14.6191C8.4575,14.6867 8.4063,14.7669 8.3672,14.8594C8.3316,14.9483 8.3145,15.0434 8.3145,15.1465C8.3145,15.2532 8.3316,15.3506 8.3672,15.4395C8.4063,15.5283 8.4575,15.6063 8.5215,15.6738C8.589,15.7414 8.667,15.7945 8.7559,15.8301C8.8483,15.8692 8.9457,15.8887 9.0488,15.8887C9.1519,15.8887 9.249,15.8692 9.3379,15.8301C9.4303,15.7945 9.5106,15.7414 9.5781,15.6738C9.6457,15.6063 9.6992,15.5283 9.7383,15.4395C9.7774,15.3506 9.7969,15.2532 9.7969,15.1465C9.7969,15.0434 9.7774,14.9483 9.7383,14.8594C9.6992,14.7669 9.6457,14.6867 9.5781,14.6191C9.5106,14.5516 9.4303,14.4981 9.3379,14.459C9.249,14.4199 9.1519,14.4004 9.0488,14.4004z&quot;"
-        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/ic_speed_up_1_7x.xml"
-            line="7"
-            column="27"/>
-    </issue>
-
-    <issue
-        id="VectorPath"
         message="Very long vector path (4349 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector."
         errorLine1="      android:pathData=&quot;M4.7344,8.041C4.3934,8.041 4.0756,8.0886 3.7813,8.1855C3.4905,8.2789 3.232,8.4188 3.0059,8.6055C2.7797,8.7885 2.5922,9.0185 2.4414,9.2949C2.2942,9.5713 2.1925,9.8917 2.1387,10.2578L2.748,10.3652C2.9096,10.3939 3.0307,10.3842 3.1133,10.334C3.1994,10.2837 3.2704,10.1843 3.3242,10.0371C3.3601,9.8899 3.4149,9.7548 3.4902,9.6328C3.5692,9.5072 3.6664,9.4003 3.7813,9.3105C3.8997,9.2208 4.0325,9.1518 4.1797,9.1016C4.3304,9.0513 4.494,9.0254 4.6699,9.0254C4.853,9.0254 5.0192,9.0516 5.1699,9.1055C5.3243,9.1557 5.4568,9.2338 5.5645,9.3379C5.6757,9.4384 5.7612,9.5667 5.8223,9.7246C5.8869,9.8789 5.9199,10.0591 5.9199,10.2637C5.9199,10.4754 5.8891,10.6792 5.8281,10.873C5.7707,11.0633 5.6832,11.2509 5.5684,11.4375C5.4571,11.6241 5.3217,11.8114 5.1602,11.998C5.0022,12.1847 4.8198,12.3794 4.6152,12.584L2.2031,15.002C2.1313,15.0737 2.0811,15.1521 2.0488,15.2383C2.0165,15.3244 2,15.4074 2,15.4863L2,15.8789L7.2441,15.8789L7.2441,15.1797C7.2441,15.0648 7.2066,14.9702 7.1348,14.8984C7.063,14.8231 6.9655,14.7871 6.8398,14.7871L4.5625,14.7871C4.4225,14.7871 4.2732,14.8014 4.1152,14.8301C3.9609,14.8552 3.8067,14.8863 3.6523,14.9258L5.5254,13.0098C5.7372,12.7944 5.9387,12.5832 6.1289,12.375C6.3227,12.1632 6.4912,11.9452 6.6348,11.7227C6.7783,11.5001 6.8921,11.2675 6.9746,11.0234C7.0608,10.7794 7.1035,10.5137 7.1035,10.2266C7.1035,9.8892 7.0442,9.5856 6.9258,9.3164C6.8073,9.0472 6.6415,8.8195 6.4297,8.6328C6.2215,8.4426 5.9724,8.2958 5.6816,8.1953C5.3945,8.0912 5.0789,8.041 4.7344,8.041zM13.4492,8.041C13.0508,8.041 12.6805,8.1217 12.3359,8.2832C11.9914,8.4411 11.6904,8.6831 11.4355,9.0098C11.1843,9.3328 10.9873,9.7433 10.8438,10.2422C10.7002,10.7375 10.6289,11.3236 10.6289,12.002C10.6289,12.6803 10.7002,13.2684 10.8438,13.7637C10.9873,14.259 11.1843,14.6695 11.4355,14.9961C11.6904,15.3227 11.9914,15.5647 12.3359,15.7227C12.6805,15.8806 13.0508,15.959 13.4492,15.959C13.8476,15.959 14.2199,15.8806 14.5645,15.7227C14.909,15.5647 15.2081,15.3227 15.4629,14.9961C15.7177,14.6695 15.917,14.259 16.0605,13.7637C16.2077,13.2684 16.2813,12.6803 16.2813,12.002C16.2813,11.3236 16.2077,10.7375 16.0605,10.2422C15.917,9.7433 15.7177,9.3328 15.4629,9.0098C15.2081,8.6831 14.909,8.4411 14.5645,8.2832C14.2199,8.1217 13.8476,8.041 13.4492,8.041zM13.4492,9.0137C13.661,9.0137 13.867,9.0632 14.0645,9.1602C14.2619,9.2571 14.4352,9.4207 14.5859,9.6504C14.7367,9.8801 14.8575,10.1863 14.9473,10.5703C15.0406,10.9508 15.0859,11.4277 15.0859,12.002C15.0859,12.5762 15.0406,13.0554 14.9473,13.4395C14.8575,13.8199 14.7367,14.1258 14.5859,14.3555C14.4352,14.5852 14.2619,14.7488 14.0645,14.8457C13.867,14.9426 13.661,14.9902 13.4492,14.9902C13.2339,14.9902 13.0275,14.9426 12.8301,14.8457C12.6363,14.7488 12.4652,14.5852 12.3145,14.3555C12.1637,14.1258 12.0429,13.8199 11.9531,13.4395C11.8634,13.0554 11.8184,12.5762 11.8184,12.002C11.8184,11.4277 11.8634,10.9508 11.9531,10.5703C12.0429,10.1863 12.1637,9.8801 12.3145,9.6504C12.4652,9.4207 12.6363,9.2571 12.8301,9.1602C13.0275,9.0632 13.2339,9.0137 13.4492,9.0137zM16.7305,10.3867L18.5547,13.0527L16.6543,15.8789L17.6875,15.8789C17.7665,15.8789 17.8303,15.8553 17.877,15.8086C17.9272,15.7619 17.9722,15.7098 18.0117,15.6523L19.1582,13.9414C19.212,13.8589 19.2548,13.7545 19.2871,13.6289L20.5527,15.6523C20.585,15.7098 20.6255,15.7619 20.6758,15.8086C20.7296,15.8553 20.8009,15.8789 20.8906,15.8789L22,15.8789L20.0996,12.998L21.9258,10.3867L20.8652,10.3867C20.754,10.3867 20.6616,10.4483 20.5898,10.5703L19.541,12.1484C19.4656,12.2741 19.4135,12.3881 19.3848,12.4922L18.1465,10.5488C18.1142,10.495 18.0763,10.4548 18.0332,10.4297C17.9937,10.401 17.9276,10.3867 17.8379,10.3867L16.7305,10.3867zM9.0586,14.457C8.9545,14.457 8.855,14.4781 8.7617,14.5176C8.672,14.5571 8.5936,14.6095 8.5254,14.6777C8.4608,14.7459 8.4086,14.8266 8.3691,14.9199C8.3332,15.0097 8.3164,15.1068 8.3164,15.2109C8.3164,15.3186 8.3332,15.4181 8.3691,15.5078C8.4086,15.5975 8.4608,15.6759 8.5254,15.7441C8.5936,15.8123 8.672,15.8645 8.7617,15.9004C8.855,15.9399 8.9545,15.959 9.0586,15.959C9.1627,15.959 9.2599,15.9399 9.3496,15.9004C9.4429,15.8645 9.5236,15.8123 9.5918,15.7441C9.66,15.6759 9.7144,15.5975 9.7539,15.5078C9.7934,15.4181 9.8125,15.3186 9.8125,15.2109C9.8125,15.1068 9.7934,15.0097 9.7539,14.9199C9.7144,14.8266 9.66,14.7459 9.5918,14.6777C9.5236,14.6095 9.4429,14.5571 9.3496,14.5176C9.2599,14.4781 9.1627,14.457 9.0586,14.457z&quot;"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -1010,17 +1189,6 @@
             file="src/main/res/drawable/ic_speed_up_3_0x.xml"
             line="7"
             column="25"/>
-    </issue>
-
-    <issue
-        id="VectorPath"
-        message="Very long vector path (803 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector."
-        errorLine1="        android:pathData=&quot;M12,6c3.79,0 7.17,2.13 8.82,5.5 -0.59,1.22 -1.42,2.27 -2.41,3.12l1.41,1.41c1.39,-1.23 2.49,-2.77 3.18,-4.53C21.27,7.11 17,4 12,4c-1.27,0 -2.49,0.2 -3.64,0.57l1.65,1.65C10.66,6.09 11.32,6 12,6zM10.93,7.14L13,9.21c0.57,0.25 1.03,0.71 1.28,1.28l2.07,2.07c0.08,-0.34 0.14,-0.7 0.14,-1.07C16.5,9.01 14.48,7 12,7c-0.37,0 -0.72,0.05 -1.07,0.14zM2.01,3.87l2.68,2.68C3.06,7.83 1.77,9.53 1,11.5 2.73,15.89 7,19 12,19c1.52,0 2.98,-0.29 4.32,-0.82l3.42,3.42 1.41,-1.41L3.42,2.45 2.01,3.87zM9.51,11.37l2.61,2.61c-0.04,0.01 -0.08,0.02 -0.12,0.02 -1.38,0 -2.5,-1.12 -2.5,-2.5 0,-0.05 0.01,-0.08 0.01,-0.13zM6.11,7.97l1.75,1.75c-0.23,0.55 -0.36,1.15 -0.36,1.78 0,2.48 2.02,4.5 4.5,4.5 0.63,0 1.23,-0.13 1.77,-0.36l0.98,0.98c-0.88,0.24 -1.8,0.38 -2.75,0.38 -3.79,0 -7.17,-2.13 -8.82,-5.5 0.7,-1.43 1.72,-2.61 2.93,-3.53z&quot;/>"
-        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/ic_visibility_off.xml"
-            line="8"
-            column="27"/>
     </issue>
 
     <issue
@@ -1119,6 +1287,17 @@
         <location
             file="src/main/res/values/dimens.xml"
             line="19"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.dimen.bottom_nav_bar_height` appears to be unused"
+        errorLine1="    &lt;dimen name=&quot;bottom_nav_bar_height&quot;>80dp&lt;/dimen>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/dimens.xml"
+            line="22"
             column="12"/>
     </issue>
 
@@ -1481,7 +1660,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="9"
+            line="10"
             column="13"/>
     </issue>
 
@@ -1492,7 +1671,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="10"
+            line="11"
             column="13"/>
     </issue>
 
@@ -1503,7 +1682,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="18"
+            line="19"
             column="13"/>
     </issue>
 
@@ -1514,7 +1693,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="19"
+            line="20"
             column="13"/>
     </issue>
 
@@ -1525,7 +1704,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="20"
+            line="21"
             column="13"/>
     </issue>
 
@@ -1536,7 +1715,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="21"
+            line="22"
             column="13"/>
     </issue>
 
@@ -1547,7 +1726,7 @@
         errorLine2="            ~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="22"
+            line="23"
             column="13"/>
     </issue>
 
@@ -1558,7 +1737,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="23"
+            line="24"
             column="13"/>
     </issue>
 
@@ -1569,7 +1748,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="24"
+            line="25"
             column="13"/>
     </issue>
 
@@ -1580,7 +1759,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="25"
+            line="26"
             column="13"/>
     </issue>
 
@@ -1591,7 +1770,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="26"
+            line="27"
             column="13"/>
     </issue>
 
@@ -1602,7 +1781,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="27"
+            line="28"
             column="13"/>
     </issue>
 
@@ -1613,7 +1792,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="34"
+            line="35"
             column="13"/>
     </issue>
 
@@ -1624,7 +1803,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="41"
+            line="42"
             column="13"/>
     </issue>
 
@@ -1635,7 +1814,7 @@
         errorLine2="            ~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="43"
+            line="44"
             column="13"/>
     </issue>
 
@@ -1646,7 +1825,7 @@
         errorLine2="            ~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="50"
+            line="51"
             column="13"/>
     </issue>
 
@@ -1657,7 +1836,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="51"
+            line="52"
             column="13"/>
     </issue>
 
@@ -1668,7 +1847,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="52"
+            line="53"
             column="13"/>
     </issue>
 
@@ -1679,7 +1858,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="53"
+            line="54"
             column="13"/>
     </issue>
 
@@ -1690,7 +1869,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="54"
+            line="55"
             column="13"/>
     </issue>
 
@@ -1701,7 +1880,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="59"
+            line="60"
             column="13"/>
     </issue>
 
@@ -1712,7 +1891,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="61"
+            line="62"
             column="13"/>
     </issue>
 
@@ -1723,7 +1902,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="63"
+            line="64"
             column="13"/>
     </issue>
 
@@ -1734,7 +1913,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="72"
+            line="73"
             column="13"/>
     </issue>
 
@@ -1745,7 +1924,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="77"
+            line="78"
             column="13"/>
     </issue>
 
@@ -1756,7 +1935,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="86"
+            line="87"
             column="13"/>
     </issue>
 
@@ -1767,7 +1946,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="87"
+            line="88"
             column="13"/>
     </issue>
 
@@ -1778,7 +1957,7 @@
         errorLine2="            ~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="97"
+            line="98"
             column="13"/>
     </issue>
 
@@ -1789,7 +1968,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="113"
+            line="114"
             column="13"/>
     </issue>
 
@@ -1800,7 +1979,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="122"
+            line="123"
             column="13"/>
     </issue>
 
@@ -1811,7 +1990,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="123"
+            line="124"
             column="13"/>
     </issue>
 
@@ -1822,7 +2001,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="124"
+            line="125"
             column="13"/>
     </issue>
 
@@ -1833,7 +2012,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="125"
+            line="126"
             column="13"/>
     </issue>
 
@@ -1844,7 +2023,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="155"
+            line="156"
             column="13"/>
     </issue>
 
@@ -1855,7 +2034,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="183"
+            line="184"
             column="13"/>
     </issue>
 
@@ -1866,7 +2045,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="209"
+            line="210"
             column="13"/>
     </issue>
 
@@ -1877,7 +2056,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="210"
+            line="211"
             column="13"/>
     </issue>
 
@@ -1888,7 +2067,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="266"
+            line="267"
             column="13"/>
     </issue>
 
@@ -1899,7 +2078,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="267"
+            line="268"
             column="13"/>
     </issue>
 
@@ -1910,7 +2089,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="268"
+            line="269"
             column="13"/>
     </issue>
 
@@ -1921,7 +2100,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="269"
+            line="270"
             column="13"/>
     </issue>
 
@@ -1932,7 +2111,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="281"
+            line="282"
             column="13"/>
     </issue>
 
@@ -2020,7 +2199,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/styles.xml"
-            line="63"
+            line="97"
             column="12"/>
     </issue>
 
@@ -2041,7 +2220,7 @@
         errorLine1="                            FormattableString.yes -> uncacheFiles()"
         errorLine2="                                                     ~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
             line="371"
             column="54"/>
     </issue>
@@ -2052,7 +2231,7 @@
         errorLine1="                        hideBottomSheet()"
         errorLine2="                        ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
             line="376"
             column="25"/>
     </issue>
@@ -2063,7 +2242,7 @@
         errorLine1="                            hideBottomSheet()"
         errorLine2="                            ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
             line="504"
             column="29"/>
     </issue>
@@ -2074,7 +2253,7 @@
         errorLine1="                                setAudiobookWatched()"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
             line="568"
             column="33"/>
     </issue>
@@ -2085,7 +2264,7 @@
         errorLine1="                                setAudiobookUnwatched()"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
             line="570"
             column="33"/>
     </issue>
@@ -2096,7 +2275,7 @@
         errorLine1="                        hideBottomSheet()"
         errorLine2="                        ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
             line="573"
             column="25"/>
     </issue>
@@ -2107,7 +2286,7 @@
         errorLine1="                                hideBottomSheet()"
         errorLine2="                                ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/bookdetails/AudiobookDetailsViewModel.kt"
             line="628"
             column="33"/>
     </issue>
@@ -2118,7 +2297,7 @@
         errorLine1="                        connectToServer()"
         errorLine2="                        ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/application/ChronicleApplication.kt"
+            file="src/main/java/local/oss/chronicle/application/ChronicleApplication.kt"
             line="144"
             column="25"/>
     </issue>
@@ -2129,7 +2308,7 @@
         errorLine1="                        connectToServer()"
         errorLine2="                        ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/application/ChronicleApplication.kt"
+            file="src/main/java/local/oss/chronicle/application/ChronicleApplication.kt"
             line="213"
             column="25"/>
     </issue>
@@ -2140,7 +2319,7 @@
         errorLine1="                        openAudiobookDetails(audiobook)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/collections/CollectionDetailsFragment.kt"
+            file="src/main/java/local/oss/chronicle/features/collections/CollectionDetailsFragment.kt"
             line="90"
             column="25"/>
     </issue>
@@ -2151,8 +2330,8 @@
         errorLine1="                        openCollectionDetails(collection)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/collections/CollectionsFragment.kt"
-            line="78"
+            file="src/main/java/local/oss/chronicle/features/collections/CollectionsFragment.kt"
+            line="81"
             column="25"/>
     </issue>
 
@@ -2162,8 +2341,8 @@
         errorLine1="                        openAudiobookDetails(audiobook)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/collections/CollectionsFragment.kt"
-            line="158"
+            file="src/main/java/local/oss/chronicle/features/collections/CollectionsFragment.kt"
+            line="161"
             column="25"/>
     </issue>
 
@@ -2173,42 +2352,42 @@
         errorLine1="                        openAudiobookDetails(audiobook)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/collections/CollectionsFragment.kt"
-            line="158"
+            file="src/main/java/local/oss/chronicle/features/collections/CollectionsFragment.kt"
+            line="161"
             column="25"/>
     </issue>
 
     <issue
         id="SyntheticAccessor"
         message="Access to `private` method `getViewModel` of class `CollectionsFragment` requires synthetic accessor"
-        errorLine1="                    viewModel.setSearchActive(true)"
-        errorLine2="                    ~~~~~~~~~">
+        errorLine1="                                viewModel.setSearchActive(true)"
+        errorLine2="                                ~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/collections/CollectionsFragment.kt"
-            line="206"
-            column="21"/>
+            file="src/main/java/local/oss/chronicle/features/collections/CollectionsFragment.kt"
+            line="196"
+            column="33"/>
     </issue>
 
     <issue
         id="SyntheticAccessor"
         message="Access to `private` method `getViewModel` of class `CollectionsFragment` requires synthetic accessor"
-        errorLine1="                    viewModel.setSearchActive(false)"
-        errorLine2="                    ~~~~~~~~~">
+        errorLine1="                                viewModel.setSearchActive(false)"
+        errorLine2="                                ~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/collections/CollectionsFragment.kt"
-            line="211"
-            column="21"/>
+            file="src/main/java/local/oss/chronicle/features/collections/CollectionsFragment.kt"
+            line="201"
+            column="33"/>
     </issue>
 
     <issue
         id="SyntheticAccessor"
         message="Access to `private` method `getViewModel` of class `CollectionsFragment` requires synthetic accessor"
-        errorLine1="                        viewModel.search(newText)"
-        errorLine2="                        ~~~~~~~~~">
+        errorLine1="                                    viewModel.search(newText)"
+        errorLine2="                                    ~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/collections/CollectionsFragment.kt"
-            line="226"
-            column="25"/>
+            file="src/main/java/local/oss/chronicle/features/collections/CollectionsFragment.kt"
+            line="215"
+            column="37"/>
     </issue>
 
     <issue
@@ -2217,7 +2396,7 @@
         errorLine1="                        viewModel.jumpToChapter(chapter.startTimeOffset, chapter.trackId.toInt())"
         errorLine2="                        ~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingFragment.kt"
+            file="src/main/java/local/oss/chronicle/features/currentlyplaying/CurrentlyPlayingFragment.kt"
             line="91"
             column="25"/>
     </issue>
@@ -2228,7 +2407,7 @@
         errorLine1="                    viewModel.isSliding = true"
         errorLine2="                    ~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingFragment.kt"
+            file="src/main/java/local/oss/chronicle/features/currentlyplaying/CurrentlyPlayingFragment.kt"
             line="99"
             column="21"/>
     </issue>
@@ -2239,7 +2418,7 @@
         errorLine1="                    viewModel.isSliding = false"
         errorLine2="                    ~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingFragment.kt"
+            file="src/main/java/local/oss/chronicle/features/currentlyplaying/CurrentlyPlayingFragment.kt"
             line="103"
             column="21"/>
     </issue>
@@ -2250,7 +2429,7 @@
         errorLine1="                    viewModel.seekTo(slider.value.toDouble() / slider.valueTo)"
         errorLine2="                    ~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingFragment.kt"
+            file="src/main/java/local/oss/chronicle/features/currentlyplaying/CurrentlyPlayingFragment.kt"
             line="104"
             column="21"/>
     </issue>
@@ -2261,7 +2440,7 @@
         errorLine1="                            hideOptionsMenu()"
         errorLine2="                            ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
             line="587"
             column="29"/>
     </issue>
@@ -2272,7 +2451,7 @@
         errorLine1="                                setSleepTimerTitle(FormattableString.from(R.string.sleep_timer))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
             line="692"
             column="33"/>
     </issue>
@@ -2283,7 +2462,7 @@
         errorLine1="                    hideSleepTimerChooser()"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
             line="699"
             column="21"/>
     </issue>
@@ -2294,7 +2473,7 @@
         errorLine1="                        hideSleepTimerChooser()"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
             line="710"
             column="25"/>
     </issue>
@@ -2305,7 +2484,7 @@
         errorLine1="                    setSleepTimerTitle("
         errorLine2="                    ~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
             line="775"
             column="21"/>
     </issue>
@@ -2316,7 +2495,7 @@
         errorLine1="                    setSleepTimerTitle(FormattableString.from(R.string.sleep_timer))"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
             line="785"
             column="21"/>
     </issue>
@@ -2327,8 +2506,8 @@
         errorLine1="                        openAudiobookDetails(audiobook)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/library/LibraryFragment.kt"
-            line="82"
+            file="src/main/java/local/oss/chronicle/features/library/LibraryFragment.kt"
+            line="85"
             column="25"/>
     </issue>
 
@@ -2338,8 +2517,8 @@
         errorLine1="                        openAudiobookDetails(audiobook)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/library/LibraryFragment.kt"
-            line="160"
+            file="src/main/java/local/oss/chronicle/features/library/LibraryFragment.kt"
+            line="163"
             column="25"/>
     </issue>
 
@@ -2349,8 +2528,8 @@
         errorLine1="                        openAudiobookDetails(audiobook)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/library/LibraryFragment.kt"
-            line="160"
+            file="src/main/java/local/oss/chronicle/features/library/LibraryFragment.kt"
+            line="163"
             column="25"/>
     </issue>
 
@@ -2360,42 +2539,75 @@
         errorLine1="                        viewModel.setFilterMenuVisible(newState == STATE_EXPANDED)"
         errorLine2="                        ~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/library/LibraryFragment.kt"
-            line="206"
+            file="src/main/java/local/oss/chronicle/features/library/LibraryFragment.kt"
+            line="211"
             column="25"/>
     </issue>
 
     <issue
         id="SyntheticAccessor"
         message="Access to `private` method `getViewModel` of class `LibraryFragment` requires synthetic accessor"
-        errorLine1="                    viewModel.setSearchActive(true)"
-        errorLine2="                    ~~~~~~~~~">
+        errorLine1="                                viewModel.setSearchActive(true)"
+        errorLine2="                                ~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/library/LibraryFragment.kt"
-            line="255"
-            column="21"/>
+            file="src/main/java/local/oss/chronicle/features/library/LibraryFragment.kt"
+            line="251"
+            column="33"/>
     </issue>
 
     <issue
         id="SyntheticAccessor"
         message="Access to `private` method `getViewModel` of class `LibraryFragment` requires synthetic accessor"
-        errorLine1="                    viewModel.setSearchActive(false)"
-        errorLine2="                    ~~~~~~~~~">
+        errorLine1="                                viewModel.setSearchActive(false)"
+        errorLine2="                                ~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/library/LibraryFragment.kt"
-            line="262"
-            column="21"/>
+            file="src/main/java/local/oss/chronicle/features/library/LibraryFragment.kt"
+            line="258"
+            column="33"/>
     </issue>
 
     <issue
         id="SyntheticAccessor"
         message="Access to `private` method `getViewModel` of class `LibraryFragment` requires synthetic accessor"
-        errorLine1="                        viewModel.search(newText)"
-        errorLine2="                        ~~~~~~~~~">
+        errorLine1="                                    viewModel.search(newText)"
+        errorLine2="                                    ~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/library/LibraryFragment.kt"
-            line="277"
-            column="25"/>
+            file="src/main/java/local/oss/chronicle/features/library/LibraryFragment.kt"
+            line="272"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `getViewModel` of class `LibraryFragment` requires synthetic accessor"
+        errorLine1="                            viewModel.setFilterMenuVisible("
+        errorLine2="                            ~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/library/LibraryFragment.kt"
+            line="283"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `getViewModel` of class `LibraryFragment` requires synthetic accessor"
+        errorLine1="                                viewModel.isFilterShown.value?.not() ?: false,"
+        errorLine2="                                ~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/library/LibraryFragment.kt"
+            line="284"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `getViewModel` of class `LibraryFragment` requires synthetic accessor"
+        errorLine1="                            viewModel.promptDownloadAll()"
+        errorLine2="                            ~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/library/LibraryFragment.kt"
+            line="289"
+            column="29"/>
     </issue>
 
     <issue
@@ -2404,9 +2616,31 @@
         errorLine1="                            FormattableString.yes -> downloadAll(tracks)"
         errorLine2="                                                     ~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/library/LibraryViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/library/LibraryViewModel.kt"
             line="275"
             column="54"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `getViewModel` of class `MainActivity` requires synthetic accessor"
+        errorLine1="                if (viewModel.currentlyPlayingLayoutState.value == EXPANDED) {"
+        errorLine2="                    ~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/application/MainActivity.kt"
+            line="160"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `getViewModel` of class `MainActivity` requires synthetic accessor"
+        errorLine1="                    viewModel.setBottomSheetState(COLLAPSED)"
+        errorLine2="                    ~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/application/MainActivity.kt"
+            line="161"
+            column="21"/>
     </issue>
 
     <issue
@@ -2415,8 +2649,8 @@
         errorLine1="                            viewModel.onCurrentlyPlayingHandleDragged()"
         errorLine2="                            ~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/application/MainActivity.kt"
-            line="190"
+            file="src/main/java/local/oss/chronicle/application/MainActivity.kt"
+            line="212"
             column="29"/>
     </issue>
 
@@ -2426,9 +2660,108 @@
         errorLine1="                        viewModel.showUserMessage(userMessage)"
         errorLine2="                        ~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/application/MainActivity.kt"
-            line="276"
+            file="src/main/java/local/oss/chronicle/application/MainActivity.kt"
+            line="298"
             column="25"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `setSessionCustomErrorMessage` of class `MediaPlayerService` requires synthetic accessor"
+        errorLine1="                setSessionCustomErrorMessage(error.message)"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt"
+            line="723"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `updateSessionPlaybackState` of class `MediaPlayerService` requires synthetic accessor"
+        errorLine1="                updateSessionPlaybackState()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt"
+            line="724"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `updateSessionPlaybackState` of class `MediaPlayerService` requires synthetic accessor"
+        errorLine1="                updateSessionPlaybackState()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt"
+            line="731"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `updateSessionPlaybackState` of class `MediaPlayerService` requires synthetic accessor"
+        errorLine1="                updateSessionPlaybackState()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt"
+            line="735"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `updateSessionMetadataFromPlayer` of class `MediaPlayerService` requires synthetic accessor"
+        errorLine1="                    updateSessionMetadataFromPlayer(it)"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt"
+            line="743"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `updateSessionPlaybackState` of class `MediaPlayerService` requires synthetic accessor"
+        errorLine1="                    updateSessionPlaybackState()"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt"
+            line="744"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `updateSessionMetadataFromPlayer` of class `MediaPlayerService` requires synthetic accessor"
+        errorLine1="                currentPlayer?.let { updateSessionMetadataFromPlayer(it) }"
+        errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt"
+            line="778"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `setSessionCustomErrorMessage` of class `MediaPlayerService` requires synthetic accessor"
+        errorLine1="                    setSessionCustomErrorMessage(null)"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt"
+            line="783"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="SyntheticAccessor"
+        message="Access to `private` method `updateSessionPlaybackState` of class `MediaPlayerService` requires synthetic accessor"
+        errorLine1="                updateSessionPlaybackState()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt"
+            line="785"
+            column="17"/>
     </issue>
 
     <issue
@@ -2437,7 +2770,7 @@
         errorLine1="                                showOptionsMenu("
         errorLine2="                                ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="209"
             column="33"/>
     </issue>
@@ -2448,7 +2781,7 @@
         errorLine1="                                showOptionsMenu("
         errorLine2="                                ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="299"
             column="33"/>
     </issue>
@@ -2459,7 +2792,7 @@
         errorLine1="                                showOptionsMenu("
         errorLine2="                                ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="399"
             column="33"/>
     </issue>
@@ -2470,7 +2803,7 @@
         errorLine1="                                                    setSyncLocation(syncLoc)"
         errorLine2="                                                    ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="431"
             column="53"/>
     </issue>
@@ -2481,7 +2814,7 @@
         errorLine1="                                showOptionsMenu("
         errorLine2="                                ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="450"
             column="33"/>
     </issue>
@@ -2492,7 +2825,7 @@
         errorLine1="                                showOptionsMenu("
         errorLine2="                                ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="548"
             column="33"/>
     </issue>
@@ -2503,7 +2836,7 @@
         errorLine1="                                showOptionsMenu("
         errorLine2="                                ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="617"
             column="33"/>
     </issue>
@@ -2514,7 +2847,7 @@
         errorLine1="                                        clearConfig(RETURN_TO_LIBRARY_CHOOSER)"
         errorLine2="                                        ~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="683"
             column="41"/>
     </issue>
@@ -2525,7 +2858,7 @@
         errorLine1="                                    showOptionsMenu("
         errorLine2="                                    ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="686"
             column="37"/>
     </issue>
@@ -2536,7 +2869,7 @@
         errorLine1="                                                        clearConfig("
         errorLine2="                                                        ~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="704"
             column="57"/>
     </issue>
@@ -2547,7 +2880,7 @@
         errorLine1="                                                        clearConfig("
         errorLine2="                                                        ~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="710"
             column="57"/>
     </issue>
@@ -2558,7 +2891,7 @@
         errorLine1="                                        clearConfig(RETURN_TO_SERVER_CHOOSER)"
         errorLine2="                                        ~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="736"
             column="41"/>
     </issue>
@@ -2569,7 +2902,7 @@
         errorLine1="                                    showOptionsMenu("
         errorLine2="                                    ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="739"
             column="37"/>
     </issue>
@@ -2580,7 +2913,7 @@
         errorLine1="                                                        clearConfig(RETURN_TO_SERVER_CHOOSER)"
         errorLine2="                                                        ~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="753"
             column="57"/>
     </issue>
@@ -2591,7 +2924,7 @@
         errorLine1="                                        clearConfig(RETURN_TO_USER_CHOOSER)"
         errorLine2="                                        ~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="776"
             column="41"/>
     </issue>
@@ -2602,7 +2935,7 @@
         errorLine1="                                    showOptionsMenu("
         errorLine2="                                    ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="779"
             column="37"/>
     </issue>
@@ -2613,7 +2946,7 @@
         errorLine1="                                                        clearConfig(RETURN_TO_USER_CHOOSER)"
         errorLine2="                                                        ~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="793"
             column="57"/>
     </issue>
@@ -2624,7 +2957,7 @@
         errorLine1="                                        clearConfig(RETURN_TO_LOGIN)"
         errorLine2="                                        ~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="816"
             column="41"/>
     </issue>
@@ -2635,7 +2968,7 @@
         errorLine1="                                    showOptionsMenu("
         errorLine2="                                    ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="822"
             column="37"/>
     </issue>
@@ -2646,7 +2979,7 @@
         errorLine1="                                    clearConfig(clearDownloads = false)"
         errorLine2="                                    ~~~~~~~~~~~">
         <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/settings/SettingsViewModel.kt"
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt"
             line="914"
             column="37"/>
     </issue>
@@ -2779,11 +3112,11 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="6"
+            line="7"
             column="5"/>
         <location
             file="src/main/res/values/strings.xml"
-            line="9"
+            line="10"
             column="5"
             message="Duplicates value in `search`"/>
     </issue>
@@ -2795,11 +3128,11 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="11"
+            line="12"
             column="5"/>
         <location
             file="src/main/res/values/strings.xml"
-            line="97"
+            line="98"
             column="5"
             message="Duplicates value in `tab_home`"/>
     </issue>
@@ -2811,16 +3144,16 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="12"
+            line="13"
             column="5"/>
         <location
             file="src/main/res/values/strings.xml"
-            line="41"
+            line="42"
             column="5"
             message="Duplicates value in `tab_library`"/>
         <location
             file="src/main/res/values/strings.xml"
-            line="273"
+            line="274"
             column="5"
             message="Duplicates value in `tab_library`"/>
     </issue>
@@ -2832,11 +3165,11 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="13"
+            line="14"
             column="5"/>
         <location
             file="src/main/res/values/strings.xml"
-            line="54"
+            line="55"
             column="5"
             message="Duplicates value in `tab_collections`"/>
     </issue>
@@ -2848,11 +3181,11 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="18"
+            line="19"
             column="5"/>
         <location
             file="src/main/res/values/strings.xml"
-            line="21"
+            line="22"
             column="5"
             message="Duplicates value in `title_activity_login`"/>
     </issue>
@@ -2864,7 +3197,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="51"
+            line="52"
             column="5"/>
         <location
             file="src/main/res/values/strings_no_translate.xml"
@@ -2880,11 +3213,11 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="52"
+            line="53"
             column="5"/>
         <location
             file="src/main/res/values/strings.xml"
-            line="57"
+            line="58"
             column="5"
             message="Duplicates value in `view_by_author`"/>
         <location
@@ -2906,7 +3239,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="53"
+            line="54"
             column="5"/>
         <location
             file="src/main/res/values/strings_no_translate.xml"
@@ -2922,7 +3255,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="56"
+            line="57"
             column="5"/>
         <location
             file="src/main/res/values/strings_no_translate.xml"
@@ -2938,7 +3271,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="58"
+            line="59"
             column="5"/>
         <location
             file="src/main/res/values/strings_no_translate.xml"
@@ -2954,7 +3287,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="61"
+            line="62"
             column="5"/>
         <location
             file="src/main/res/values/strings_no_translate.xml"
@@ -2970,7 +3303,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="63"
+            line="64"
             column="5"/>
         <location
             file="src/main/res/values/strings_no_translate.xml"
@@ -2986,7 +3319,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="64"
+            line="65"
             column="5"/>
         <location
             file="src/main/res/values/strings_no_translate.xml"
@@ -3002,11 +3335,11 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="78"
+            line="79"
             column="5"/>
         <location
             file="src/main/res/values/strings.xml"
-            line="125"
+            line="126"
             column="5"
             message="Duplicates value in `download`"/>
     </issue>
@@ -3018,11 +3351,11 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="98"
+            line="99"
             column="5"/>
         <location
             file="src/main/res/values/strings.xml"
-            line="270"
+            line="271"
             column="5"
             message="Duplicates value in `recently_listened`"/>
     </issue>
@@ -3034,11 +3367,11 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="99"
+            line="100"
             column="5"/>
         <location
             file="src/main/res/values/strings.xml"
-            line="271"
+            line="272"
             column="5"
             message="Duplicates value in `recently_added`"/>
     </issue>
@@ -3050,11 +3383,11 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="127"
+            line="128"
             column="5"/>
         <location
             file="src/main/res/values/strings.xml"
-            line="176"
+            line="177"
             column="5"
             message="Duplicates value in `download_notification_cancel`"/>
     </issue>
@@ -3066,11 +3399,11 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="168"
+            line="169"
             column="5"/>
         <location
             file="src/main/res/values/strings.xml"
-            line="201"
+            line="202"
             column="5"
             message="Duplicates value in `sleep_timer_duration_15_minutes`"/>
     </issue>
@@ -3079,117 +3412,556 @@
         id="TypographyQuotes"
         message="Replace apostrophe (&apos;) with typographic apostrophe (’, &amp;#8217;) ?"
         errorLine1="    &lt;string name=&quot;failed_to_connect_to_server&quot;>Can\&apos;t connect to server&lt;/string>"
-        errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine2="                                                   ~">
         <location
             file="src/main/res/values/strings.xml"
-            line="80"
-            column="48"/>
+            line="81"
+            column="52"/>
     </issue>
 
     <issue
         id="TypographyQuotes"
         message="Replace apostrophe (&apos;) with typographic apostrophe (’, &amp;#8217;) ?"
         errorLine1="    &lt;string name=&quot;settings_premium_unlocked_explanation&quot;>You have full access to all of Chronicle\&apos;s features&lt;/string>"
-        errorLine2="                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine2="                                                                                                  ~">
         <location
             file="src/main/res/values/strings.xml"
-            line="219"
-            column="58"/>
+            line="220"
+            column="99"/>
     </issue>
 
     <issue
         id="TypographyQuotes"
         message="Replace apostrophe (&apos;) with typographic apostrophe (’, &amp;#8217;) ?"
         errorLine1="    &lt;string name=&quot;settings_subreddit_explanation&quot;>Share bug reports, request features, and learn what\&apos;s coming next in Chronicle&lt;/string>"
-        errorLine2="                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine2="                                                                                                      ~">
         <location
             file="src/main/res/values/strings.xml"
-            line="237"
-            column="51"/>
+            line="238"
+            column="103"/>
     </issue>
 
     <issue
         id="TypographyQuotes"
         message="Replace apostrophe (&apos;) with typographic apostrophe (’, &amp;#8217;) ?"
         errorLine1="    &lt;string name=&quot;no_server_chosen_explanation&quot;>Android Auto can\&apos;t access your files until you pick a. Open the app when it is safe and log in fully.&lt;/string>"
-        errorLine2="                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine2="                                                                 ~">
         <location
             file="src/main/res/values/strings.xml"
-            line="269"
-            column="49"/>
+            line="270"
+            column="66"/>
     </issue>
 
     <issue
         id="TypographyQuotes"
         message="Replace apostrophe (&apos;) with typographic apostrophe (’, &amp;#8217;) ?"
         errorLine1="    &lt;string name=&quot;auto_access_error_invalid_client&quot;>Illegal Auto client signature. Only Google Assistant, WearOS, and Android Auto can access Chronicle\&apos;s content&lt;/string>"
-        errorLine2="                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine2="                                                                                                                                                        ~">
         <location
             file="src/main/res/values/strings.xml"
-            line="279"
-            column="53"/>
+            line="280"
+            column="153"/>
     </issue>
 
     <issue
         id="ConvertToWebp"
         message="One or more images in this project can be converted to the WebP format which typically results in smaller file sizes, even for lossless conversion">
         <location
-            file="src/main/res/drawable-v24/example_cover.png"/>
+            file="src/main/res/mipmap-xxxhdpi/ic_launcher_monochrome.png"/>
     </issue>
 
     <issue
-        id="MonochromeLauncherIcon"
-        message="The application adaptive icon is missing a monochrome tag"
-        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
-        errorLine2="^">
+        id="IconExpectedSize"
+        message="Incorrect icon size for `mipmap-hdpi/ic_launcher_monochrome.png`: expected 72x72, but was 162x162">
         <location
-            file="src/main/res/mipmap-anydpi-v26/ic_launcher.xml"
-            line="2"
-            column="1"/>
+            file="src/main/res/mipmap-hdpi/ic_launcher_monochrome.png"/>
     </issue>
 
     <issue
-        id="MonochromeLauncherIcon"
-        message="The application adaptive roundIcon is missing a monochrome tag"
-        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
-        errorLine2="^">
+        id="IconExpectedSize"
+        message="Incorrect icon size for `mipmap-mdpi/ic_launcher_monochrome.png`: expected 48x48, but was 108x108">
         <location
-            file="src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml"
-            line="2"
-            column="1"/>
+            file="src/main/res/mipmap-mdpi/ic_launcher_monochrome.png"/>
     </issue>
 
     <issue
-        id="UseTomlInstead"
-        message="Use version catalog instead"
-        errorLine1="    implementation(&quot;androidx.media:media:1.6.0&quot;)"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="IconExpectedSize"
+        message="Incorrect icon size for `mipmap-xhdpi/ic_launcher_monochrome.png`: expected 96x96, but was 216x216">
         <location
-            file="build.gradle.kts"
-            line="101"
+            file="src/main/res/mipmap-xhdpi/ic_launcher_monochrome.png"/>
+    </issue>
+
+    <issue
+        id="IconExpectedSize"
+        message="Incorrect icon size for `mipmap-xxhdpi/ic_launcher_monochrome.png`: expected 144x144, but was 324x324">
+        <location
+            file="src/main/res/mipmap-xxhdpi/ic_launcher_monochrome.png"/>
+    </issue>
+
+    <issue
+        id="IconExpectedSize"
+        message="Incorrect icon size for `mipmap-xxxhdpi/ic_launcher_monochrome.png`: expected 192x192, but was 432x432">
+        <location
+            file="src/main/res/mipmap-xxxhdpi/ic_launcher_monochrome.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: ic_launcher_foreground.png, ic_launcher_monochrome.png">
+        <location
+            file="src/main/res/mipmap-hdpi/ic_launcher_monochrome.png"/>
+        <location
+            file="src/main/res/mipmap-hdpi/ic_launcher_foreground.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: ic_launcher_foreground.png, ic_launcher_monochrome.png">
+        <location
+            file="src/main/res/mipmap-mdpi/ic_launcher_monochrome.png"/>
+        <location
+            file="src/main/res/mipmap-mdpi/ic_launcher_foreground.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: ic_launcher_foreground.png, ic_launcher_monochrome.png">
+        <location
+            file="src/main/res/mipmap-xhdpi/ic_launcher_monochrome.png"/>
+        <location
+            file="src/main/res/mipmap-xhdpi/ic_launcher_foreground.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: ic_launcher_foreground.png, ic_launcher_monochrome.png">
+        <location
+            file="src/main/res/mipmap-xxhdpi/ic_launcher_monochrome.png"/>
+        <location
+            file="src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: ic_launcher_foreground.png, ic_launcher_monochrome.png">
+        <location
+            file="src/main/res/mipmap-xxxhdpi/ic_launcher_monochrome.png"/>
+        <location
+            file="src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: ic_launcher.png, ic_launcher_round.png">
+        <location
+            file="src/main/res/mipmap-hdpi/ic_launcher_round.png"/>
+        <location
+            file="src/main/res/mipmap-hdpi/ic_launcher.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: ic_launcher.png, ic_launcher_round.png">
+        <location
+            file="src/main/res/mipmap-mdpi/ic_launcher_round.png"/>
+        <location
+            file="src/main/res/mipmap-mdpi/ic_launcher.png"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="        Uri.parse(&quot;android.resource://${BuildConfig.APPLICATION_ID}/$iconRes&quot;),"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/player/MediaItemExt.kt"
+            line="24"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="            return Uri.parse("
+        errorLine2="                   ^">
+        <location
+            file="src/main/java/local/oss/chronicle/data/sources/plex/PlexLoginRepo.kt"
+            line="107"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                        Intent(Intent.ACTION_VIEW, Uri.parse(it.getContentIfNotHandled())),"
+        errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/features/settings/SettingsFragment.kt"
+            line="110"
+            column="52"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                    prefs.edit().putString(PREFS_UUID_KEY, generatedUUID).commit()"
+        errorLine2="                    ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt"
+            line="77"
             column="21"/>
     </issue>
 
     <issue
-        id="UseTomlInstead"
-        message="Use version catalog instead"
-        errorLine1="    implementation(&quot;android.arch.lifecycle:extensions:1.1.1&quot;)"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                prefs.edit().putString(PREFS_AUTH_TOKEN_KEY, value).commit()"
+        errorLine2="                ~~~~~~~~~~~~">
         <location
-            file="build.gradle.kts"
-            line="102"
-            column="21"/>
+            file="src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt"
+            line="88"
+            column="17"/>
     </issue>
 
     <issue
-        id="UseTomlInstead"
-        message="Use version catalog instead"
-        errorLine1="    implementation(&quot;androidx.mediarouter:mediarouter:1.6.0&quot;)"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                    prefs.edit().remove(PREFS_USER).commit()"
+        errorLine2="                    ~~~~~~~~~~~~">
         <location
-            file="build.gradle.kts"
+            file="src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt"
             line="103"
             column="21"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                prefs.edit().putString(PREFS_USER, userString).commit()"
+        errorLine2="                ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt"
+            line="107"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                    prefs.edit()"
+        errorLine2="                    ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt"
+            line="123"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                prefs.edit()"
+        errorLine2="                ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt"
+            line="128"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                    prefs.edit()"
+        errorLine2="                    ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt"
+            line="152"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                prefs.edit()"
+        errorLine2="                ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt"
+            line="161"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                prefs.edit().putLong(PREFS_TEMP_ID, value).commit()"
+        errorLine2="                ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt"
+            line="183"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            prefs.edit()"
+        errorLine2="            ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt"
+            line="195"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                    sharedPreferences.edit()"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="183"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                sharedPreferences.edit().putString("
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="194"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            set(value) = sharedPreferences.edit().putString(KEY_BOOK_COVER_STYLE, value).apply()"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="202"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            set(value) = sharedPreferences.edit().putBoolean(KEY_OFFLINE_MODE, value).apply()"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="207"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            set(value) = sharedPreferences.edit().putLong(KEY_LAST_REFRESH, value).apply()"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="212"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            set(value) = sharedPreferences.edit().putLong(KEY_REFRESH_RATE, value).apply()"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="217"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            set(value) = sharedPreferences.edit().putLong(KEY_JUMP_FORWARD_SECONDS, value).apply()"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="222"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            set(value) = sharedPreferences.edit().putLong(KEY_JUMP_BACKWARD_SECONDS, value).apply()"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="227"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            set(value) = sharedPreferences.edit().putFloat(KEY_PLAYBACK_SPEED, value).apply()"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="232"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            set(value) = sharedPreferences.edit().putBoolean(KEY_SKIP_SILENCE, value).apply()"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="237"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            set(value) = sharedPreferences.edit().putBoolean(KEY_AUTO_REWIND_ENABLED, value).apply()"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="242"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            ) = sharedPreferences.edit().putBoolean(KEY_SHAKE_TO_SNOOZE_ENABLED, value).apply()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="249"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            set(value) = sharedPreferences.edit().putBoolean(KEY_PAUSE_ON_FOCUS_LOST, value).apply()"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="254"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            set(value) = sharedPreferences.edit().putBoolean(KEY_ALLOW_AUTO, value).apply()"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="259"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                sharedPreferences.edit().putBoolean("
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="273"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                sharedPreferences.edit().putString(KEY_BOOK_SORT_BY, value).apply()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="286"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                sharedPreferences.edit().putBoolean(KEY_IS_LIBRARY_SORT_DESCENDING, value).apply()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="293"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            ) = sharedPreferences.edit().putBoolean(KEY_HIDE_PLAYED_AUDIOBOOKS, value).apply()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="301"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                sharedPreferences.edit().putString(KEY_LIBRARY_MEDIA_TYPE, value).apply()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="316"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="                sharedPreferences.edit().putString(KEY_LIBRARY_VIEW_STYLE, value).apply()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="326"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            ) = sharedPreferences.edit().putBoolean(KEY_DEBUG_DISABLE_PROGRESS, value).apply()"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="338"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            sharedPreferences.edit().putBoolean(key, value).apply()"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="344"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            sharedPreferences.edit().clear().apply()"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/local/oss/chronicle/data/local/SharedPreferencesPrefsRepo.kt"
+            line="362"
+            column="13"/>
     </issue>
 
     <issue
@@ -3221,7 +3993,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/activity_main.xml"
-            line="84"
+            line="88"
             column="21"/>
     </issue>
 
@@ -3232,7 +4004,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/fragment_currently_playing.xml"
-            line="181"
+            line="182"
             column="25"/>
     </issue>
 
@@ -3464,116 +4236,6 @@
         <location
             file="src/main/res/layout/view_bottom_sheet_chooser_item.xml"
             line="33"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Should explicitly declare type here since implicit type does not specify nullness (LiveData&lt;(String or String?)>)"
-        errorLine1="    val chapterProgressString ="
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
-            line="173"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Should explicitly declare type here since implicit type does not specify nullness (LiveData&lt;(String or String?)>)"
-        errorLine1="    val chapterDurationString ="
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
-            line="199"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Should explicitly declare type here since implicit type does not specify nullness (LiveData&lt;(String or String?)>)"
-        errorLine1="    val sleepTimerTimeRemainingString ="
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
-            line="215"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Should explicitly declare type here since implicit type does not specify nullness (LiveData&lt;(String or String?)>)"
-        errorLine1="    val trackProgress ="
-        errorLine2="        ~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
-            line="225"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Should explicitly declare type here since implicit type does not specify nullness (LiveData&lt;(String or String?)>)"
-        errorLine1="    val trackDuration ="
-        errorLine2="        ~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/currentlyplaying/CurrentlyPlayingViewModel.kt"
-            line="233"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Should explicitly declare type here since implicit type does not specify nullness (DoubleLiveData&lt;List&lt;Audiobook>, (Boolean or Boolean?), List&lt;Audiobook>>)"
-        errorLine1="    val recentlyListened ="
-        errorLine2="        ~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/home/HomeViewModel.kt"
-            line="55"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Should explicitly declare type here since implicit type does not specify nullness (DoubleLiveData&lt;List&lt;MediaItemTrack>, (List&lt;Chapter> or List&lt;Chapter>?), String>)"
-        errorLine1="    val currentChapterTitle ="
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/application/MainActivityViewModel.kt"
-            line="117"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Should explicitly declare type here since implicit type does not specify nullness (MutableLiveData&lt;(Boolean or Boolean?)>)"
-        errorLine1="        val isConnected = MutableLiveData(false)"
-        errorLine2="            ~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/player/MediaServiceConnection.kt"
-            line="23"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Should explicitly declare type here since implicit type does not specify nullness (MutableLiveData&lt;(PlaybackStateCompat or PlaybackStateCompat?)>)"
-        errorLine1="        val playbackState = MutableLiveData(EMPTY_PLAYBACK_STATE)"
-        errorLine2="            ~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/player/MediaServiceConnection.kt"
-            line="24"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Should explicitly declare type here since implicit type does not specify nullness (MutableLiveData&lt;(MediaMetadataCompat or MediaMetadataCompat?)>)"
-        errorLine1="        val nowPlaying = MutableLiveData(NOTHING_PLAYING)"
-        errorLine2="            ~~~~~~~~~~">
-        <location
-            file="src/main/java/io/github/mattpvaughn/chronicle/features/player/MediaServiceConnection.kt"
-            line="25"
             column="13"/>
     </issue>
 

@@ -17,14 +17,14 @@ class LocalMediaSource : MediaSource {
     // TODO: acquire the permissions needed somehow
 
     override val dataSourceFactory: DefaultDataSource.Factory
-        get() = TODO("Not yet implemented")
+        get() = throw UnsupportedOperationException("LocalMediaSource not yet implemented")
 
     override suspend fun fetchAudiobooks(): Result<List<Audiobook>, Throwable> {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("LocalMediaSource.fetchAudiobooks() not yet implemented")
     }
 
     override suspend fun fetchTracks(): Result<List<MediaItemTrack>, Throwable> {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("LocalMediaSource.fetchTracks() not yet implemented")
     }
 
     override val isDownloadable: Boolean = false

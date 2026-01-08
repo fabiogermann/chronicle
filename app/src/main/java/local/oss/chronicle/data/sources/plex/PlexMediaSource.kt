@@ -37,45 +37,45 @@ class PlexMediaSource
         override val isDownloadable: Boolean = true
 
         override suspend fun fetchAudiobooks(): Result<List<Audiobook>, Throwable> {
-            TODO("Not yet implemented")
+            throw UnsupportedOperationException("PlexMediaSource.fetchAudiobooks() not yet implemented")
         }
 
         override suspend fun fetchTracks(): Result<List<MediaItemTrack>, Throwable> {
-            TODO("Not yet implemented")
+            throw UnsupportedOperationException("PlexMediaSource.fetchTracks() not yet implemented")
         }
 
         override suspend fun fetchAdditionalTrackInfo(): MediaItemTrack {
-            TODO("Not yet implemented")
+            throw UnsupportedOperationException("PlexMediaSource.fetchAdditionalTrackInfo() not yet implemented")
         }
 
         override suspend fun fetchStream(url: String): ResponseBody {
-            TODO("Not yet implemented")
+            throw UnsupportedOperationException("PlexMediaSource.fetchStream() not yet implemented")
         }
 
         override suspend fun updateProgress(
             mediaItemTrack: MediaItemTrack,
             playbackState: String,
         ) {
-            TODO("Not yet implemented")
+            throw UnsupportedOperationException("PlexMediaSource.updateProgress() not yet implemented")
         }
 
         override suspend fun sendMediaSessionStartCommand() {
-            TODO("Not yet implemented")
+            throw UnsupportedOperationException("PlexMediaSource.sendMediaSessionStartCommand() not yet implemented")
         }
 
         override suspend fun isReachable(): Boolean {
-            TODO("Not yet implemented")
+            throw UnsupportedOperationException("PlexMediaSource.isReachable() not yet implemented")
         }
 
         override fun makeDownloadRequest(trackUrl: String): Request {
-            TODO("Not yet implemented")
+            throw UnsupportedOperationException("PlexMediaSource.makeDownloadRequest() not yet implemented")
         }
 
         override fun makeGlideHeaders(): Any? {
-            TODO("Not yet implemented")
+            throw UnsupportedOperationException("PlexMediaSource.makeGlideHeaders() not yet implemented")
         }
 
         override fun toServerString(relativePathForResource: String): String {
-            TODO("Not yet implemented")
+            throw UnsupportedOperationException("PlexMediaSource.toServerString() not yet implemented")
         }
     }
