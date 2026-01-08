@@ -468,7 +468,7 @@ class DownloadNotificationWorker(
             applicationContext.packageManager.getPackageInfo(
                 applicationContext.packageName,
                 PackageManager.GET_ACTIVITIES,
-            ).activities.find { it.name.contains("MainActivity") }
+            ).activities?.find { it.name.contains("MainActivity") }
         intent.setPackage(applicationContext.packageName)
         intent.putExtra(FLAG_OPEN_ACTIVITY_TO_AUDIOBOOK_WITH_ID, bookId)
         intent.component = ComponentName(applicationContext.packageName, activity?.name ?: "")

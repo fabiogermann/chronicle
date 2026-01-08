@@ -141,7 +141,7 @@ class NotificationBuilder
             val intent = Intent()
             val activity =
                 context.packageManager.getPackageInfo(context.packageName, GET_ACTIVITIES)
-                    .activities.find { it.name.contains("MainActivity") }
+                    .activities?.find { it.name.contains("MainActivity") }
             intent.setPackage(context.packageName)
             intent.putExtra(FLAG_OPEN_ACTIVITY_TO_CURRENTLY_PLAYING, true)
             intent.component = ComponentName(context.packageName, activity?.name ?: "")

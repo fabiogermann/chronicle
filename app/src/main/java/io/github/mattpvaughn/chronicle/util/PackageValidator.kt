@@ -177,15 +177,15 @@ class PackageValidator(
     private fun buildCallerInfo(callingPackage: String): CallerPackageInfo? {
         val packageInfo = getPackageInfo(callingPackage) ?: return null
 
-        val appName = packageInfo.applicationInfo.loadLabel(packageManager).toString()
-        val uid = packageInfo.applicationInfo.uid
+        val appName = packageInfo.applicationInfo?.loadLabel(packageManager)?.toString() ?: callingPackage
+        val uid = packageInfo.applicationInfo?.uid ?: return null
         val signature = getSignature(packageInfo)
 
         val requestedPermissions = packageInfo.requestedPermissions
         val permissionFlags = packageInfo.requestedPermissionsFlags
         val activePermissions = mutableSetOf<String>()
         requestedPermissions?.forEachIndexed { index, permission ->
-            if (permissionFlags[index] and REQUESTED_PERMISSION_GRANTED != 0) {
+            if (permissionFlags?.get(index)?.and(REQUESTED_PERMISSION_GRANTED) != 0) {
                 activePermissions += permission
             }
         }
