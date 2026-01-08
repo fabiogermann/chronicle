@@ -57,7 +57,7 @@ fetch = { group = "com.github.tonyofrancis.Fetch", name = "fetch2", version.ref 
 fresco = { group = "com.facebook.fresco", name = "fresco", version.ref = "fresco" }
 fresco-imagepipeline = { group = "com.facebook.fresco", name = "imagepipeline-okhttp3", version.ref = "fresco" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
-hamcrest = { group = "org.hamcrest", name = "hamcrest-all", version.ref = "hamcrest" }
+hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" }
 iapwrapper = { group = "com.github.akshaaatt", name = "Google-IAP", version.ref = "iapWrapper" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
