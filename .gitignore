@@ -22,13 +22,18 @@ app/release
 local.properties
 build.xml
 
+# keystore and signing files
+*.keystore
+*.jks
+keystore.properties
+keystore-base64.txt
+
 # etc
 .externalNativeBuild
 .cxx
 *.swp
 *.un~
 .*.un~
-*.keystore
 
 # OS Generated Files
 *~
