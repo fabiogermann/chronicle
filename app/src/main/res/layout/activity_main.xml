@@ -55,17 +55,18 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:visibility="@{viewModel.isLoggedIn() ? View.VISIBLE : View.INVISIBLE}"
+            app:layout_constraintBottom_toTopOf="@id/bottom_nav"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="@id/bottom_nav">
+            app:layout_constraintTop_toTopOf="parent">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/currently_playing_handle"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/bottom_sheet_handle_height"
-                android:layout_gravity="top"
+                android:layout_gravity="bottom"
                 android:background="@drawable/mini_player_background"
-                android:elevation="1dp">
+                android:elevation="8dp">
 
                 <io.github.mattpvaughn.chronicle.views.ChronicleDraweeView
                     android:id="@+id/currently_playing_thumb"
