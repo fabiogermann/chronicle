@@ -11,6 +11,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -152,6 +153,31 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Handle back button press with modern OnBackPressedCallback
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // If currently playing view is over fragments, close it via back button
+                if (viewModel.currentlyPlayingLayoutState.value == EXPANDED) {
+                    viewModel.setBottomSheetState(COLLAPSED)
+                    return
+                }
+                // default to activity back stack if navigator did not handle anything
+                if (!navigator.onBackPressed()) {
+                    Timber.i("MainActivity handleOnBackPressed()")
+                    if (supportFragmentManager.backStackEntryCount == 0) {
+                        // The prevent Q+ from leaking the activity internally, don't call
+                        // super.onBackPressed() if at base fragment, manually end...
+                        finishAfterTransition()
+                    } else {
+                        // Let the system handle the back press
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                        isEnabled = true
+                    }
+                }
+            }
+        })
+
         // If the app is being launched by voice assistant with a query
         val query = intent.getStringExtra(SearchManager.QUERY)
         if (!query.isNullOrEmpty()) {
@@ -161,25 +187,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         handleNotificationIntent(intent)
-    }
-
-    override fun onBackPressed() {
-        // If currently playing view is over fragments, close it via back button
-        if (viewModel.currentlyPlayingLayoutState.value == EXPANDED) {
-            viewModel.setBottomSheetState(COLLAPSED)
-            return
-        }
-        // default to activity back stack if navigator did not handle anything
-        if (!navigator.onBackPressed()) {
-            Timber.i("MainActivity super.onBackPressed()")
-            if (supportFragmentManager.backStackEntryCount == 0) {
-                // The prevent Q+ from leaking the activity internally, don't call
-                // super.onBackPressed() if at base fragment, manually end...
-                finishAfterTransition()
-            } else {
-                super.onBackPressed()
-            }
-        }
     }
 
     @SuppressLint("ClickableViewAccessibility")

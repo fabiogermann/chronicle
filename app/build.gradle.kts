@@ -45,7 +45,10 @@ android {
     kotlinOptions {
         jvmTarget = "17"
 
-        freeCompilerArgs += "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
+        freeCompilerArgs += listOf(
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+            "-Xallow-unstable-dependencies"  // Enable Kotlin 2.0+ support for KAPT
+        )
     }
     buildFeatures {
         dataBinding = true

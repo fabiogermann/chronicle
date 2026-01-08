@@ -120,15 +120,11 @@ class CollectionDetailsFragment : Fragment() {
         (activity as AppCompatActivity).setSupportActionBar(binding.toolbar)
 
         binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressed()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         viewModel.title.observe(viewLifecycleOwner) {
             binding.toolbar.title = it?.title ?: ""
-        }
-
-        binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressed()
         }
 
         return binding.root

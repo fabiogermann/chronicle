@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package io.github.mattpvaughn.chronicle.views
 
 import android.content.Context

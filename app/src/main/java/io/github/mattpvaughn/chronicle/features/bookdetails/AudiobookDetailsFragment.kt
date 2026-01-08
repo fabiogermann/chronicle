@@ -132,7 +132,7 @@ class AudiobookDetailsFragment : Fragment() {
         binding.detailsToolbar.title = null
 
         binding.detailsToolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressed()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         viewModel.messageForUser.observeEvent(viewLifecycleOwner) { message ->

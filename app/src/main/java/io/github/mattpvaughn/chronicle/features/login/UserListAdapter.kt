@@ -27,6 +27,7 @@ class UserListAdapter(val clickListener: UserClickListener) :
 
     class UserViewHolder private constructor(val binding: ListItemUserBinding) :
         RecyclerView.ViewHolder(binding.root) {
+            @Suppress("DEPRECATION")
             fun bind(
                 user: PlexUser,
                 clickListener: UserClickListener,
