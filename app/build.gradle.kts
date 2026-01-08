@@ -28,6 +28,32 @@ android {
         testInstrumentationRunner = "local.oss.chronicle.application.ChronicleTestRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            // For GitHub Actions: use environment variables
+            // For local builds: use keystore.properties file
+            val keystorePropertiesFile = rootProject.file("keystore.properties")
+            
+            if (System.getenv("KEYSTORE_FILE") != null) {
+                // GitHub Actions signing configuration
+                storeFile = file(System.getenv("KEYSTORE_FILE"))
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            } else if (keystorePropertiesFile.exists()) {
+                // Local signing configuration from keystore.properties
+                val keystoreProperties = java.util.Properties()
+                keystoreProperties.load(keystorePropertiesFile.inputStream())
+                
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
+            // If neither exists, release builds will use debug signing
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -36,6 +62,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            
+            // Use release signing config if available
+            val releaseSigningConfig = signingConfigs.findByName("release")
+            if (releaseSigningConfig?.storeFile != null) {
+                signingConfig = releaseSigningConfig
+            }
         }
     }
     compileOptions {
