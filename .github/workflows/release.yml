@@ -12,6 +12,21 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      
+      - name: Validate version matches tag
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          GRADLE_VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
+          if [ "$TAG_VERSION" != "$GRADLE_VERSION" ]; then
+            echo "❌ Version mismatch!"
+            echo "   Tag version: $TAG_VERSION"
+            echo "   Gradle version: $GRADLE_VERSION"
+            exit 1
+          fi
+          echo "✅ Version matched: $TAG_VERSION"
       
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -64,3 +79,31 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Bump to next snapshot version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Parse current version
+          CURRENT_VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
+          CURRENT_CODE=$(grep -oP 'versionCode\s*=\s*\K[0-9]+' app/build.gradle.kts)
+          
+          # Calculate next patch version
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          NEXT_PATCH=$((VERSION_PARTS[2] + 1))
+          NEXT_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$NEXT_PATCH-SNAPSHOT"
+          NEXT_CODE=$((CURRENT_CODE + 1))
+          
+          echo "Current version: $CURRENT_VERSION (code: $CURRENT_CODE)"
+          echo "Next version: $NEXT_VERSION (code: $NEXT_CODE)"
+          
+          # Update build.gradle.kts
+          sed -i "s/versionName = \"$CURRENT_VERSION\"/versionName = \"$NEXT_VERSION\"/" app/build.gradle.kts
+          sed -i "s/versionCode = $CURRENT_CODE/versionCode = $NEXT_CODE/" app/build.gradle.kts
+          
+          # Commit and push
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app/build.gradle.kts
+          git commit -m "Bump version to $NEXT_VERSION for next development cycle"
+          git push origin HEAD:main
