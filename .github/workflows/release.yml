@@ -121,9 +121,8 @@ jobs:
           # Read the generated changelog
           CHANGELOG_CONTENT=$(cat changelog.txt)
           
-          # Create or update CHANGELOG.md
+          # Create CHANGELOG.md with header if it doesn't exist
           if [ ! -f CHANGELOG.md ]; then
-            # Create new CHANGELOG.md with header
             {
               echo '# Changelog'
               echo ''
@@ -132,17 +131,27 @@ jobs:
             } > CHANGELOG.md
           fi
           
-          # Prepare the new changelog entry
-          NEW_ENTRY=$(printf '%s\n\n%s\n\n' "## [$CURRENT_VERSION] - $RELEASE_DATE" "$CHANGELOG_CONTENT")
+          # Create the new entry in a temp file
+          {
+            echo "## [$CURRENT_VERSION] - $RELEASE_DATE"
+            echo ''
+            echo "$CHANGELOG_CONTENT"
+            echo ''
+          } > new_entry.tmp
           
-          # Insert the new entry after the header
+          # Insert the new entry using awk (handles special characters safely)
           if grep -q "^## \[" CHANGELOG.md; then
-            # Insert before the first existing version entry
-            sed -i "/^## \[/i\\$NEW_ENTRY" CHANGELOG.md
+            # Insert before the first version entry
+            awk '/^## \[/ && !inserted {
+              while ((getline line < "new_entry.tmp") > 0) print line
+              inserted=1
+            } {print}' CHANGELOG.md > CHANGELOG.md.tmp
+            mv CHANGELOG.md.tmp CHANGELOG.md
           else
-            # Append to the end of the file
-            echo "$NEW_ENTRY" >> CHANGELOG.md
+            # Append to the end
+            cat new_entry.tmp >> CHANGELOG.md
           fi
+          rm -f new_entry.tmp
       
       - name: Bump to next snapshot version
         env:
