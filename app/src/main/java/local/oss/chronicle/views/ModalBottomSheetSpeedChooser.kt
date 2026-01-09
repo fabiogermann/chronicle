@@ -59,6 +59,8 @@ class ModalBottomSheetSpeedChooser : BottomSheetDialogFragment() {
                     // can't be reference as an R.id.xxx
                     "1.0x" -> 1.0f
                     "1.2x" -> 1.2f
+                    "1.3x" -> 1.3f
+                    "1.4x" -> 1.4f
                     "1.5x" -> 1.5f
                     "2.0x" -> 2.0f
                     else -> 1.0f

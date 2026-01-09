@@ -94,6 +94,24 @@
                         app:chipBackgroundColor="@color/chip_same_background_color" />
 
                     <com.google.android.material.chip.Chip
+                        android:id="@+id/speed_1.3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="@string/playback_speed_1_3x"
+                        android:text="@string/playback_speed_1_3x"
+                        android:value="1.3f"
+                        app:chipBackgroundColor="@color/chip_same_background_color" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/speed_1.4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="@string/playback_speed_1_4x"
+                        android:text="@string/playback_speed_1_4x"
+                        android:value="1.4f"
+                        app:chipBackgroundColor="@color/chip_same_background_color" />
+
+                    <com.google.android.material.chip.Chip
                         android:id="@+id/speed_1.5"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

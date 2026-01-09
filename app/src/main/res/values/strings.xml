@@ -158,6 +158,8 @@
     <string name="playback_speed_min">0.5x</string>
     <string name="playback_speed_1_0x">1.0x</string>
     <string name="playback_speed_1_2x">1.2x</string>
+    <string name="playback_speed_1_3x">1.3x</string>
+    <string name="playback_speed_1_4x">1.4x</string>
     <string name="playback_speed_1_5x">1.5x</string>
     <string name="playback_speed_2_0x">2.0x</string>
     <string name="playback_speed_max">3.0x</string>
