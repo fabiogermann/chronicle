@@ -15,5 +15,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Chronicle Audiobook Player"
+rootProject.name = "Chronicle Epilogue - Audiobook Player for Plex"
 include(":app")

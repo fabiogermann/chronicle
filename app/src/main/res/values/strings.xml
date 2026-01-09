@@ -1,6 +1,6 @@
 <resources>
     <!-- Main activity/shared strings -->
-    <string name="app_name">Chronicle Audiobook Player</string>
+    <string name="app_name">Chronicle Epilogue - Audiobook Player for Plex</string>
     <string name="attribution_media_playback">Media playback and library synchronization</string>
     <string name="available_offline">Available offline</string>
     <string name="disable_offline_mode">Disable offline mode</string>

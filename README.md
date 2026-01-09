@@ -1,4 +1,4 @@
-# Chronicle Audiobook Player
+# Chronicle Epilogue - Audiobook Player for Plex
 
 > **Note:** This is a fork of [mattttvaughn/chronicle](https://github.com/mattttvaughn/chronicle). The original project was not maintained for a while, and this fork aims to continue development and improvements. We acknowledge and appreciate the excellent work done by the original developer, [@mattttvaughn](https://github.com/mattttvaughn).
 
