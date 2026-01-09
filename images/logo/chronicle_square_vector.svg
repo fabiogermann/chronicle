@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="2048" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="gPurple" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#5B1E7E"/>
+      <stop offset="55%" stop-color="#4A155F"/>
+      <stop offset="100%" stop-color="#3A0E49"/>
+    </linearGradient>
+    <radialGradient id="gVignette" cx="30%" cy="35%" r="90%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.08"/>
+      <stop offset="70%" stop-color="#000000" stop-opacity="0.00"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.14"/>
+    </radialGradient>
+
+    <linearGradient id="gWarm" x1="55%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD34D"/>
+      <stop offset="35%" stop-color="#FFC11F"/>
+      <stop offset="68%" stop-color="#FF8A00"/>
+      <stop offset="100%" stop-color="#FFB000"/>
+    </linearGradient>
+
+    <linearGradient id="gOrange" x1="40%" y1="40%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6A00" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#FFA000" stop-opacity="0.95"/>
+    </linearGradient>
+
+    <linearGradient id="gBar" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.06"/>
+    </linearGradient>
+
+    <linearGradient id="gSpeaker" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.96"/>
+      <stop offset="100%" stop-color="#F2EDF6" stop-opacity="0.96"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#gPurple)"/>
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#gVignette)"/>
+
+  <polygon points="600,0 1024,0 1024,1024 420,1024" fill="url(#gWarm)"/>
+  <polygon points="560,0 600,0 420,1024 380,1024" fill="#2B0B36" opacity="0.28"/>
+
+  <polygon points="620,210 860,140 860,780 620,700" fill="#FF9D15" opacity="0.22"/>
+  <polygon points="680,250 920,220 920,820 680,760" fill="#FFE36B" opacity="0.16"/>
+
+  <path d="M1024,620 C920,610 810,660 740,770 C690,850 700,950 760,1024 L1024,1024 Z"
+        fill="url(#gOrange)"/>
+
+  <path d="M540,1024 C560,900 650,820 760,760 C720,840 710,940 740,1024 Z"
+        fill="#A63A1D" opacity="0.55"/>
+
+  <g opacity="0.75">
+    <rect x="690" y="130" width="290" height="78" rx="39" fill="url(#gBar)"/>
+    <rect x="690" y="260" width="290" height="78" rx="39" fill="url(#gBar)"/>
+    <rect x="690" y="390" width="290" height="78" rx="39" fill="url(#gBar)"/>
+    <rect x="690" y="520" width="290" height="78" rx="39" fill="url(#gBar)"/>
+  </g>
+
+  <g>
+    <path d="M245,430 H360 L470,360 C478,355 488,360 488,370 V654 C488,664 478,669 470,664
+             L360,594 H245 C220,594 200,574 200,549 V475 C200,450 220,430 245,430 Z"
+          fill="url(#gSpeaker)"/>
+
+    <path d="M362,448 L448,398 V626 L362,576 Z" fill="#FFFFFF" opacity="0.12"/>
+
+    <path d="M540,412 C625,475 625,549 540,612"
+          fill="none" stroke="#FFFFFF" stroke-width="56" stroke-linecap="round" opacity="0.95"/>
+
+    <path d="M610,352 C760,472 760,552 610,672"
+          fill="none" stroke="#FFFFFF" stroke-width="44" stroke-linecap="round" opacity="0.88"/>
+
+    <path d="M432,438 C470,460 490,498 490,512 C490,526 470,564 432,586 L432,438 Z"
+          fill="#2B0B36" opacity="0.20"/>
+  </g>
+</svg>
