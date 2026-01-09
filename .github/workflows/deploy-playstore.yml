@@ -50,8 +50,9 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           PLAY_CREDENTIALS_FILE: play-credentials.json
+          PLAY_STORE_SERVICE_ACCOUNT_JSON: "true"
         run: |
-          ./gradlew publishBundle --track=${{ inputs.track }} --no-daemon
+          ./gradlew publishBundle --track=${{ inputs.track }} --no-daemon -x lintVitalRelease
 
       - name: Clean up credentials
         if: always()

@@ -106,6 +106,10 @@ play {
     
     track.set("internal")  // Default track
     defaultToAppBundles.set(true)  // Use AAB by default
+    
+    // For apps not yet published to production, releases must be drafts
+    // Change to COMPLETED once the app is live on Play Store
+    releaseStatus.set(com.github.triplet.gradle.androidpublisher.ReleaseStatus.DRAFT)
 }
 
 // KSP configuration for Room
