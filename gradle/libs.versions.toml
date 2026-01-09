@@ -29,6 +29,7 @@ moshi = "1.15.2"
 okhttp3 = "4.12.0" # 4.13.0 not yet available
 oss = "17.1.0" # 17.2.0 causes KSP/Dagger compatibility issues
 ossPlugin = "0.10.7"
+playPublisher = "3.9.1"
 result = "1.1.18"
 retrofit = "2.11.0"
 room = "2.7.0"
@@ -89,3 +90,4 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+play-publisher = { id = "com.github.triplet.play", version.ref = "playPublisher" }

@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.play.publisher)
     id("kotlin-parcelize")
     id("kotlin-kapt")  // Still needed for data binding
     id("com.google.android.gms.oss-licenses-plugin")
@@ -89,6 +90,22 @@ android {
         buildConfig = true
     }
 
+}
+
+// Play Publisher configuration
+play {
+    // Service account from environment variable (CI) or file (local)
+    val credentialsFile = file("play-store-credentials.json")
+    if (System.getenv("PLAY_STORE_SERVICE_ACCOUNT_JSON") != null) {
+        serviceAccountCredentials.set(
+            file(System.getenv("PLAY_CREDENTIALS_FILE") ?: "play-credentials.json")
+        )
+    } else if (credentialsFile.exists()) {
+        serviceAccountCredentials.set(credentialsFile)
+    }
+    
+    track.set("internal")  // Default track
+    defaultToAppBundles.set(true)  // Use AAB by default
 }
 
 // KSP configuration for Room

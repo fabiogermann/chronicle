@@ -28,6 +28,10 @@ build.xml
 keystore.properties
 keystore-base64.txt
 
+# play store credentials
+play-store-credentials.json
+play-credentials.json
+
 # etc
 .externalNativeBuild
 .cxx
