@@ -124,20 +124,16 @@ jobs:
           # Create or update CHANGELOG.md
           if [ ! -f CHANGELOG.md ]; then
             # Create new CHANGELOG.md with header
-            cat > CHANGELOG.md << 'HEADER_EOF'
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-HEADER_EOF
+            {
+              echo '# Changelog'
+              echo ''
+              echo 'All notable changes to this project will be documented in this file.'
+              echo ''
+            } > CHANGELOG.md
           fi
           
           # Prepare the new changelog entry
-          NEW_ENTRY="## [$CURRENT_VERSION] - $RELEASE_DATE
-
-$CHANGELOG_CONTENT
-
-"
+          NEW_ENTRY=$(printf '%s\n\n%s\n\n' "## [$CURRENT_VERSION] - $RELEASE_DATE" "$CHANGELOG_CONTENT")
           
           # Insert the new entry after the header
           if grep -q "^## \[" CHANGELOG.md; then
