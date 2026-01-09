@@ -69,6 +69,33 @@ jobs:
           mkdir -p release-artifacts
           cp app/build/outputs/apk/release/app-release.apk release-artifacts/chronicle-${{ steps.get_version.outputs.VERSION }}.apk
       
+      - name: Generate Changelog
+        id: generate_changelog
+        run: |
+          # Get the previous tag
+          PREVIOUS_TAG=$(git tag --sort=-v:refname | grep -v "^${{ steps.get_version.outputs.VERSION }}$" | head -n 1)
+          
+          # If no previous tag exists, use v0.60.0 as baseline
+          if [ -z "$PREVIOUS_TAG" ]; then
+            PREVIOUS_TAG="v0.60.0"
+          fi
+          
+          echo "Generating changelog from $PREVIOUS_TAG to ${{ steps.get_version.outputs.VERSION }}"
+          
+          # Generate changelog with commit messages
+          CHANGELOG=$(git log $PREVIOUS_TAG..${{ steps.get_version.outputs.VERSION }} --pretty=format:"- %s (%h)" --reverse)
+          
+          # Save changelog to file and output
+          echo "$CHANGELOG" > changelog.txt
+          
+          # Create a multiline output for GitHub
+          echo "PREVIOUS_TAG=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+          {
+            echo 'CHANGELOG<<EOF'
+            echo "$CHANGELOG"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+      
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -76,9 +103,50 @@ jobs:
           draft: false
           prerelease: false
           files: release-artifacts/*.apk
-          generate_release_notes: true
+          body: |
+            ## What's Changed
+            
+            ${{ steps.generate_changelog.outputs.CHANGELOG }}
+            
+            **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.generate_changelog.outputs.PREVIOUS_TAG }}...${{ steps.get_version.outputs.VERSION }}
+          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Update CHANGELOG.md
+        run: |
+          CURRENT_VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
+          RELEASE_DATE=$(date +%Y-%m-%d)
+          
+          # Read the generated changelog
+          CHANGELOG_CONTENT=$(cat changelog.txt)
+          
+          # Create or update CHANGELOG.md
+          if [ ! -f CHANGELOG.md ]; then
+            # Create new CHANGELOG.md with header
+            cat > CHANGELOG.md << 'HEADER_EOF'
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+HEADER_EOF
+          fi
+          
+          # Prepare the new changelog entry
+          NEW_ENTRY="## [$CURRENT_VERSION] - $RELEASE_DATE
+
+$CHANGELOG_CONTENT
+
+"
+          
+          # Insert the new entry after the header
+          if grep -q "^## \[" CHANGELOG.md; then
+            # Insert before the first existing version entry
+            sed -i "/^## \[/i\\$NEW_ENTRY" CHANGELOG.md
+          else
+            # Append to the end of the file
+            echo "$NEW_ENTRY" >> CHANGELOG.md
+          fi
       
       - name: Bump to next snapshot version
         env:
@@ -101,9 +169,9 @@ jobs:
           sed -i "s/versionName = \"$CURRENT_VERSION\"/versionName = \"$NEXT_VERSION\"/" app/build.gradle.kts
           sed -i "s/versionCode = $CURRENT_CODE/versionCode = $NEXT_CODE/" app/build.gradle.kts
           
-          # Commit and push
+          # Commit and push (including CHANGELOG.md)
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app/build.gradle.kts
-          git commit -m "Bump version to $NEXT_VERSION for next development cycle"
+          git add app/build.gradle.kts CHANGELOG.md
+          git commit -m "Bump version to $NEXT_VERSION and update CHANGELOG.md"
           git push origin HEAD:main

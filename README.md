@@ -1,6 +1,12 @@
 # Chronicle Audiobook Player
 
-The best Android Audiobook Player for Plex. Stream or download audiobooks hosted on your Plex server. 
+> **Note:** This is a fork of [mattttvaughn/chronicle](https://github.com/mattttvaughn/chronicle). The original project was not maintained for a while, and this fork aims to continue development and improvements. We acknowledge and appreciate the excellent work done by the original developer, [@mattttvaughn](https://github.com/mattttvaughn).
+
+The best Android Audiobook Player for Plex. Stream or download audiobooks hosted on your Plex server.
+
+### Currently in Assessment
+
+Publishing to Google Play is currently being assessed. Stay tuned for updates.
 
 ### Features
 
@@ -21,28 +27,12 @@ The best Android Audiobook Player for Plex. Stream or download audiobooks hosted
 <img src="https://raw.githubusercontent.com/mattttvaughn/chronicle/develop/images/currentlyplaying.png" alt="Player" height="200">
 </p>
 
+### Reporting Bugs
+
+Found a bug? Please report it in the [GitHub Issues](https://github.com/germann/chronicle/issues) section. Your feedback helps improve the app for everyone!
+
 ### Useful Links
 
  - [Plex Audiobook Guide](https://github.com/seanap/Plex-Audiobook-Guide)
  - [Chronicle subreddit](https://www.reddit.com/r/ChronicleApp/)
-
-### Developer Notes
-
-#### Ktlint
-
-Ktlint is a linting tool that is based on the [kotlin style guide](https://developer.android.com/kotlin/style-guide). It will validate and make sure that your code adheres to that style guide.
-
-The [ktlint gradle plugin](https://github.com/jlleitschuh/ktlint-gradle) adds the ktlintCheck and ktlintFormat tasks to gradle.
-- `ktlintCheck` - checks the source code for issues and outputs a report to `app/build/reports/ktlint` 
-- `ktlintFormat` - autoformats the code based on the kotlin style guide.
-
-Ktlint check and format can be run on the code base by running the following commands in the root of the project.
-```
-./gradlew ktlintCheck
-./gradlew ktlintFormat
-```
-
-#### Git hook
-
-A git hook has also been added. This basically runs the ktlintCheck every time a user tries to commit. If it finds violations it prompts the user to run ktlintFormat and fix any inconsistencies with the style guide. The purpose of this is to make sure that everyone is adhering to the style guide and writing clean code.
 
