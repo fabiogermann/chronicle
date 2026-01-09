@@ -41,7 +41,7 @@ jobs:
 
       - name: Decode Play Store credentials
         run: |
-          echo "${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}" > play-credentials.json
+          echo "${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}" > app/play-credentials.json
 
       - name: Build and publish to Play Store
         env:
@@ -57,7 +57,7 @@ jobs:
         if: always()
         run: |
           rm -f app/release.keystore
-          rm -f play-credentials.json
+          rm -f app/play-credentials.json
 
       - name: Upload build artifacts
         if: failure()
