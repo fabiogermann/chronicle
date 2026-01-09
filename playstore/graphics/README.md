@@ -1,73 +1,15 @@
-# Play Store Graphics
+# Play Store Graphics Assets
 
-This directory should contain graphics and screenshots for the Google Play Store listing.
-
-## Required Graphics
-
-### App Icon
-- **File:** `icon-512.png`
-- **Size:** 512x512 px
-- **Format:** 32-bit PNG with alpha
-- **Notes:** High-res app icon (already included in app resources)
-
-### Feature Graphic
-- **File:** `featureGraphic.png`
-- **Size:** 1024x500 px
-- **Format:** JPEG or 24-bit PNG (no alpha)
-- **Notes:** Displayed at the top of the Play Store listing
-
-### Screenshots
-- **Directory:** `phoneScreenshots/`
-- **Min:** 2 screenshots
-- **Max:** 8 screenshots
-- **Size:** 
-  - Minimum dimension: 320 px
-  - Maximum dimension: 3840 px
-  - Aspect ratio: 16:9 or 9:16 (phone)
-- **Format:** JPEG or 24-bit PNG
-- **Notes:** Showcase key features and UI
-
-### Optional Graphics
-
-#### Tablet Screenshots
-- **Directory:** `sevenInchScreenshots/` (7-inch tablets)
-- **Directory:** `tenInchScreenshots/` (10-inch tablets)
-
-#### TV Screenshots
-- **Directory:** `tvScreenshots/`
-- **Size:** 1920x1080 px or 3840x2160 px
-
-#### Wear Screenshots
-- **Directory:** `wearScreenshots/`
-
-#### Promo Video
-- **Field:** YouTube video URL
-- **Notes:** Added through Play Console, not uploaded via Gradle
-
-## Existing Screenshots
-
-Screenshots are available in the [`images/store/`](../../images/store/) directory:
-
-- `home.png` - Home screen view
-- `library.png` - Library with audiobook collection
-- `audiobook.png` - Audiobook details view
-- `playing.png` - Currently playing screen
-- `search.png` - Search functionality
-- `settings.png` - Settings screen
-
-These can be copied to `playstore/graphics/phoneScreenshots/` for Play Store publishing.
-
-### Feature Graphic Available
-- `feature-graphic.png` (1024x500) - Ready for use
-- `feature-graphic.svg` - Source file
+This directory contains all graphics assets for the Google Play Store listing, organized for use with the Gradle Play Publisher plugin.
 
 ## Directory Structure
 
 ```
-graphics/
-├── README.md (this file)
-├── icon-512.png (optional, can use app icon)
-├── featureGraphic.png (1024x500)
+playstore/graphics/
+├── icon/
+│   └── icon-512.png
+├── featureGraphic/
+│   └── feature-graphic.png
 └── phoneScreenshots/
     ├── 1-home.png
     ├── 2-library.png
@@ -77,29 +19,65 @@ graphics/
     └── 6-settings.png
 ```
 
-## Naming Convention
+## Asset Requirements and Specifications
 
-Screenshots are processed in alphabetical order. Prefix with numbers to control the order:
-- `1-home.png`
-- `2-library.png`
-- etc.
+### App Icon (`icon/`)
+- **File**: `icon-512.png`
+- **Dimensions**: 512 x 512 pixels
+- **Format**: PNG (32-bit)
+- **Purpose**: High-resolution app icon for Play Store listing
+- **Source**: `app/src/main/play_store_512.png`
 
-## Uploading
+### Feature Graphic (`featureGraphic/`)
+- **File**: `feature-graphic.png`
+- **Dimensions**: 1024 x 500 pixels
+- **Format**: PNG or JPG
+- **Purpose**: Banner image displayed at the top of the Play Store listing
+- **Source**: `images/store/feature-graphic.png`
 
-The Gradle Play Publisher plugin will automatically upload graphics from this directory when you run:
+### Phone Screenshots (`phoneScreenshots/`)
+Screenshots are numbered with prefixes to control their display order in the Play Store:
 
-```bash
-./gradlew publishListing
-```
+1. **1-home.png** - Home screen showing featured audiobooks
+   - Source: `images/store/home.png`
 
-Or include them in a full publish:
+2. **2-library.png** - Library view with user's audiobook collection
+   - Source: `images/store/library.png`
 
-```bash
-./gradlew publishBundle
-```
+3. **3-audiobook.png** - Audiobook details screen
+   - Source: `images/store/audiobook.png`
+
+4. **4-playing.png** - Now Playing screen with playback controls
+   - Source: `images/store/playing.png`
+
+5. **5-search.png** - Search interface
+   - Source: `images/store/search.png`
+
+6. **6-settings.png** - Settings and preferences screen
+   - Source: `images/store/settings.png`
+
+#### Screenshot Specifications
+- **Format**: PNG or JPG
+- **Minimum dimensions**: 320 pixels
+- **Maximum dimensions**: 3840 pixels
+- **Aspect ratio**: Between 16:9 and 9:16
+- **Maximum file size**: 8 MB per screenshot
+- **Ordering**: Files are displayed in alphanumeric order (hence the numbered prefixes)
+
+## Usage with Gradle Play Publisher Plugin
+
+The Gradle Play Publisher plugin automatically detects and uses these assets when publishing to the Play Store. Ensure this directory structure is maintained for proper integration.
+
+## Updating Assets
+
+When updating graphics assets:
+
+1. Replace the appropriate file in this directory structure
+2. Maintain the same filename to preserve ordering (especially for screenshots)
+3. Verify dimensions and format requirements are met
+4. Original source files are preserved in `app/src/main/` and `images/store/` directories
 
 ## References
 
-- [Screenshot Guidelines](https://support.google.com/googleplay/android-developer/answer/9866151)
-- [Graphic Asset Specifications](https://support.google.com/googleplay/android-developer/answer/9866151)
-- [Gradle Play Publisher Graphics Docs](https://github.com/Triple-T/gradle-play-publisher#uploading-images)
+- [Google Play Store Asset Guidelines](https://support.google.com/googleplay/android-developer/answer/9866151)
+- [Gradle Play Publisher Plugin Documentation](https://github.com/Triple-T/gradle-play-publisher)

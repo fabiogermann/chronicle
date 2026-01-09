@@ -59,14 +59,12 @@ This guide walks you through setting up automated Google Play Store publishing u
 ### 1. Link Service Account to Play Console
 
 1. Go to [Google Play Console](https://play.google.com/console/)
-2. Select your app (or create it if this is the first time)
-3. Go to **Setup** → **API access**
-4. Click **Create new service account** (or link existing)
-5. Click **View service accounts** to go to Google Cloud Console
-6. Copy the email address of your service account (format: `account-name@project-id.iam.gserviceaccount.com`)
-7. Return to Play Console
-8. Click **Grant access** under Service accounts
-9. Find your service account in the list and click **Invite user**
+2. (Make sure app is visible or create it if this is the first time)
+3. Go to **Users and permissions**
+4. Click **Invite new user**
+5. Paste the service account email address you copied (format: `account-name@project-id.iam.gserviceaccount.com`)
+6. Go to the Account permissions tab or App permissions tab to select the specific permissions required for the API to perform actions (e.g., "Manage production releases", "View app information"). Avoid granting "Admin (all permissions)" unless necessary.
+7. Click **Invite user** 
 
 ### 2. Set Service Account Permissions
 
