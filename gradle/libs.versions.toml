@@ -11,6 +11,7 @@ coreTesting = "2.2.0"
 coroutines = "1.9.0" # 1.10.1 causes KSP/Dagger compatibility issues
 dagger = "2.52" # 2.54 causes KSP/Dagger compatibility issues
 espresso = "3.6.2"
+screengrab = "2.1.1"
 fetch = "3.3.0"
 fresco = "3.4.0" # 3.5.0 causes KSP processing errors
 glide = "4.16.0" # 4.17.0 not yet available
@@ -53,6 +54,7 @@ dagger = { group = "com.google.dagger", name = "dagger", version.ref = "dagger" 
 dagger-compiler = { group = "com.google.dagger", name = "dagger-compiler", version.ref = "dagger" }
 espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espresso" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+screengrab = { group = "tools.fastlane", name = "screengrab", version.ref = "screengrab" }
 facebook-infer-annotation = { group = "com.facebook.infer.annotation", name = "infer-annotation", version.ref = "inferAnnotation" }
 fetch = { group = "com.github.tonyofrancis.Fetch", name = "fetch2", version.ref = "fetch" }
 fresco = { group = "com.facebook.fresco", name = "fresco", version.ref = "fresco" }

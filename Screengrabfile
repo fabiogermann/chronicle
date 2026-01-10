@@ -1,0 +1,56 @@
+# Fastlane Screengrab configuration for Chronicle Epilogue
+# Documentation: https://docs.fastlane.tools/actions/screengrab/
+
+# APK path - uses debug APK by default
+# Screengrab will install both the app APK and test APK
+app_package_name('local.oss.chronicle')
+use_tests_in_packages(['local.oss.chronicle.screenshot'])
+
+# Locales to generate screenshots for
+# Start with English, add more as needed: 'de-DE', 'es-ES', 'fr-FR', etc.
+locales(['en-US'])
+
+# Clear all previous screenshots before generating new ones
+clear_previous_screenshots(true)
+
+# Output directory for screenshots
+# These will be copied to images/screenshots/ for processing
+output_directory('./fastlane/screenshots')
+
+# Skip opening the screenshots summary after generation
+skip_open_summary(false)
+
+# Reinstall the app before running tests
+reinstall_app(true)
+
+# Device type filter (optional)
+# Uncomment to test only on specific devices
+# device_type('phone')  # or 'tablet', 'tv', 'wear'
+
+# Specific devices to test on (optional)
+# Uncomment and modify to target specific emulators/devices
+# Use: adb devices -l  to list available devices
+# specific_device('emulator-5554')
+
+# Test instrumentation runner
+test_instrumentation_runner('local.oss.chronicle.application.ChronicleTestRunner')
+
+# Exit on test failure
+exit_on_test_failure(true)
+
+# Timeout for test execution (in seconds)
+test_timeout(900)  # 15 minutes
+
+# Additional test parameters
+# Pass Plex credentials for login
+test_instrumentation_runner_arguments({
+  # Plex credentials - SET THESE BEFORE RUNNING
+  # Option 1: Set environment variables PLEX_USERNAME and PLEX_PASSWORD
+  # Option 2: Replace placeholders below (NOT RECOMMENDED - don't commit credentials!)
+  plexUsername: ENV['PLEX_USERNAME'] || 'your-plex-email@example.com',
+  plexPassword: ENV['PLEX_PASSWORD'] || 'your-plex-password'
+})
+
+# Gradle command to build test APK
+app_apk_path('app/build/outputs/apk/debug/app-debug.apk')
+tests_apk_path('app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk')
