@@ -68,16 +68,51 @@ Screenshots are numbered with prefixes to control their display order in the Pla
 
 The Gradle Play Publisher plugin automatically detects and uses these assets when publishing to the Play Store. Ensure this directory structure is maintained for proper integration.
 
-## Updating Assets
+## Automated Generation
 
-When updating graphics assets:
+Chronicle Epilogue includes an automated script to generate Play Store graphics from raw screenshots. This is the recommended method for creating and updating graphics assets.
+
+### Using the Generation Script
+
+```bash
+# Make script executable (first time only)
+chmod +x scripts/generate-playstore-graphics.sh
+
+# Run the script
+./scripts/generate-playstore-graphics.sh
+```
+
+The script will:
+- Generate the feature graphic from the app logo and text
+- Process raw screenshots from `images/screenshots/`
+- Add promotional text headers and phone frames
+- Output all files to this directory with proper dimensions
+
+For detailed instructions, prerequisites, and customization options, see [`scripts/README.md`](../../scripts/README.md).
+
+### Screenshot Sources
+
+Raw screenshots should be placed in `images/screenshots/`:
+- `home.png` - Raw home screen capture
+- `library.png` - Raw library screen capture
+- `audiobook.png` - Raw audiobook details capture
+- `currentlyplaying.png` - Raw now playing screen capture
+- `search.png` - Raw search screen capture
+- `settings.png` - Raw settings screen capture
+
+The script processes these into framed, styled screenshots with promotional text.
+
+## Manual Updates
+
+When updating graphics assets manually:
 
 1. Replace the appropriate file in this directory structure
 2. Maintain the same filename to preserve ordering (especially for screenshots)
 3. Verify dimensions and format requirements are met
-4. Original source files are preserved in `app/src/main/` and `images/store/` directories
+4. Original source files are preserved in `app/src/main/` and `images/screenshots/` directories
 
 ## References
 
+- [Graphics Generation Script Documentation](../../scripts/README.md)
 - [Google Play Store Asset Guidelines](https://support.google.com/googleplay/android-developer/answer/9866151)
 - [Gradle Play Publisher Plugin Documentation](https://github.com/Triple-T/gradle-play-publisher)
