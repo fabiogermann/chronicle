@@ -29,7 +29,7 @@ TITLE_FILE="$PLAYSTORE_CONFIG_DIR/title.txt"
 SHORT_DESC_FILE="$PLAYSTORE_CONFIG_DIR/short-description.txt"
 
 # Default fallback values if config files are missing
-DEFAULT_APP_NAME="Chronicle"
+DEFAULT_APP_NAME="Chronicle Epilogue"
 DEFAULT_APP_DESCRIPTION="Audiobook player for Plex"
 
 IMAGES_DIR="$PROJECT_ROOT/images"
