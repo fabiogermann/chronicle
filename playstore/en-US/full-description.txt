@@ -9,7 +9,6 @@ Stream or download audiobooks hosted on your Plex server with Chronicle, the bes
 • <b>Sleep Timer</b> - Fall asleep to your favorite books with built-in sleep timer
 • <b>Skip Silence</b> - Automatically skip silent portions for efficient listening
 • <b>Download Books</b> - Download audiobooks for offline playback anytime, anywhere
-• <b>Android Auto Support</b> - Basic Android Auto support for safe playback while driving
 
 <b>📖 Perfect for Plex Users</b>
 
