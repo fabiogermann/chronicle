@@ -12,6 +12,7 @@ import local.oss.chronicle.data.sources.plex.model.getDuration
 import local.oss.chronicle.features.player.*
 import timber.log.Timber
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.roundToInt
 
 /**
@@ -43,6 +44,16 @@ data class MediaItemTrack(
     val size: Long = 0L,
 ) : Comparable<MediaItemTrack> {
     companion object {
+        /**
+         * Cache for pre-resolved streaming URLs from Plex's /transcode/universal/decision endpoint.
+         * This allows bandwidth-aware playback. Key is track ID, value is the resolved streaming URL.
+         *
+         * Populated by PlaybackUrlResolver before playback starts.
+         * Falls back to direct file URLs if not populated.
+         */
+        @JvmStatic
+        val streamingUrlCache = ConcurrentHashMap<Int, String>()
+        
         fun from(metadata: MediaMetadataCompat): MediaItemTrack {
             return MediaItemTrack(
                 id = metadata.id?.toInt() ?: -1,
@@ -118,10 +129,41 @@ data class MediaItemTrack(
         return "$id.${File(media).extension}"
     }
 
+    /**
+     * Returns the playback URL for this track.
+     *
+     * **BANDWIDTH-AWARE PLAYBACK**:
+     * This function now checks for pre-resolved streaming URLs from Plex's
+     * `/transcode/universal/decision` endpoint which:
+     * 1. Negotiates direct play vs transcode based on bandwidth limits
+     * 2. Creates proper playback sessions with permissions
+     * 3. Adapts to bandwidth constraints by transcoding to lower bitrates
+     *
+     * **How it works**:
+     * - If a URL exists in [streamingUrlCache], use that (bandwidth-aware)
+     * - Otherwise fall back to direct file URL (may hit bandwidth limits)
+     *
+     * The cache is populated by PlaybackUrlResolver before playback starts.
+     * This allows Plex to handle bandwidth limits gracefully by transcoding when needed
+     * instead of rejecting the request.
+     *
+     * @see local.oss.chronicle.data.sources.plex.PlaybackUrlResolver
+     * @see <a href="https://github.com/[repo]/blob/main/docs/ARCHITECTURE.md#bandwidth-handling">ARCHITECTURE.md - Bandwidth Handling</a>
+     */
     fun getTrackSource(): String {
         return if (cached) {
+            // Use local file if downloaded
             File(Injector.get().prefsRepo().cachedMediaDir, getCachedFileName()).absolutePath
         } else {
+            // Check for pre-resolved streaming URL (bandwidth-aware)
+            streamingUrlCache[id]?.let { resolvedUrl ->
+                Timber.d("Using pre-resolved streaming URL for track $id")
+                return resolvedUrl
+            }
+            
+            // Fall back to direct file URL
+            // Note: This may trigger bandwidth errors if server has limits
+            Timber.d("No pre-resolved URL for track $id, using direct file path")
             Injector.get().plexConfig().toServerString(media)
         }
     }

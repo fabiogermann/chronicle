@@ -56,6 +56,7 @@ class AudiobookMediaSessionCallback
         private val appContext: Context,
         private val currentlyPlaying: CurrentlyPlaying,
         private val progressUpdater: ProgressUpdater,
+        private val playbackUrlResolver: local.oss.chronicle.data.sources.plex.PlaybackUrlResolver,
         defaultPlayer: ExoPlayer,
     ) : MediaSessionCompat.Callback() {
         // Default to ExoPlayer to prevent having a nullable field
@@ -307,6 +308,18 @@ class AudiobookMediaSessionCallback
 
                 Timber.i("Tracks: $tracks")
 
+                // Pre-resolve streaming URLs using Plex's decision endpoint for bandwidth-aware playback
+                // This populates MediaItemTrack.streamingUrlCache which is used by getTrackSource()
+                try {
+                    Timber.i("Pre-resolving streaming URLs for ${tracks.size} tracks...")
+                    val resolvedCount = withContext(Dispatchers.IO) {
+                        playbackUrlResolver.preResolveUrls(tracks)
+                    }
+                    Timber.i("Successfully pre-resolved $resolvedCount/${tracks.size} streaming URLs")
+                } catch (e: Exception) {
+                    Timber.w(e, "Failed to pre-resolve streaming URLs, will fall back to direct file URLs")
+                }
+
                 trackListStateManager.trackList = tracks
                 val metadataList = buildPlaylist(tracks, plexConfig)
 
@@ -367,17 +380,11 @@ class AudiobookMediaSessionCallback
                 currentPlayer.playWhenReady = playWhenReady
                 val player = currentPlayer
 
-                // Refresh auth token in [dataSourceFactory] in case the server has changed without
-                // the service being recreated
-                dataSourceFactory.setDefaultRequestProperties(
-                    mapOf(
-                        "X-Plex-Token" to (
-                            plexPrefsRepo.server?.accessToken
-                                ?: plexPrefsRepo.user?.authToken
-                                ?: plexPrefsRepo.accountAuthToken
-                        ),
-                    ),
-                )
+                // NOTE: We used to refresh the auth token here by calling setDefaultRequestProperties,
+                // but that method REPLACES all headers (including X-Plex-Platform, X-Plex-Client-Identifier,
+                // X-Plex-Client-Profile-Extra, etc.) which causes 500 errors from Plex server.
+                // The token is already set correctly in ServiceModule.plexDataSourceFactory().
+                // If the server changes, the MediaPlayerService should be recreated with fresh config.
                 val factory = DefaultDataSource.Factory(appContext, dataSourceFactory)
                 when (player) {
                     is ExoPlayer -> {
@@ -499,6 +506,10 @@ class AudiobookMediaSessionCallback
             Timber.i("Stopping media playback")
             currentPlayer.stop()
             mediaSession.setPlaybackState(EMPTY_PLAYBACK_STATE)
+            
+            // Clear streaming URL cache when stopping playback
+            playbackUrlResolver.clearCache()
+            
             foregroundServiceController.stopForegroundService(true)
             serviceController.stopService()
         }

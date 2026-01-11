@@ -23,7 +23,10 @@ import local.oss.chronicle.BuildConfig
 import local.oss.chronicle.R
 import local.oss.chronicle.application.MainActivity
 import local.oss.chronicle.data.sources.plex.APP_NAME
+import local.oss.chronicle.data.sources.plex.PlexConfig
+import local.oss.chronicle.data.sources.plex.PlexMediaService
 import local.oss.chronicle.data.sources.plex.PlexPrefsRepo
+import local.oss.chronicle.data.sources.plex.PlaybackUrlResolver
 import local.oss.chronicle.features.player.*
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.EXOPLAYER_BACK_BUFFER_DURATION_MILLIS
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.EXOPLAYER_MAX_BUFFER_DURATION_MILLIS
@@ -148,6 +151,13 @@ class ServiceModule(private val service: MediaPlayerService) {
                     plexPrefs.server?.accessToken ?: plexPrefs.user?.authToken
                         ?: plexPrefs.accountAuthToken
                 ),
+                // Adding X-Plex-Session-Identifier to help server track playback sessions
+                // This allows the Plex server to make transcoding decisions if needed
+                "X-Plex-Session-Identifier" to plexPrefs.uuid,
+                // Client profile declares what audio formats this app can directly play
+                // Generic profile already has transcode targets, so only adding direct play profile
+                "X-Plex-Client-Profile-Extra" to
+                    "add-direct-play-profile(type=musicProfile&container=mp4,m4a,m4b,mp3,flac,ogg,opus&audioCodec=aac,mp3,flac,vorbis,opus&videoCodec=*&subtitleCodec=*)",
             ),
         )
 
@@ -180,4 +190,11 @@ class ServiceModule(private val service: MediaPlayerService) {
     @Provides
     @ServiceScope
     fun toneManager() = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
+
+    @Provides
+    @ServiceScope
+    fun playbackUrlResolver(
+        plexMediaService: PlexMediaService,
+        plexConfig: PlexConfig,
+    ): PlaybackUrlResolver = PlaybackUrlResolver(plexMediaService, plexConfig)
 }

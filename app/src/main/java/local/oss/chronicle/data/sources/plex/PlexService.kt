@@ -4,6 +4,7 @@ import local.oss.chronicle.data.sources.plex.model.*
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
+import java.util.UUID
 
 const val PLEX_LOGIN_SERVICE_URL = "https://plex.tv"
 const val PLACEHOLDER_URL = "https://fake-base-url-should-never-be-called.yyy"
@@ -153,4 +154,35 @@ interface PlexMediaService {
     suspend fun fetchBooksInCollection(
         @Path("collectionId") collectionId: Int,
     ): PlexMediaContainerWrapper
+
+    /**
+     * Requests a playback decision from Plex for the given media item.
+     *
+     * This endpoint negotiates the best playback method (direct play vs transcode) based on:
+     * - Client capabilities (X-Plex-Client-Profile-Extra header)
+     * - Available bandwidth
+     * - Media format and bitrate
+     *
+     * See docs/ARCHITECTURE.md for why this is needed instead of direct file URLs.
+     *
+     * @param path The metadata path (e.g., "/library/metadata/123")
+     * @param protocol Protocol to use (http, dash, hls) - "http" for simple progressive download
+     * @param session Unique session identifier (use UUID)
+     * @param hasMDE Always 1 to enable Media Decision Engine
+     * @param directPlay Whether to consider direct play (0=no, 1=yes)
+     * @param directStream Whether to consider direct streaming (0=no, 1=yes)
+     * @param musicBitrate Desired bitrate in kbps (e.g., 320 for 320kbps)
+     * @param maxAudioBitrate Maximum audio bitrate the client can handle
+     */
+    @GET("/music/:/transcode/universal/decision")
+    suspend fun getPlaybackDecision(
+        @Query("path") path: String,
+        @Query("protocol") protocol: String = "http",
+        @Query("session") session: String = UUID.randomUUID().toString(),
+        @Query("hasMDE") hasMDE: Int = 1,
+        @Query("directPlay") directPlay: Int = 1,
+        @Query("directStream") directStream: Int = 1,
+        @Query("musicBitrate") musicBitrate: Int = 320,
+        @Query("maxAudioBitrate") maxAudioBitrate: Int = 320,
+    ): PlexTranscodeDecisionWrapper
 }

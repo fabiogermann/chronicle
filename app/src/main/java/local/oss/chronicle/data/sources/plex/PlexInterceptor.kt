@@ -28,6 +28,20 @@ class PlexInterceptor(
         const val PLATFORM = "Android"
         const val PRODUCT = APP_NAME
         const val DEVICE = "$APP_NAME $PLATFORM"
+        
+        /**
+         * Client profile that tells Plex what audio formats this app can directly play.
+         * Based on Plex API documentation for Profile Augmentations.
+         *
+         * Declares direct play support for common audiobook formats (AAC, MP3, FLAC, etc.).
+         * The Generic profile already includes transcode targets, so we only add the
+         * direct play profile to avoid conflicts.
+         *
+         * Per Plex API spec, musicProfile requires: type, container, audioCodec
+         * videoCodec and subtitleCodec use wildcard (*) since not applicable to audio
+         */
+        private const val CLIENT_PROFILE_EXTRA =
+            "add-direct-play-profile(type=musicProfile&container=mp4,m4a,m4b,mp3,flac,ogg,opus&audioCodec=aac,mp3,flac,vorbis,opus&videoCodec=*&subtitleCodec=*)"
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -46,6 +60,7 @@ class PlexInterceptor(
                 .header("X-Plex-Client-Name", APP_NAME)
                 .header("X-Plex-Device", DEVICE)
                 .header("X-Plex-Device-Name", Build.MODEL)
+                .header("X-Plex-Client-Profile-Extra", CLIENT_PROFILE_EXTRA)
                 .url(interceptedUrl)
 
         val userToken = plexPrefsRepo.user?.authToken
