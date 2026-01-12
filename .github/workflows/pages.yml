@@ -3,7 +3,7 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main]
-    paths: ['pages/**']
+    paths: ['pages/**', 'playstore/graphics/**']
   workflow_dispatch:
 
 permissions:
@@ -24,6 +24,17 @@ jobs:
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
+      
+      - name: Copy Play Store graphics to Pages assets
+        run: |
+          mkdir -p pages/assets/images/
+          cp playstore/graphics/featureGraphic/feature-graphic.png pages/assets/images/feature-graphic.png
+          cp playstore/graphics/phoneScreenshots/1-home.png pages/assets/images/home.png
+          cp playstore/graphics/phoneScreenshots/2-library.png pages/assets/images/library.png
+          cp playstore/graphics/phoneScreenshots/3-audiobook.png pages/assets/images/audiobook.png
+          cp playstore/graphics/phoneScreenshots/4-currentlyplaying.png pages/assets/images/playing.png
+          cp playstore/graphics/phoneScreenshots/5-search.png pages/assets/images/search.png
+          cp playstore/graphics/phoneScreenshots/6-settings.png pages/assets/images/settings.png
       
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1

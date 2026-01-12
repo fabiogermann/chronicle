@@ -12,6 +12,7 @@ target/
 app/freeAsInBeer
 app/googlePlay
 app/release
+plans/
 
 # android studio files
 .idea/
