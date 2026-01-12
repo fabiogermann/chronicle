@@ -253,7 +253,7 @@ class SharedPreferencesPrefsRepo
             get() = sharedPreferences.getBoolean(KEY_PAUSE_ON_FOCUS_LOST, defaultPauseOnFocusLost)
             set(value) = sharedPreferences.edit().putBoolean(KEY_PAUSE_ON_FOCUS_LOST, value).apply()
 
-        private val defaultAllowAuto = false
+        private val defaultAllowAuto = true
         override var allowAuto: Boolean
             get() = sharedPreferences.getBoolean(KEY_ALLOW_AUTO, defaultAllowAuto)
             set(value) = sharedPreferences.edit().putBoolean(KEY_ALLOW_AUTO, value).apply()

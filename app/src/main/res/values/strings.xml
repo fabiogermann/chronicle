@@ -266,6 +266,7 @@
     <!-- Android Auto -->
     <string name="allow_auto">Enable Android Auto</string>
     <string name="allow_auto_explanation">Enabling will give library metadata access to the following apps: Google, Android Auto, and WearOS</string>
+    <string name="settings_auto_enable_summary">Allow Chronicle to appear in Android Auto for hands-free audiobook playback while driving</string>
     <string name="not_logged_in">Not logged in</string>
     <string name="not_logged_in_explanation">Log in to Plex to see your library</string>
     <string name="no_server_chosen">No server chosen</string>

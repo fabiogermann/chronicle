@@ -59,9 +59,6 @@ class LoginFragment : Fragment() {
 
         val binding = OnboardingLoginBinding.inflate(inflater, container, false)
 
-        binding.enableAuto.visibility =
-            if (FEATURE_FLAG_IS_AUTO_ENABLED) View.VISIBLE else View.GONE
-
         loginViewModel.isLoading.observe(
             viewLifecycleOwner,
             Observer { isLoading: Boolean ->
@@ -75,12 +72,6 @@ class LoginFragment : Fragment() {
 
         binding.oauthLogin.setOnClickListener {
             loginViewModel.loginWithOAuth()
-        }
-
-        binding.enableAuto.isChecked = prefsRepo.allowAuto
-
-        binding.enableAuto.setOnCheckedChangeListener { _, isChecked ->
-            prefsRepo.allowAuto = isChecked
         }
 
         loginViewModel.authEvent.observe(

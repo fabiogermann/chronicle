@@ -949,7 +949,7 @@ class SettingsViewModel(
                         PreferenceModel(
                             type = PreferenceType.BOOLEAN,
                             title = FormattableString.from(R.string.allow_auto),
-                            explanation = FormattableString.from(R.string.allow_auto_explanation),
+                            explanation = FormattableString.from(R.string.settings_auto_enable_summary),
                             key = PrefsRepo.KEY_ALLOW_AUTO,
                             defaultValue = prefsRepo.allowAuto,
                         ),
