@@ -4,7 +4,7 @@
 
 The best Android Audiobook Player for Plex. Stream and offline audiobooks hosted on your Plex server.
 
-> **Note:** The Chronicle app is being submitted to the Google Play Store! If you'd like to access the closed beta testing, you can request access by joining our [Google Group for alpha testing](https://groups.google.com/g/chronicle-app-alpha-testing).
+> **Note:** The Chronicle app is being submitted to the Google Play Store! If you'd like to access the closed beta testing, you can request access by joining our [Google Group for alpha testing](https://groups.google.com/g/chronicle-app-alpha-testing)/[Google Group for beta testing](https://groups.google.com/g/chronicle-app-beta-testing).
 
 ### Features
 
