@@ -1,0 +1,49 @@
+Chronicle Branding Assets License
+=================================
+
+Copyright (c) 2024 fabiogermann
+
+All Rights Reserved.
+
+The following assets are proprietary and may NOT be used, copied, modified,
+merged, published, distributed, sublicensed, or sold without explicit written
+permission from the copyright holder:
+
+1. LOGO AND BRANDING
+   - images/logo/ (all files)
+   - images/store_frame_template.svg
+
+2. APP ICONS
+   - app/src/main/play_store_512.png
+   - app/src/main/res/mipmap-*/ (all files)
+   - app/src/main/res/mipmap-anydpi-v26/ (all files)
+   - app/src/main/res/drawable-v24/ic_launcher_foreground.xml
+
+3. PROMOTIONAL GRAPHICS AND SCREENSHOTS
+   - images/screenshots/ (all files)
+   - pages/assets/images/ (all files)
+   - playstore/graphics/ (all files)
+   - app/src/main/res/drawable-v24/example_cover.png
+
+PERMITTED USES
+--------------
+These assets may be used for:
+- Displaying the Chronicle app in app stores
+- Editorial or journalistic coverage of the Chronicle project
+- Personal, non-commercial use with attribution
+
+PROHIBITED USES
+---------------
+Without explicit permission, you may NOT:
+- Use these assets to create derivative works or competing products
+- Use these assets in a way that suggests endorsement by the Chronicle project
+- Modify these assets for redistribution
+- Use these assets for commercial purposes
+
+FORKING THIS REPOSITORY
+-----------------------
+If you fork this repository, you MUST replace all assets listed above with
+your own original assets before distributing your fork. This includes but
+is not limited to app icons, logos, and promotional graphics.
+
+For questions or permissions, please open an issue on the GitHub repository.

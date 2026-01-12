@@ -36,3 +36,14 @@ Found a bug? Please report it in the [GitHub Issues](https://github.com/germann/
  - [Plex Audiobook Guide](https://github.com/seanap/Plex-Audiobook-Guide)
  - [Chronicle subreddit](https://www.reddit.com/r/ChronicleApp/)
 
+### License
+
+This project uses a dual licensing model:
+
+- **Source Code**: Licensed under the [GNU General Public License v3.0](LICENSE)
+- **Branding Assets**: The Chronicle logo, app icons, and promotional graphics are
+  [All Rights Reserved](ASSETS-LICENSE)
+
+If you fork this project, you must replace the branding assets with your own.
+See [ASSETS-LICENSE](ASSETS-LICENSE) for details.
+

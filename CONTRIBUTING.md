@@ -46,3 +46,11 @@ Ktlint check and format can be run on the code base by running the following com
 
 A git hook has also been added. This basically runs the ktlintCheck every time a user tries to commit. If it finds violations it prompts the user to run ktlintFormat and fix any inconsistencies with the style guide. The purpose of this is to make sure that everyone is adhering to the style guide and writing clean code.
 
+## Licensing
+
+- All code contributions must be compatible with GPLv3
+- Do not modify files listed in ASSETS-LICENSE unless you have explicit permission
+- If contributing new icons or graphics, ensure they are either:
+  - Original work you're contributing under GPLv3, OR
+  - Properly licensed Material Design icons (Apache 2.0)
+
