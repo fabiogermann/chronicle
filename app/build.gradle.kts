@@ -94,8 +94,8 @@ android {
 
 // Play Publisher configuration
 play {
-    // Points to the playstore/ directory at project root
-    artifactDir.set(rootProject.file("playstore"))
+    // Play Store listing metadata location
+    srcDir.set(rootProject.file("playstore"))
     
     // Service account from environment variable (CI) or file (local)
     val credentialsFile = file("play-store-credentials.json")
