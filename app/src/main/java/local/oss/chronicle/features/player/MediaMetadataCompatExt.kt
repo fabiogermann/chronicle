@@ -289,11 +289,16 @@ fun MediaMetadataCompat.describe(): String {
  */
 fun MediaDescriptionCompat.toMediaMetadataCompat(): MediaMetadataCompat {
     val builder = MediaMetadataCompat.Builder()
-    builder.title = this.title.toString()
-    builder.displayTitle = this.title.toString()
-    builder.displaySubtitle = this.subtitle.toString()
-    builder.displayIconUri = this.iconUri.toString()
-    builder.id = this.mediaId.toString()
+    // Use safe string conversion, don't set if null
+    this.title?.toString()?.let { builder.title = it }
+    this.title?.toString()?.let { builder.displayTitle = it }
+    this.subtitle?.toString()?.let { builder.displaySubtitle = it }
+    this.iconUri?.toString()?.let { builder.displayIconUri = it }
+    this.mediaId?.let { builder.id = it }  // Only set if not null, don't convert to string
+    // Extract duration from extras (stored by fullDescription)
+    this.extras?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION, 0L)?.takeIf { it > 0 }?.let {
+        builder.duration = it
+    }
     return builder.build()
 }
 

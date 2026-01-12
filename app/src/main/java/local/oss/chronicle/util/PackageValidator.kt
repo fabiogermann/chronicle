@@ -115,7 +115,7 @@ class PackageValidator(
 
         val callerSignature = callerPackageInfo.signature
         val isPackageInWhitelist =
-            certificateWhitelist[callingPackage]?.signatures?.first {
+            certificateWhitelist[callingPackage]?.signatures?.firstOrNull {
                 it.signature == callerSignature
             } != null
 

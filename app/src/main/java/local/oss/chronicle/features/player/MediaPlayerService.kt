@@ -567,67 +567,76 @@ class MediaPlayerService :
 
         result.detach()
         serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
-            withContext(Dispatchers.IO) {
-                when (parentId) {
-                    CHRONICLE_MEDIA_ROOT_ID -> {
-                        result.sendResult(
-                            (
-                                listOf(
-                                    makeBrowsable(
-                                        getString(R.string.auto_category_recently_listened),
-                                        R.drawable.ic_recent,
-                                    ),
-                                ) +
+            try {
+                withContext(Dispatchers.IO) {
+                    when (parentId) {
+                        CHRONICLE_MEDIA_ROOT_ID -> {
+                            result.sendResult(
+                                (
                                     listOf(
                                         makeBrowsable(
-                                            getString(R.string.auto_category_offline),
-                                            R.drawable.ic_cloud_download_white,
+                                            getString(R.string.auto_category_recently_listened),
+                                            R.drawable.ic_recent,
                                         ),
                                     ) +
-                                    listOf(
-                                        makeBrowsable(
-                                            getString(R.string.auto_category_recently_added),
-                                            R.drawable.ic_add,
-                                        ),
-                                    ) +
-                                    listOf(
-                                        makeBrowsable(
-                                            getString(R.string.auto_category_library),
-                                            R.drawable.nav_library,
-                                        ),
-                                    )
-                            ).toMutableList(),
-                        )
-                    }
-                    getString(R.string.auto_category_recently_listened) -> {
-                        val recentlyListened = bookRepository.getRecentlyListenedAsync()
-                        result.sendResult(
-                            recentlyListened.map { it.toMediaItem(plexConfig) }
-                                .toMutableList(),
-                        )
-                    }
-                    getString(R.string.auto_category_recently_added) -> {
-                        val recentlyAdded = bookRepository.getRecentlyAddedAsync()
-                        result.sendResult(
-                            recentlyAdded.map { it.toMediaItem(plexConfig) }
-                                .toMutableList(),
-                        )
-                    }
-                    getString(R.string.auto_category_library) -> {
-                        val books = bookRepository.getAllBooksAsync()
-                        result.sendResult(
-                            books.map { it.toMediaItem(plexConfig) }
-                                .toMutableList(),
-                        )
-                    }
-                    getString(R.string.auto_category_offline) -> {
-                        val offline = bookRepository.getCachedAudiobooksAsync()
-                        result.sendResult(
-                            offline.map { it.toMediaItem(plexConfig) }
-                                .toMutableList(),
-                        )
+                                        listOf(
+                                            makeBrowsable(
+                                                getString(R.string.auto_category_offline),
+                                                R.drawable.ic_cloud_download_white,
+                                            ),
+                                        ) +
+                                        listOf(
+                                            makeBrowsable(
+                                                getString(R.string.auto_category_recently_added),
+                                                R.drawable.ic_add,
+                                            ),
+                                        ) +
+                                        listOf(
+                                            makeBrowsable(
+                                                getString(R.string.auto_category_library),
+                                                R.drawable.nav_library,
+                                            ),
+                                        )
+                                ).toMutableList(),
+                            )
+                        }
+                        getString(R.string.auto_category_recently_listened) -> {
+                            val recentlyListened = bookRepository.getRecentlyListenedAsync()
+                            result.sendResult(
+                                recentlyListened.map { it.toMediaItem(plexConfig) }
+                                    .toMutableList(),
+                            )
+                        }
+                        getString(R.string.auto_category_recently_added) -> {
+                            val recentlyAdded = bookRepository.getRecentlyAddedAsync()
+                            result.sendResult(
+                                recentlyAdded.map { it.toMediaItem(plexConfig) }
+                                    .toMutableList(),
+                            )
+                        }
+                        getString(R.string.auto_category_library) -> {
+                            val books = bookRepository.getAllBooksAsync()
+                            result.sendResult(
+                                books.map { it.toMediaItem(plexConfig) }
+                                    .toMutableList(),
+                            )
+                        }
+                        getString(R.string.auto_category_offline) -> {
+                            val offline = bookRepository.getCachedAudiobooksAsync()
+                            result.sendResult(
+                                offline.map { it.toMediaItem(plexConfig) }
+                                    .toMutableList(),
+                            )
+                        }
+                        else -> {
+                            Timber.w("Unknown parentId in onLoadChildren: $parentId")
+                            result.sendResult(mutableListOf())
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                Timber.e(e, "Error loading children for parentId: $parentId")
+                result.sendResult(mutableListOf())
             }
         }
     }
@@ -638,11 +647,16 @@ class MediaPlayerService :
         result: Result<MutableList<MediaBrowserCompat.MediaItem>>,
     ) {
         Timber.i("Searching! Query = $query")
-        serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
-            val books = bookRepository.searchAsync(query)
-            result.sendResult(books.map { it.toMediaItem(plexConfig) }.toMutableList())
-        }
         result.detach()
+        serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
+            try {
+                val books = bookRepository.searchAsync(query)
+                result.sendResult(books.map { it.toMediaItem(plexConfig) }.toMutableList())
+            } catch (e: Exception) {
+                Timber.e(e, "Error searching for: $query")
+                result.sendResult(mutableListOf())
+            }
+        }
     }
 
     override fun onGetRoot(
