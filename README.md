@@ -2,11 +2,9 @@
 
 > **Note:** This is a fork of [mattttvaughn/chronicle](https://github.com/mattttvaughn/chronicle). The original project was not maintained for a while, and this fork aims to continue development and improvements. We acknowledge and appreciate the excellent work done by the original developer, [@mattttvaughn](https://github.com/mattttvaughn).
 
-The best Android Audiobook Player for Plex. Stream or download audiobooks hosted on your Plex server.
+The best Android Audiobook Player for Plex. Stream and offline audiobooks hosted on your Plex server.
 
-### Currently in Assessment
-
-Publishing to Google Play is currently being assessed. Stay tuned for updates.
+> **Note:** The Chronicle app is being submitted to the Google Play Store! If you'd like to access the closed beta testing, you can request access by joining our [Google Group for alpha testing](https://groups.google.com/g/chronicle-app-alpha-testing).
 
 ### Features
 
@@ -21,11 +19,7 @@ Publishing to Google Play is currently being assessed. Stay tuned for updates.
  
 ### Screenshots
 
-<p float="left">
-<img src="https://raw.githubusercontent.com/mattttvaughn/chronicle/develop/images/home.png" alt="Home screen" height="200">
-<img src="https://raw.githubusercontent.com/mattttvaughn/chronicle/develop/images/library.png" alt="Library screen" height="200">
-<img src="https://raw.githubusercontent.com/mattttvaughn/chronicle/develop/images/currentlyplaying.png" alt="Player" height="200">
-</p>
+For more screenshots and information, visit [www.chronicleapp.net](https://www.chronicleapp.net)
 
 ### Reporting Bugs
 
@@ -44,6 +38,6 @@ This project uses a dual licensing model:
 - **Branding Assets**: The Chronicle logo, app icons, and promotional graphics are
   [All Rights Reserved](ASSETS-LICENSE)
 
-If you fork this project, you must replace the branding assets with your own.
+If you fork this project and intend to publish your app based on it, you must replace the branding assets with your own.
 See [ASSETS-LICENSE](ASSETS-LICENSE) for details.
 
