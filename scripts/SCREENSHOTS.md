@@ -256,7 +256,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: playstore-screenshots
-          path: playstore/graphics/phoneScreenshots/
+          path: app/src/main/play/listings/en-US/graphics/phone-screenshots/
 ```
 
 ---

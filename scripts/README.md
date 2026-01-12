@@ -136,15 +136,15 @@ chmod +x scripts/generate-playstore-graphics.sh
 2. **Creates directories** - Sets up output folder structure
 3. **Generates feature graphic** - Creates 1024×500 promotional banner
 4. **Processes screenshots** - Adds frames and promotional text
-5. **Outputs files** to `playstore/graphics/` directory
+5. **Outputs files** to `app/src/main/play/listings/en-US/graphics/` directory
 
 ### Output Structure
 
 ```
-playstore/graphics/
-├── featureGraphic/
+app/src/main/play/listings/en-US/graphics/
+├── feature-graphic/
 │   └── feature-graphic.png          # 1024×500 banner
-└── phoneScreenshots/
+└── phone-screenshots/
     ├── 1-home.png                   # Framed screenshots
     ├── 2-library.png
     ├── 3-audiobook.png
@@ -242,7 +242,7 @@ If you prefer not to use the automated script, these online tools can create pro
 3. **Add text overlays** with promotional messages
 4. **Customize** backgrounds and colors
 5. **Export** as PNG files
-6. **Download** and place in `playstore/graphics/phoneScreenshots/`
+6. **Download** and place in `app/src/main/play/listings/en-US/graphics/phone-screenshots/`
 
 ## Google Play Store Requirements
 

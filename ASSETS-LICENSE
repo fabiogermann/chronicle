@@ -22,7 +22,7 @@ permission from the copyright holder:
 3. PROMOTIONAL GRAPHICS AND SCREENSHOTS
    - images/screenshots/ (all files)
    - pages/assets/images/ (all files)
-   - playstore/graphics/ (all files)
+   - app/src/main/play/listings/en-US/graphics/ (all files)
    - app/src/main/res/drawable-v24/example_cover.png
 
 PERMITTED USES

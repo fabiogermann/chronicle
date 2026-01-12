@@ -24,7 +24,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Play Store metadata configuration files
 # These files contain the app name and description used in the Play Store listing
-PLAYSTORE_CONFIG_DIR="$PROJECT_ROOT/playstore/default"
+PLAYSTORE_CONFIG_DIR="$PROJECT_ROOT/app/src/main/play/listings/default"
 TITLE_FILE="$PLAYSTORE_CONFIG_DIR/title.txt"
 SHORT_DESC_FILE="$PLAYSTORE_CONFIG_DIR/short-description.txt"
 
@@ -35,12 +35,12 @@ DEFAULT_APP_DESCRIPTION="Audiobook player for Plex"
 IMAGES_DIR="$PROJECT_ROOT/images"
 SCREENSHOTS_DIR="$IMAGES_DIR/screenshots"
 LOGO_DIR="$IMAGES_DIR/logo"
-PLAYSTORE_DIR="$PROJECT_ROOT/playstore/graphics"
+PLAYSTORE_DIR="$PROJECT_ROOT/app/src/main/play/listings/en-US/graphics"
 TEMP_DIR="$PROJECT_ROOT/.tmp-graphics"
 
 # Output directories
-FEATURE_GRAPHIC_DIR="$PLAYSTORE_DIR/featureGraphic"
-PHONE_SCREENSHOTS_DIR="$PLAYSTORE_DIR/phoneScreenshots"
+FEATURE_GRAPHIC_DIR="$PLAYSTORE_DIR/feature-graphic"
+PHONE_SCREENSHOTS_DIR="$PLAYSTORE_DIR/phone-screenshots"
 
 # Print functions
 print_header() {
@@ -72,7 +72,7 @@ load_metadata() {
     # Read app name from title.txt
     if [ -f "$TITLE_FILE" ]; then
         APP_NAME=$(cat "$TITLE_FILE" | tr -d '\n\r')
-        print_info "Loaded app name from playstore/default/title.txt: \"$APP_NAME\""
+        print_info "Loaded app name from app/src/main/play/listings/default/title.txt: \"$APP_NAME\""
     else
         APP_NAME="$DEFAULT_APP_NAME"
         print_warning "Title file not found at $TITLE_FILE"
@@ -82,7 +82,7 @@ load_metadata() {
     # Read description from short-description.txt
     if [ -f "$SHORT_DESC_FILE" ]; then
         APP_DESCRIPTION=$(cat "$SHORT_DESC_FILE" | tr -d '\n\r')
-        print_info "Loaded description from playstore/default/short-description.txt: \"$APP_DESCRIPTION\""
+        print_info "Loaded description from app/src/main/play/listings/default/short-description.txt: \"$APP_DESCRIPTION\""
     else
         APP_DESCRIPTION="$DEFAULT_APP_DESCRIPTION"
         print_warning "Short description file not found at $SHORT_DESC_FILE"
@@ -472,14 +472,14 @@ generate_summary() {
     if [ -f "$FEATURE_GRAPHIC_DIR/feature-graphic.png" ]; then
         local size=$(identify -format "%wx%h" "$FEATURE_GRAPHIC_DIR/feature-graphic.png" 2>/dev/null || echo "unknown")
         echo "  📱 Feature Graphic:  $size"
-        echo "     → playstore/graphics/featureGraphic/feature-graphic.png"
+        echo "     → app/src/main/play/listings/en-US/graphics/feature-graphic/feature-graphic.png"
         echo ""
     fi
     
     local screenshot_count=$(find "$PHONE_SCREENSHOTS_DIR" -name "*.png" 2>/dev/null | wc -l | tr -d ' ')
     if [ "$screenshot_count" -gt 0 ]; then
         echo "  📸 Phone Screenshots: $screenshot_count files"
-        echo "     → playstore/graphics/phoneScreenshots/"
+        echo "     → app/src/main/play/listings/en-US/graphics/phone-screenshots/"
         find "$PHONE_SCREENSHOTS_DIR" -name "*.png" | sort | while read -r file; do
             local filename=$(basename "$file")
             local size=$(identify -format "%wx%h" "$file" 2>/dev/null || echo "unknown")
@@ -489,7 +489,7 @@ generate_summary() {
     fi
     
     echo -e "${BLUE}Next Steps:${NC}"
-    echo "  1. Review generated graphics in playstore/graphics/"
+    echo "  1. Review generated graphics in app/src/main/play/listings/en-US/graphics/"
     echo "  2. Upload to Google Play Console"
     echo "  3. Update screenshots by replacing files in images/screenshots/"
     echo ""

@@ -205,8 +205,8 @@ The workflow will:
 Create version-specific changelogs:
 
 ```
-playstore/en-US/changelogs/29.txt  # For version code 29
-playstore/en-US/changelogs/30.txt  # For version code 30
+app/src/main/play/listings/en-US/changelogs/29.txt  # For version code 29
+app/src/main/play/listings/en-US/changelogs/30.txt  # For version code 30
 ```
 
 The plugin will automatically use the correct changelog for each version.
@@ -215,7 +215,7 @@ The plugin will automatically use the correct changelog for each version.
 
 If no version-specific file exists, the plugin uses:
 ```
-playstore/en-US/changelogs/default.txt
+app/src/main/play/listings/en-US/changelogs/default.txt
 ```
 
 ### Character Limit
@@ -226,7 +226,7 @@ Release notes are limited to **500 characters** including spaces.
 
 ### Update Store Listing
 
-Edit files in `playstore/en-US/` (or other locales):
+Edit files in `app/src/main/play/listings/en-US/` (or other locales):
 
 - `title.txt` - App title (50 chars max)
 - `short-description.txt` - Short description (80 chars max)
@@ -234,12 +234,13 @@ Edit files in `playstore/en-US/` (or other locales):
 
 ### Update Graphics
 
-Add graphics to `playstore/graphics/`:
+Add graphics to `app/src/main/play/listings/en-US/graphics/`:
 
 ```
-playstore/graphics/
-├── featureGraphic.png (1024x500)
-└── phoneScreenshots/
+app/src/main/play/listings/en-US/graphics/
+├── feature-graphic/
+│   └── feature-graphic.png (1024x500)
+└── phone-screenshots/
     ├── 1-home.png
     ├── 2-library.png
     └── ...

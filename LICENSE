@@ -685,7 +685,7 @@ ASSETS-LICENSE at the root of this repository:
 Excluded directories:
 - images/logo/
 - images/screenshots/
-- playstore/graphics/
+- app/src/main/play/listings/en-US/graphics/
 - pages/assets/images/
 - app/src/main/res/mipmap-*/
 - app/src/main/res/mipmap-anydpi-v26/
