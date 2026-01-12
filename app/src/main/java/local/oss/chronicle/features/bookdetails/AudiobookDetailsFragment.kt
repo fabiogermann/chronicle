@@ -152,7 +152,7 @@ class AudiobookDetailsFragment : Fragment() {
 
         viewModel.forceSyncInProgress.observe(viewLifecycleOwner) { isSyncing ->
             val syncMenuItem = binding.detailsToolbar.menu.findItem(R.id.force_sync)
-            val syncIcon = syncMenuItem.icon
+            val syncIcon = syncMenuItem?.icon
             if (syncIcon is AnimatedVectorDrawable) {
                 if (isSyncing) syncIcon.start() else syncIcon.stop()
             }
@@ -160,7 +160,7 @@ class AudiobookDetailsFragment : Fragment() {
 
         viewModel.isWatchedIcon.observe(viewLifecycleOwner) { icon ->
             Timber.d("isWatchedIcon.observe called")
-            binding.detailsToolbar.menu.findItem(R.id.toggle_watched).setIcon(icon)
+            binding.detailsToolbar.menu.findItem(R.id.toggle_watched)?.setIcon(icon)
         }
 
         return binding.root

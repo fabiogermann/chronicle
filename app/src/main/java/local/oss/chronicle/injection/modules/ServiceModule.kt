@@ -39,6 +39,16 @@ import kotlin.time.ExperimentalTime
 @ExperimentalTime
 @Module
 class ServiceModule(private val service: MediaPlayerService) {
+    companion object {
+        // Attribution tag for audio operations (must match manifest declaration)
+        private const val ATTRIBUTION_TAG_MEDIA_PLAYBACK = "chronicle_media_playback"
+    }
+
+    // Create attributed context for audio operations (required for API 31+/Android 12+)
+    private val attributedContext: Context by lazy {
+        service.createAttributionContext(ATTRIBUTION_TAG_MEDIA_PLAYBACK)
+    }
+
     @Provides
     @ServiceScope
     fun service(): Service = service
@@ -58,7 +68,7 @@ class ServiceModule(private val service: MediaPlayerService) {
     @Provides
     @ServiceScope
     fun exoPlayer(): ExoPlayer =
-        ExoPlayer.Builder(service).setLoadControl(
+        ExoPlayer.Builder(attributedContext).setLoadControl(
             // increase buffer size across the board as ExoPlayer defaults are set for video
             DefaultLoadControl.Builder().setBackBuffer(EXOPLAYER_BACK_BUFFER_DURATION_MILLIS, true)
                 .setBufferDurationsMs(
@@ -86,7 +96,7 @@ class ServiceModule(private val service: MediaPlayerService) {
     @Provides
     @ServiceScope
     fun mediaSession(launchActivityPendingIntent: PendingIntent): MediaSessionCompat =
-        MediaSessionCompat(service, APP_NAME).apply {
+        MediaSessionCompat(attributedContext, APP_NAME).apply {
             // Enable queue management; media buttons handled automatically on recent APIs
             setFlags(
                 FLAG_HANDLES_QUEUE_COMMANDS,
@@ -189,7 +199,11 @@ class ServiceModule(private val service: MediaPlayerService) {
 
     @Provides
     @ServiceScope
-    fun toneManager() = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
+    fun toneManager(): ToneGenerator {
+        // Use attributed context for audio operations
+        val audioManager = attributedContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        return ToneGenerator(AudioManager.STREAM_MUSIC, 100)
+    }
 
     @Provides
     @ServiceScope
