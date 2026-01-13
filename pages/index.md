@@ -34,6 +34,8 @@ Stream and enjoy your audiobook collection from your Plex server with a dedicate
 
 ## Download
 
+<a href="https://groups.google.com/g/chronicle-app-alpha-testing">Enroll in private beta here.</a>
+
 <a href="https://play.google.com/store/apps/details?id=local.oss.chronicle" target="_blank">
   <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80">
 </a>
@@ -43,8 +45,8 @@ Stream and enjoy your audiobook collection from your Plex server with a dedicate
 ## Resources
 
 - [Privacy Policy](privacy)
-- [GitHub Repository](https://github.com/germann/chronicle)
-- [Contributing Guide](https://github.com/germann/chronicle/blob/main/CONTRIBUTING.md)
+- [GitHub Repository](https://github.com/fabiogermann/chronicle)
+- [Contributing Guide](https://github.com/fabiogermann/chronicle/blob/main/CONTRIBUTING.md)
 - [Changelog](https://github.com/germann/chronicle/blob/main/CHANGELOG.md)
 
 ## Open Source
