@@ -8,7 +8,7 @@ import com.squareup.moshi.Moshi
 import com.tonyodev.fetch2.Fetch
 import dagger.Component
 import local.oss.chronicle.application.ChronicleApplication
-import local.oss.chronicle.application.ChronicleBillingManager
+import local.oss.chronicle.billing.IBillingManager
 import local.oss.chronicle.data.local.*
 import local.oss.chronicle.data.sources.plex.*
 import local.oss.chronicle.features.currentlyplaying.CurrentlyPlaying
@@ -17,12 +17,14 @@ import local.oss.chronicle.features.login.ChooseServerFragment
 import local.oss.chronicle.features.login.ChooseUserFragment
 import local.oss.chronicle.features.login.LoginFragment
 import local.oss.chronicle.injection.modules.AppModule
+import local.oss.chronicle.injection.modules.FlavorModule
+import local.oss.chronicle.licenses.ILicensesHandler
 import kotlinx.coroutines.CoroutineExceptionHandler
 import java.io.File
 import javax.inject.Singleton
 
 @Singleton
-@Component(modules = [AppModule::class])
+@Component(modules = [AppModule::class, FlavorModule::class])
 interface AppComponent {
     fun applicationContext(): Context
 
@@ -75,7 +77,9 @@ interface AppComponent {
     fun frescoConfig(): ImagePipelineConfig
 
     //    fun plexMediaSource(): PlexMediaSource
-    fun billingManager(): ChronicleBillingManager
+    fun billingManager(): IBillingManager
+    
+    fun licensesHandler(): ILicensesHandler
 
     // Inject
     fun inject(chronicleApplication: ChronicleApplication)

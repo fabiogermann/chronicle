@@ -14,7 +14,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <!-- Required for foreground service with mediaPlayback type on Android 14+ (API 34+) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
-    <uses-configuration android:name="com.android.vending.BILLING" />
 
     <application
         android:name="local.oss.chronicle.application.ChronicleApplication"
@@ -75,10 +74,6 @@
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
-
-        <meta-data
-            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-            android:value="androidx.media3.cast.DefaultCastOptionsProvider" />
     </application>
 
 </manifest>

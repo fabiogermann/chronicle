@@ -11,9 +11,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
-import local.oss.chronicle.application.ChronicleBillingManager
 import local.oss.chronicle.application.MainActivity
+import local.oss.chronicle.billing.IBillingManager
 import local.oss.chronicle.data.local.IBookRepository
 import local.oss.chronicle.data.local.ITrackRepository
 import local.oss.chronicle.data.local.PrefsRepo
@@ -23,6 +22,7 @@ import local.oss.chronicle.data.sources.plex.PlexConfig
 import local.oss.chronicle.data.sources.plex.PlexPrefsRepo
 import local.oss.chronicle.databinding.FragmentSettingsBinding
 import local.oss.chronicle.features.player.MediaServiceConnection
+import local.oss.chronicle.licenses.ILicensesHandler
 import local.oss.chronicle.navigation.Navigator
 import local.oss.chronicle.util.observeEvent
 import local.oss.chronicle.views.getString
@@ -42,7 +42,10 @@ class SettingsFragment : Fragment() {
     lateinit var plexLoginRepo: IPlexLoginRepo
 
     @Inject
-    lateinit var chronicleBillingManager: ChronicleBillingManager
+    lateinit var billingManager: IBillingManager
+
+    @Inject
+    lateinit var licensesHandler: ILicensesHandler
 
     @Inject
     lateinit var cachedFileManager: ICachedFileManager
@@ -99,7 +102,7 @@ class SettingsFragment : Fragment() {
         )
 
         viewModel.upgradeToPremium.observeEvent(viewLifecycleOwner) {
-            chronicleBillingManager.launchBillingFlow(requireActivity())
+            billingManager.launchPurchaseFlow(requireActivity())
         }
 
         viewModel.webLink.observe(
@@ -117,7 +120,7 @@ class SettingsFragment : Fragment() {
             viewLifecycleOwner,
             Observer {
                 if (it) {
-                    startActivity(Intent(context, OssLicensesMenuActivity::class.java))
+                    licensesHandler.showLicenses(requireActivity())
                     viewModel.setShowLicenseActivity(false)
                 }
             },

@@ -25,8 +25,11 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       
-      - name: Run unit tests
-        run: ./gradlew test
+      - name: Run unit tests for Play flavor
+        run: ./gradlew testPlayDebugUnitTest
+      
+      - name: Run unit tests for F-Droid flavor
+        run: ./gradlew testFdroidDebugUnitTest
       
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -51,11 +54,38 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
+      - name: Build Play debug APK
+        run: ./gradlew assemblePlayDebug
       
-      - name: Upload APK artifact
+      - name: Build F-Droid debug APK
+        run: ./gradlew assembleFdroidDebug
+      
+      - name: Build Play release APK
+        run: ./gradlew assemblePlayRelease
+      
+      - name: Build F-Droid release APK
+        run: ./gradlew assembleFdroidRelease
+      
+      - name: Upload Play debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: play-debug-apk
+          path: app/build/outputs/apk/play/debug/*.apk
+      
+      - name: Upload F-Droid debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: fdroid-debug-apk
+          path: app/build/outputs/apk/fdroid/debug/*.apk
+      
+      - name: Upload Play release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-release-apk
+          path: app/build/outputs/apk/play/release/*.apk
+      
+      - name: Upload F-Droid release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: fdroid-release-apk
+          path: app/build/outputs/apk/fdroid/release/*.apk

@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.ksp) apply false
+    
+    // The play-publisher plugin should only be applied for play flavor builds
+    // It's applied conditionally in app/build.gradle.kts
     alias(libs.plugins.play.publisher) apply false
 
     alias(libs.plugins.ktlint)

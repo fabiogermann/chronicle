@@ -13,9 +13,11 @@ on:
           - beta
           - production
         default: 'internal'
+  release:
+    types: [published]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   deploy:
@@ -46,16 +48,35 @@ jobs:
         run: |
           echo "${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}" > app/play-credentials.json
 
-      - name: Build and publish to Play Store
+      - name: Build Play Store Bundle
         env:
           KEYSTORE_FILE: release.keystore
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew bundlePlayRelease
+      
+      - name: Build F-Droid APK
+        env:
+          KEYSTORE_FILE: release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleFdroidRelease
+      
+      - name: Upload F-Droid APK to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: app/build/outputs/apk/fdroid/release/*.apk
+      
+      - name: Publish to Play Store
+        if: github.event_name == 'workflow_dispatch'
+        env:
           PLAY_CREDENTIALS_FILE: play-credentials.json
           PLAY_STORE_SERVICE_ACCOUNT_JSON: "true"
         run: |
-          ./gradlew publishBundle --track=${{ inputs.track }} --no-daemon -x lintVitalRelease
+          ./gradlew publishBundle --track=${{ inputs.track }} --no-daemon -x lintVitalPlayRelease
 
       - name: Clean up credentials
         if: always()
@@ -63,6 +84,18 @@ jobs:
           rm -f app/release.keystore
           rm -f app/play-credentials.json
 
+      - name: Upload Play Store Bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-release-bundle
+          path: app/build/outputs/bundle/playRelease/*.aab
+      
+      - name: Upload F-Droid APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fdroid-release-apk
+          path: app/build/outputs/apk/fdroid/release/*.apk
+      
       - name: Upload build artifacts
         if: failure()
         uses: actions/upload-artifact@v4

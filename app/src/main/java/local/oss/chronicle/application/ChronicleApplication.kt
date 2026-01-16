@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipelineConfig
 import local.oss.chronicle.BuildConfig
+import local.oss.chronicle.billing.IBillingManager
 import local.oss.chronicle.data.local.PrefsRepo
 import local.oss.chronicle.data.model.asServer
 import local.oss.chronicle.data.sources.plex.*
@@ -56,7 +57,7 @@ open class ChronicleApplication : Application() {
     lateinit var prefsRepo: PrefsRepo
 
     @Inject
-    lateinit var billingManager: ChronicleBillingManager
+    lateinit var billingManager: IBillingManager
 
     @Inject
     lateinit var unhandledExceptionHandler: CoroutineExceptionHandler

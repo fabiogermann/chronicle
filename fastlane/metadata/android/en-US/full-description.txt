@@ -1,0 +1,28 @@
+Stream or download audiobooks hosted on your Plex server with Chronicle, the best Android Audiobook Player for Plex.
+
+<b>📚 Key Features</b>
+
+• <b>Sync Progress</b> - Keep your audiobook progress synchronized across your devices
+• <b>Multiple Formats</b> - Support for mp3, m4a, and m4b audiobook files
+• <b>Adjustable Playback Speed</b> - Listen at your own pace with customizable playback speeds
+• <b>Auto-Rewind</b> - Never lose your place with automatic rewind on resume
+• <b>Sleep Timer</b> - Fall asleep to your favorite books with built-in sleep timer
+• <b>Skip Silence</b> - Automatically skip silent portions for efficient listening
+• <b>Download Books</b> - Download audiobooks for offline playback anytime, anywhere
+
+<b>📖 Perfect for Plex Users</b>
+
+Chronicle is designed specifically for Plex users who want a dedicated audiobook player with features tailored for long-form content. Connect to your Plex server and enjoy your entire audiobook collection with an interface optimized for audiobooks.
+
+<b>🎯 Requirements</b>
+
+• A Plex server with audiobook content
+• Android 13 or higher
+• Network access to your Plex server
+
+<b>🔗 Useful Resources</b>
+
+• Plex Audiobook Guide: https://github.com/seanap/Plex-Audiobook-Guide
+• Chronicle Community: https://www.reddit.com/r/ChronicleApp/
+
+Chronicle is open source and continuously improving. Experience the best way to enjoy your Plex audiobooks on Android!

@@ -12,6 +12,7 @@ import android.text.format.DateUtils
 import android.view.Gravity
 import android.widget.Toast
 import androidx.lifecycle.*
+import androidx.lifecycle.MediatorLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.github.michaelbull.result.Ok
 import local.oss.chronicle.R
@@ -204,6 +205,38 @@ class CurrentlyPlayingViewModel(
             )
         }
 
+    /**
+     * Computed slider value with explicit Float type for proper data binding resolution.
+     * Uses chapter progress if available, otherwise track progress.
+     */
+    val sliderValue: LiveData<Float> =
+        MediatorLiveData<Float>().apply {
+            addSource(chapterProgressForSlider) { chapterProgress ->
+                val trackProgress = trackProgressForSlider.value ?: 0L
+                value = if (chapterProgress == -1L) trackProgress.toFloat() else chapterProgress.toFloat()
+            }
+            addSource(trackProgressForSlider) { trackProgress ->
+                val chapterProgress = chapterProgressForSlider.value ?: -1L
+                value = if (chapterProgress == -1L) trackProgress.toFloat() else chapterProgress.toFloat()
+            }
+        }
+
+    /**
+     * Computed slider max value with explicit Float type for proper data binding resolution.
+     * Uses chapter duration if available, otherwise track duration.
+     */
+    val sliderMaxValue: LiveData<Float> =
+        MediatorLiveData<Float>().apply {
+            addSource(chapterDuration) { duration ->
+                val trackDuration = currentTrack.value?.duration ?: 1L
+                value = if (duration == 0L) trackDuration.toFloat() else duration.toFloat()
+            }
+            addSource(currentTrack) { track ->
+                val duration = chapterDuration.value ?: 0L
+                value = if (duration == 0L) track.duration.toFloat() else duration.toFloat()
+            }
+        }
+
     var isSliding = false
 
     private var _isSleepTimerActive = MutableLiveData(false)
@@ -233,6 +266,61 @@ class CurrentlyPlayingViewModel(
     val trackDuration =
         currentTrack.map { track ->
             return@map DateUtils.formatElapsedTime(StringBuilder(), track.duration / 1000)
+        }
+
+    /**
+     * Computed text for chapter progress display with explicit String type.
+     * Uses chapter progress string if available, otherwise track progress.
+     */
+    val chapterProgressDisplayText: LiveData<String> =
+        MediatorLiveData<String>().apply {
+            addSource(chapterProgressString) { chapterStr ->
+                val trackStr = trackProgress.value ?: ""
+                value = if (chapterStr.isNullOrEmpty()) trackStr else chapterStr
+            }
+            addSource(trackProgress) { receivedTrackStr ->
+                val chapterStr = chapterProgressString.value ?: ""
+                value = if (chapterStr.isEmpty()) receivedTrackStr else chapterStr
+            }
+        }
+
+    /**
+     * Computed text for chapter duration display with explicit String type.
+     * Uses chapter duration string if available, otherwise track duration.
+     */
+    val chapterDurationDisplayText: LiveData<String> =
+        MediatorLiveData<String>().apply {
+            addSource(chapterDuration) { duration ->
+                val trackDurationStr = trackDuration.value ?: ""
+                val chapterDurationStr = chapterDurationString.value ?: ""
+                value = if (duration == 0L) trackDurationStr else chapterDurationStr
+            }
+            addSource(trackDuration) { receivedTrackDurationStr ->
+                val duration = chapterDuration.value ?: 0L
+                val chapterDurationStr = chapterDurationString.value ?: ""
+                value = if (duration == 0L) receivedTrackDurationStr else chapterDurationStr
+            }
+            addSource(chapterDurationString) { receivedChapterDurationStr ->
+                val duration = chapterDuration.value ?: 0L
+                val trackDurationStr = trackDuration.value ?: ""
+                value = if (duration == 0L) trackDurationStr else receivedChapterDurationStr
+            }
+        }
+
+    /**
+     * Computed title text with explicit String type.
+     * Uses chapter title if available, otherwise track title.
+     */
+    val chapterTitleDisplayText: LiveData<String> =
+        MediatorLiveData<String>().apply {
+            addSource(currentChapter) { chapter ->
+                val trackTitle = currentTrack.value?.title ?: ""
+                value = if (chapter.title.isEmpty()) trackTitle else chapter.title
+            }
+            addSource(currentTrack) { track ->
+                val chapterTitle = currentChapter.value?.title ?: ""
+                value = if (chapterTitle.isEmpty()) track.title else chapterTitle
+            }
         }
 
     val progressString =

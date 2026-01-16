@@ -7,6 +7,8 @@ plugins {
     alias(libs.plugins.play.publisher)
     id("kotlin-parcelize")
     id("kotlin-kapt")  // Still needed for data binding
+    // OSS licenses plugin generates code, keep it applied for all flavors
+    // but the runtime dependency is only included in play flavor
     id("com.google.android.gms.oss-licenses-plugin")
 }
 
@@ -57,6 +59,19 @@ android {
         }
     }
 
+    flavorDimensions += "distribution"
+
+    productFlavors {
+        create("play") {
+            dimension = "distribution"
+            // Play Store distribution - includes billing, cast, etc.
+        }
+        create("fdroid") {
+            dimension = "distribution"
+            // F-Droid distribution - FOSS only, no proprietary dependencies
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -71,6 +86,15 @@ android {
             if (releaseSigningConfig?.storeFile != null) {
                 signingConfig = releaseSigningConfig
             }
+        }
+    }
+
+    sourceSets {
+        getByName("play") {
+            java.srcDirs("src/play/java")
+        }
+        getByName("fdroid") {
+            java.srcDirs("src/fdroid/java")
         }
     }
     compileOptions {
@@ -129,14 +153,12 @@ dependencies {
     implementation(libs.material)
     implementation(libs.glide)
     implementation(libs.timber)
-    implementation(libs.iapwrapper)
     implementation(libs.fetch)
     implementation(libs.work)
     implementation(libs.result)
     implementation(libs.swiperefresh)
     implementation(libs.seismic)
     implementation(libs.browserx)
-    implementation(libs.oss)
     implementation(libs.appcompat)
     implementation(libs.annotation)
     implementation(libs.coroutines)
@@ -166,7 +188,13 @@ dependencies {
     implementation(libs.media3.ui)
     implementation(libs.media3.session)
     implementation(libs.media3.datasource)
-    implementation(libs.media3.cast)
+    implementation(libs.media)  // Legacy media compat library for MediaSessionCompat, MediaControllerCompat
+    implementation(libs.lifecycle.viewmodel.ktx)  // For viewModelScope
+
+    // Play Store flavor dependencies (proprietary)
+    "playImplementation"(libs.iapwrapper)
+    "playImplementation"(libs.oss)
+    "playImplementation"(libs.media3.cast)
 
     /*
      * Local Tests

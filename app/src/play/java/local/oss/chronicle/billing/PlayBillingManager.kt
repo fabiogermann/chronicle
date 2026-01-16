@@ -1,4 +1,4 @@
-package local.oss.chronicle.application
+package local.oss.chronicle.billing
 
 import android.app.Activity
 import android.content.Context
@@ -8,19 +8,31 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Singleton wrapper around the Google Playing Billing library. Handles the initialization of
- * Billing, restores previous purchases, and exposes a method to launch billing flow.
+ * Google Play Billing implementation. Handles initialization of the Google Play Billing library,
+ * restores previous purchases, and exposes a method to launch billing flow.
  *
  * TODO: use a more sophisticated method to prevent cheats
  */
 @Singleton
-class ChronicleBillingManager
+class PlayBillingManager
     @Inject
     constructor(
         applicationContext: Context,
         private val prefsRepo: PrefsRepo,
-    ) {
-        fun launchBillingFlow(activity: Activity) {
+    ) : IBillingManager {
+        
+        override val isPremium: Boolean
+            get() = prefsRepo.isPremium
+        
+        override fun startConnection() {
+            // Connection is handled automatically by IapConnector
+        }
+        
+        override fun endConnection() {
+            // No explicit cleanup needed for IapConnector
+        }
+        
+        override fun launchPurchaseFlow(activity: Activity) {
             iapConnector.purchase(activity, PREMIUM_IAP_SKU)
         }
 
@@ -47,4 +59,8 @@ class ChronicleBillingManager
                     },
                 )
             }*/
+
+        companion object {
+            const val PREMIUM_IAP_SKU = "premium"
+        }
     }

@@ -1,0 +1,37 @@
+# F-Droid Build Metadata
+# This file provides hints for F-Droid build process
+# Full metadata will be maintained in the fdroiddata repository
+
+# Categories for F-Droid listing
+Categories:
+  - Multimedia
+
+# License (must match LICENSE file)
+License: GPL-3.0-or-later
+
+# Source code repository
+SourceCode: https://github.com/germann-io/chronicle
+
+# Issue tracker
+IssueTracker: https://github.com/germann-io/chronicle/issues
+
+# Changelog
+Changelog: https://github.com/germann-io/chronicle/blob/main/CHANGELOG.md
+
+# Build configuration
+Builds:
+  - versionName: ${version}
+    versionCode: ${versionCode}
+    gradle:
+      - fdroid
+    # Disable linter checks that may fail on F-Droid infrastructure
+    # antifeatures: []  # No anti-features for fdroid flavor
+
+# Auto-update configuration
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: # To be updated by F-Droid maintainers
+CurrentVersionCode: # To be updated by F-Droid maintainers
+
+# Build requirements
+# Gradle and Android SDK versions are auto-detected from build.gradle.kts
