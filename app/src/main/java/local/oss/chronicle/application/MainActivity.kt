@@ -146,6 +146,8 @@ class MainActivity : AppCompatActivity() {
 
         if (savedInstanceState == null) {
             setupCurrentlyPlaying()
+            // Re-post a fresh login state event for this new activity instance
+            plexLoginRepo.determineLoginState()
             plexLoginRepo.loginEvent.value?.let {
                 if (it.peekContent() == LOGGED_IN_FULLY) {
                     navigator.showHome()

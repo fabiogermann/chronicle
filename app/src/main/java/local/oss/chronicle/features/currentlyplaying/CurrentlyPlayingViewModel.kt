@@ -210,6 +210,11 @@ class CurrentlyPlayingViewModel(
     val isSleepTimerActive: LiveData<Boolean>
         get() = _isSleepTimerActive
 
+    val sleepTimerIconTint: LiveData<Int> =
+        isSleepTimerActive.map { isActive ->
+            return@map if (isActive) R.color.iconActive else R.color.icon
+        }
+
     private var sleepTimerTimeRemaining = MutableLiveData(0L)
 
     val sleepTimerTimeRemainingString =

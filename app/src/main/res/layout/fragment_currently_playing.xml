@@ -152,7 +152,7 @@
                         app:layout_constraintHorizontal_bias="0.5"
                         app:layout_constraintStart_toEndOf="@+id/change_speed_button"
                         app:layout_constraintTop_toBottomOf="@+id/details_pause_play"
-                        app:tint="@{viewModel.isSleepTimerActive() ? @color/iconActive : @color/icon}" />
+                        app:tint="@{viewModel.sleepTimerIconTint}" />
 
                     <com.google.android.material.slider.Slider
                         android:id="@+id/chapter_progress_seekbar"
