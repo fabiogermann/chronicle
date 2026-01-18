@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.60.11] - 2026-01-18
+
+- chore: bump version to 0.60.10-SNAPSHOT and update CHANGELOG.md (e879e27)
+- ci: pages improvements (5cf1a74)
+- ci: fix the publish step (de6f978)
+- ci: move playstore assets (c7a6ed8)
+- docs: update readme (f51820c)
+- docs: update readme (ef5159a)
+- docs: correct links (9df627a)
+- chore: update description (85d2cb4)
+- ci: permissions and JVM settings (442fdc1)
+- fix: login button disappearing (d0324f0)
+- feat: auto close login window after successful login (99e3d28)
+- ci: Update build.gradle.kts (834408d)
+- docs: update links (d3bc0aa)
+- chore: Update versionName to 0.60.11 (da01847)
+- ci: fix deploy (904fcbf)
+
 ## [0.60.9] - 2026-01-12
 
 - chore: add codeql actions (86b92ad)
