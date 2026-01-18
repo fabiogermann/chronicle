@@ -52,7 +52,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          PLAY_CREDENTIALS_FILE: play-credentials.json
+          PLAY_CREDENTIALS_FILE: app/play-credentials.json
           PLAY_STORE_SERVICE_ACCOUNT_JSON: "true"
         run: |
           ./gradlew publishBundle --track=${{ inputs.track }} --no-daemon -x lintVitalRelease
