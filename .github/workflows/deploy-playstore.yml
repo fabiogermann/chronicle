@@ -44,7 +44,55 @@ jobs:
 
       - name: Decode Play Store credentials
         run: |
-          echo "${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}" > app/play-credentials.json
+          echo "${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON_BASE64 }}" | base64 --decode > app/play-credentials.json
+
+      - name: Validate Play Store credentials
+        run: |
+          echo "Checking credentials file..."
+          if [ ! -f "app/play-credentials.json" ]; then
+            echo "ERROR: Credentials file does not exist at app/play-credentials.json"
+            exit 1
+          fi
+          
+          FILE_SIZE=$(stat -c%s "app/play-credentials.json" 2>/dev/null || stat -f%z "app/play-credentials.json")
+          echo "File size: $FILE_SIZE bytes"
+          
+          if [ "$FILE_SIZE" -lt 100 ]; then
+            echo "ERROR: Credentials file is too small (likely empty or corrupted)"
+            exit 1
+          fi
+          
+          echo "Validating JSON structure..."
+          if ! jq '.' app/play-credentials.json 2>/dev/null; then
+            echo "ERROR: File does not contain valid JSON"
+            echo "First 100 chars (redacted): $(head -c 100 app/play-credentials.json | sed 's/[a-zA-Z0-9]/#/g')"
+            exit 1
+          fi
+          
+          TYPE=$(jq -r '.type' app/play-credentials.json)
+          PROJECT=$(jq -r '.project_id' app/play-credentials.json)
+          PRIVATE_KEY_ID=$(jq -r '.private_key_id' app/play-credentials.json)
+          
+          echo "Credential type: $TYPE"
+          echo "Project ID: $PROJECT"
+          echo "Has private_key_id: $([ -n "$PRIVATE_KEY_ID" ] && echo 'yes' || echo 'no')"
+          
+          if [ "$TYPE" != "service_account" ]; then
+            echo "ERROR: Expected type 'service_account', got '$TYPE'"
+            exit 1
+          fi
+          
+          if [ -z "$PROJECT" ]; then
+            echo "ERROR: Missing 'project_id' field in credentials"
+            exit 1
+          fi
+          
+          if [ -z "$PRIVATE_KEY_ID" ]; then
+            echo "ERROR: Missing 'private_key_id' field in credentials"
+            exit 1
+          fi
+          
+          echo "✓ Credentials validation passed"
 
       - name: Build and publish to Play Store
         env:
@@ -52,7 +100,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          PLAY_CREDENTIALS_FILE: app/play-credentials.json
+          PLAY_CREDENTIALS_FILE: play-credentials.json
           PLAY_STORE_SERVICE_ACCOUNT_JSON: "true"
         run: |
           ./gradlew publishBundle --track=${{ inputs.track }} --no-daemon -x lintVitalRelease
