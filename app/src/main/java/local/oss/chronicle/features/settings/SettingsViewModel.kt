@@ -855,7 +855,7 @@ class SettingsViewModel(
                     click =
                         object : PreferenceClick {
                             override fun onClick() {
-                                _webLink.postEvent("https://www.reddit.com/r/ChronicleApp")
+                                _webLink.postEvent("https://www.reddit.com/r/ChronicleEpilogueApp")
                             }
                         },
                 ),
@@ -866,7 +866,7 @@ class SettingsViewModel(
                     click =
                         object : PreferenceClick {
                             override fun onClick() {
-                                _webLink.postEvent("https://github.com/mattttvaughn/chronicle")
+                                _webLink.postEvent("https://github.com/fabiogermann/chronicle")
                             }
                         },
                 ),

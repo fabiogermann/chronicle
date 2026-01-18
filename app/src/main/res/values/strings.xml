@@ -238,7 +238,7 @@
     <string name="settings_category_etc">Etc</string>
     <string name="settings_licenses_title">Licenses</string>
     <string name="settings_licenses_explanation">Open source libraries used by Chronicle</string>
-    <string name="settings_subreddit_title">reddit.com/r/ChronicleApp</string>
+    <string name="settings_subreddit_title">reddit.com/r/ChronicleEpilogueApp/</string>
     <string name="settings_subreddit_explanation">Share bug reports, request features, and learn what\'s coming next in Chronicle</string>
     <string name="settings_github_title">github.com/fabiogermann/chronicle</string>
     <string name="settings_github_explanation">Chronicle is open source!</string>
