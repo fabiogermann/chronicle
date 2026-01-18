@@ -154,4 +154,12 @@
         <item name="fontFamily">@font/lato_bold</item>
     </style>
 
+    <!-- Full-screen dialog for OAuth login -->
+    <style name="Theme.Chronicle.FullScreenDialog" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">?android:colorBackground</item>
+        <item name="android:statusBarColor">@color/colorPrimaryDark</item>
+        <item name="android:navigationBarColor">@color/colorPrimaryDark</item>
+    </style>
+
 </resources>

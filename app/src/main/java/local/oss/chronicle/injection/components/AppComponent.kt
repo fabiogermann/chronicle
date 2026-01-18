@@ -16,6 +16,7 @@ import local.oss.chronicle.features.login.ChooseLibraryFragment
 import local.oss.chronicle.features.login.ChooseServerFragment
 import local.oss.chronicle.features.login.ChooseUserFragment
 import local.oss.chronicle.features.login.LoginFragment
+import local.oss.chronicle.features.login.PlexOAuthDialogFragment
 import local.oss.chronicle.injection.modules.AppModule
 import kotlinx.coroutines.CoroutineExceptionHandler
 import java.io.File
@@ -81,6 +82,8 @@ interface AppComponent {
     fun inject(chronicleApplication: ChronicleApplication)
 
     fun inject(loginFragment: LoginFragment)
+
+    fun inject(plexOAuthDialogFragment: PlexOAuthDialogFragment)
 
     fun inject(chooseLibraryFragment: ChooseLibraryFragment)
 

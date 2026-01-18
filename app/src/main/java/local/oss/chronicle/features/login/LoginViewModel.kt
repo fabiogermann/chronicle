@@ -43,7 +43,11 @@ class LoginViewModel(private val plexLoginRepo: IPlexLoginRepo) : ViewModel() {
         viewModelScope.launch(Injector.get().unhandledExceptionHandler()) {
             try {
                 val pin = plexLoginRepo.postOAuthPin()
-                _authEvent.postEvent(pin)
+                if (pin != null) {
+                    _authEvent.postEvent(pin)
+                } else {
+                    _errorEvent.postEvent("Login failed: Unable to connect to Plex servers. Please check your internet connection.")
+                }
             } catch (e: Exception) {
                 _errorEvent.postEvent("Login failed: ${e.message}")
                 timber.log.Timber.e(e, "OAuth login failed")

@@ -16,6 +16,8 @@
 
     <!-- Login page -->
     <string name="login_with_plex">Login with Plex</string>
+    <string name="plex_login_title">Sign in with Plex</string>
+    <string name="close">Close</string>
     <string name="title_activity_login">Sign in</string>
     <string name="prompt_username">Email/Username</string>
     <string name="prompt_password">Password</string>

@@ -15,6 +15,7 @@ import local.oss.chronicle.data.sources.plex.model.UsersResponse
 import local.oss.chronicle.util.Event
 import local.oss.chronicle.util.postEvent
 import timber.log.Timber
+import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
 
