@@ -23,6 +23,7 @@ import local.oss.chronicle.data.local.ITrackRepository
 import local.oss.chronicle.data.local.ITrackRepository.Companion.TRACK_NOT_FOUND
 import local.oss.chronicle.data.local.PrefsRepo
 import local.oss.chronicle.data.model.*
+import local.oss.chronicle.data.model.getChapterAt
 import local.oss.chronicle.data.sources.plex.PlexConfig
 import local.oss.chronicle.data.sources.plex.model.getDuration
 import local.oss.chronicle.features.player.*
@@ -271,17 +272,9 @@ class CurrentlyPlayingViewModel(
             Timber.i("Cached chapters: $_chapters")
             Timber.i("Cached progress: ${_tracks?.getProgress()}")
 
-            if (_tracks != null && _chapters != null) {
-                var offsetRemaining = _tracks.getProgress()
-                var currChapter: Chapter? = null
-                for (chapter in _chapters) {
-                    if (offsetRemaining < chapter.endTimeOffset) {
-                        currChapter = chapter
-                        break
-                    }
-                    offsetRemaining -= (chapter.endTimeOffset - chapter.startTimeOffset)
-                }
-                currChapter ?: EMPTY_CHAPTER
+            if (!_tracks.isNullOrEmpty() && !_chapters.isNullOrEmpty()) {
+                val activeTrack = _tracks.getActiveTrack()
+                _chapters.getChapterAt(activeTrack.id.toLong(), activeTrack.progress)
             } else {
                 EMPTY_CHAPTER
             }

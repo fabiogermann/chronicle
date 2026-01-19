@@ -279,7 +279,7 @@ fun List<MediaItemTrack>.asChapterList(): List<Chapter> {
     val outList = mutableListOf<Chapter>()
     var cumStartOffset = 0L
     for (track in this) {
-        track.asChapter(cumStartOffset)
+        outList.add(track.asChapter(cumStartOffset))
         cumStartOffset += track.duration
     }
     return outList
@@ -292,7 +292,7 @@ fun MediaItemTrack.asChapter(startOffset: Long): Chapter {
         index = index.toLong(),
         discNumber = discNumber,
         startTimeOffset = startOffset,
-        endTimeOffset = duration,
+        endTimeOffset = startOffset + duration,
         downloaded = cached,
         trackId = id.toLong(),
     )

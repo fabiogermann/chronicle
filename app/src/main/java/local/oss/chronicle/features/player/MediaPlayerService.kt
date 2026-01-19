@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -66,7 +67,8 @@ class MediaPlayerService :
     MediaBrowserServiceCompat(),
     ForegroundServiceController,
     ServiceController,
-    SleepTimer.SleepTimerBroadcaster {
+    SleepTimer.SleepTimerBroadcaster,
+    local.oss.chronicle.features.currentlyplaying.OnChapterChangeListener {
     val serviceJob: CompletableJob = SupervisorJob()
     val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
@@ -127,6 +129,12 @@ class MediaPlayerService :
         /** Strings used to indicate playback errors */
         const val ACTION_PLAYBACK_ERROR = "playback error action intent"
         const val PLAYBACK_ERROR_MESSAGE = "playback error message"
+
+        /**
+         * Key for storing absolute track position in PlaybackStateCompat extras.
+         * This is used to avoid confusion with chapter-relative position stored in PlaybackStateCompat.position
+         */
+        const val EXTRA_ABSOLUTE_TRACK_POSITION = "ABSOLUTE_TRACK_POSITION"
 
         /**
          * Key indicating playback start time offset relative to the start of the track being
@@ -228,6 +236,9 @@ class MediaPlayerService :
         switchToPlayer(exoPlayer)
 
         mediaController.registerCallback(onMediaChangedCallback)
+
+        // Register chapter change listener to update metadata when chapter changes
+        currentlyPlaying.setOnChapterChangeListener(this)
 
         // startForeground has to be called within 5 seconds of starting the service or the app
         // will ANR (on Android 9.0 and above, maybe earlier).
@@ -386,12 +397,37 @@ class MediaPlayerService :
     private fun buildPlaybackState(player: Player): PlaybackStateCompat {
         val playbackState = mapPlayerState(player)
         val playbackSpeed = player.playbackParameters.speed
-        val position = if (player.playbackState == Player.STATE_IDLE) 0L else player.currentPosition
+        
+        // Calculate chapter-relative position for the progress bar
+        val trackPosition = if (player.playbackState == Player.STATE_IDLE) 0L else player.currentPosition
+        val chapter = currentlyPlaying.chapter.value
+        val position = if (chapter != local.oss.chronicle.data.model.EMPTY_CHAPTER) {
+            // Chapter-scoped position: current position minus chapter start
+            kotlin.math.max(0L, trackPosition - chapter.startTimeOffset)
+        } else {
+            // Fallback to track position when no chapter data
+            trackPosition
+        }
+        
+        // Calculate chapter-relative buffered position
+        val trackBufferedPosition = player.bufferedPosition
+        val bufferedPosition = if (chapter != local.oss.chronicle.data.model.EMPTY_CHAPTER) {
+            kotlin.math.max(0L, trackBufferedPosition - chapter.startTimeOffset)
+        } else {
+            trackBufferedPosition
+        }
+        
+        // Store absolute track position in extras to avoid confusion with chapter-relative position
+        val extras = Bundle().apply {
+            putLong(EXTRA_ABSOLUTE_TRACK_POSITION, trackPosition)
+        }
+        
         val builder =
             PlaybackStateCompat.Builder()
                 .setActions(basePlaybackActions())
-                .setBufferedPosition(player.bufferedPosition)
+                .setBufferedPosition(bufferedPosition)
                 .setState(playbackState, position, playbackSpeed)
+                .setExtras(extras)
 
         sessionCustomActions.forEach(builder::addCustomAction)
         sessionErrorMessage?.let {
@@ -446,7 +482,42 @@ class MediaPlayerService :
         val description =
             player.currentMediaItem?.localConfiguration?.tag as? MediaDescriptionCompat
                 ?: extractDescriptionFromTimeline(player)
-        description?.let { mediaSession.setMetadata(it.toMediaMetadataCompat()) }
+        
+        if (description != null) {
+            // Get current chapter information
+            val chapter = currentlyPlaying.chapter.value
+            val book = currentlyPlaying.book.value
+            val track = currentlyPlaying.track.value
+            
+            // Build metadata with chapter-scoped information
+            val metadata = if (chapter != local.oss.chronicle.data.model.EMPTY_CHAPTER) {
+                // Chapter exists: use chapter title and duration
+                val metadataBuilder = MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, description.mediaId)
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, "${chapter.title} - ${book.title}")
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, chapter.title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, book.title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, book.author)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, book.title)
+                    .putLong(
+                        MediaMetadataCompat.METADATA_KEY_DURATION,
+                        chapter.endTimeOffset - chapter.startTimeOffset
+                    )
+                
+                // Copy album art if available
+                description.iconUri?.toString()?.let {
+                    metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, it)
+                    metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, it)
+                }
+                
+                metadataBuilder.build()
+            } else {
+                // No chapter data: fallback to standard track-based metadata
+                description.toMediaMetadataCompat()
+            }
+            
+            mediaSession.setMetadata(metadata)
+        }
     }
 
     private fun extractDescriptionFromTimeline(player: Player): MediaDescriptionCompat? {
@@ -880,6 +951,36 @@ class MediaPlayerService :
         } else {
             @Suppress("DEPRECATION")
             stopForeground(removeNotification)
+        }
+    }
+
+    override fun onChapterChange(chapter: local.oss.chronicle.data.model.Chapter) {
+        Timber.i("Chapter changed to: ${chapter.title}")
+        // Dispatch to main thread since we're accessing the player (ExoPlayer requires main thread access)
+        serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
+            currentPlayer?.let { player ->
+                // [ChapterDebug] Log the chapter change with player context (must be on main thread)
+                val playerPosition = player.currentPosition
+                val isPlaying = player.isPlaying
+                val playbackState = player.playbackState
+                
+                Timber.d("[ChapterDebug] MediaPlayerService.onChapterChange: " +
+                    "newChapter='${chapter.title}' (idx=${chapter.index}), " +
+                    "chapterRange=[${chapter.startTimeOffset} - ${chapter.endTimeOffset}], " +
+                    "playerPosition=$playerPosition, " +
+                    "isPlaying=$isPlaying, " +
+                    "playbackState=$playbackState")
+                
+                // [ChapterDebug] Check if player position is actually in the new chapter range
+                val isPositionInChapter = playerPosition in chapter.startTimeOffset..chapter.endTimeOffset
+                if (!isPositionInChapter) {
+                    Timber.w("[ChapterDebug] WARNING: playerPosition=$playerPosition is NOT in chapter range [${chapter.startTimeOffset} - ${chapter.endTimeOffset}]! " +
+                        "This may indicate the chapter was set before seek completed.")
+                }
+                
+                updateSessionMetadataFromPlayer(player)
+                updateSessionPlaybackState()
+            }
         }
     }
 }

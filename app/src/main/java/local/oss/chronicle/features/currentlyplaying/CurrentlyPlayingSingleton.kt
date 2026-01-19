@@ -68,8 +68,22 @@ class CurrentlyPlayingSingleton : CurrentlyPlaying {
             }
 
         if (tracks.isNotEmpty() && chapters.isNotEmpty()) {
+            val previousChapter = this.chapter.value
             val chapter = chapters.getChapterAt(track.id.toLong(), track.progress)
+            
+            // [ChapterDebug] Log chapter calculation details
+            Timber.d("[ChapterDebug] CurrentlyPlayingSingleton.update: " +
+                "trackId=${track.id}, " +
+                "trackProgress=${track.progress}, " +
+                "previousChapter='${previousChapter.title}' (idx=${previousChapter.index}), " +
+                "calculatedChapter='${chapter.title}' (idx=${chapter.index}), " +
+                "chapterRange=[${chapter.startTimeOffset} - ${chapter.endTimeOffset}]")
+            
             if (this.chapter.value != chapter) {
+                Timber.d("[ChapterDebug] CHAPTER CHANGE: " +
+                    "'${previousChapter.title}' (idx=${previousChapter.index}) -> " +
+                    "'${chapter.title}' (idx=${chapter.index}), " +
+                    "triggeredByProgress=${track.progress}")
                 this.chapter.value = chapter
                 listener?.onChapterChange(chapter)
             }

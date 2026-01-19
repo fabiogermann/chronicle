@@ -53,7 +53,7 @@ fun List<Chapter>.getChapterAt(
     timeStamp: Long,
 ): Chapter {
     for (chapter in this) {
-        if (chapter.trackId == trackId && timeStamp in chapter.startTimeOffset..chapter.endTimeOffset) {
+        if (chapter.trackId == trackId && timeStamp in chapter.startTimeOffset until chapter.endTimeOffset) {
             return chapter
         }
     }

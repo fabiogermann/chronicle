@@ -260,17 +260,11 @@ class AudiobookDetailsViewModel(
             Timber.i("Cached chapters: $_chapters")
             Timber.i("Cached progress: ${_tracks?.getProgress()}")
 
-            if (_tracks != null && _chapters != null) {
-                var offsetRemaining = _tracks.getProgress()
-                var currChapter: Chapter? = null
-                for (chapter in _chapters) {
-                    if (offsetRemaining < chapter.endTimeOffset) {
-                        currChapter = chapter
-                        break
-                    }
-                    offsetRemaining -= (chapter.endTimeOffset - chapter.startTimeOffset)
-                }
-                currChapter ?: EMPTY_CHAPTER
+            if (_tracks != null && _chapters != null && _tracks.isNotEmpty()) {
+                val activeTrack = _tracks.getActiveTrack()
+                val bookProgress = _tracks.getProgress()
+                // Use getChapterAt to find the correct chapter based on track ID and progress
+                _chapters.getChapterAt(activeTrack.id.toLong(), activeTrack.progress)
             } else {
                 EMPTY_CHAPTER
             }
@@ -281,7 +275,9 @@ class AudiobookDetailsViewModel(
             cachedChapter,
         ) { activeChapter: Chapter, cachedChapter: Chapter ->
             Timber.i("Cached: $cachedChapter, active: $activeChapter")
-            if (activeChapter != EMPTY_CHAPTER && activeChapter.trackId == cachedChapter.trackId) {
+            // Prefer activeChapter from live playback if it's valid and for the same book
+            // Don't check trackId because single-track audiobooks have all chapters with same trackId
+            if (activeChapter != EMPTY_CHAPTER && activeChapter.bookId == cachedChapter.bookId) {
                 activeChapter
             } else {
                 cachedChapter

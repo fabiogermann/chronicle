@@ -209,8 +209,27 @@ class AudiobookMediaSessionCallback
         }
 
         override fun onSeekTo(pos: Long) {
-            Timber.i("Seeking to: ${DateUtils.formatElapsedTime(pos)}")
-            currentPlayer.seekTo(pos)
+            Timber.i("Seeking to chapter-relative position: ${DateUtils.formatElapsedTime(pos / 1000)}")
+            
+            // Get current chapter to convert chapter-relative position to track-relative
+            val chapter = currentlyPlaying.chapter.value
+            
+            if (chapter != local.oss.chronicle.data.model.EMPTY_CHAPTER) {
+                // Convert chapter-relative position to track-relative position
+                val trackPosition = pos + chapter.startTimeOffset
+                
+                // Clamp to chapter bounds to prevent seeking outside current chapter
+                val clampedPosition = trackPosition.coerceIn(
+                    chapter.startTimeOffset,
+                    chapter.endTimeOffset
+                )
+                
+                Timber.i("Converted to track-relative position: ${DateUtils.formatElapsedTime(clampedPosition / 1000)}")
+                currentPlayer.seekTo(clampedPosition)
+            } else {
+                // No chapter data: use position as-is (track-relative)
+                currentPlayer.seekTo(pos)
+            }
         }
 
         override fun onCustomAction(
@@ -372,10 +391,9 @@ class AudiobookMediaSessionCallback
                 // starting a new chapter/track of a book
                 if (startTimeOffsetMillis == USE_SAVED_TRACK_PROGRESS) {
                     trackListStateManager.seekByRelative(-1L * calculateRewindDuration(book))
-                } else {
-                    // Seek slightly forwards so previous track/chapter name isn't erroneously shown
-                    trackListStateManager.seekByRelative(300)
                 }
+                // Note: We do NOT seek forward when jumping to a specific chapter/position
+                // to avoid interfering with accurate chapter seeking
 
                 currentPlayer.playWhenReady = playWhenReady
                 val player = currentPlayer
@@ -395,10 +413,11 @@ class AudiobookMediaSessionCallback
                     else -> throw NoWhenBranchMatchedException("Unknown media player")
                 }
 
+                val updatedTrack = startingTrack.copy(progress = trackListStateManager.currentTrackProgress)
                 currentlyPlaying.update(
                     book = book,
                     tracks = tracks,
-                    track = startingTrack,
+                    track = updatedTrack,
                 )
 
                 mediaSession.setQueueTitle(book.title)
