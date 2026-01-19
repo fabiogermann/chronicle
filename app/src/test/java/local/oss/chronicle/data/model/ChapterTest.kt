@@ -13,7 +13,7 @@ class ChapterTest {
                 id = 1L,
                 index = 0L,
                 startTimeOffset = 0L,
-                endTimeOffset = 3016289L,
+                endTimeOffset = 3016290L,
                 trackId = 1L,
             ),
             Chapter(
@@ -39,7 +39,7 @@ class ChapterTest {
                 id = 1L,
                 index = 0L,
                 startTimeOffset = 0L,
-                endTimeOffset = 3016289L,
+                endTimeOffset = 3016290L,
                 trackId = 1L,
             ),
             Chapter(
@@ -58,14 +58,14 @@ class ChapterTest {
     }
 
     @Test
-    fun `getChapterAt returns correct chapter at end offset`() {
+    fun `getChapterAt returns EMPTY_CHAPTER at end boundary with no next chapter`() {
         val chapters = listOf(
             Chapter(
                 title = "Opening Credits",
                 id = 1L,
                 index = 0L,
                 startTimeOffset = 0L,
-                endTimeOffset = 3016289L,
+                endTimeOffset = 3016290L,
                 trackId = 1L,
             ),
             Chapter(
@@ -78,9 +78,9 @@ class ChapterTest {
             ),
         )
 
+        // At end boundary with half-open interval, position is NOT in Chapter 1
         val chapter = chapters.getChapterAt(trackId = 1L, timeStamp = 7200000L)
-        assertThat(chapter.title, `is`("Chapter 1"))
-        assertThat(chapter.id, `is`(2L))
+        assertThat(chapter, `is`(EMPTY_CHAPTER))
     }
 
     @Test
@@ -91,7 +91,7 @@ class ChapterTest {
                 id = 1L,
                 index = 0L,
                 startTimeOffset = 0L,
-                endTimeOffset = 3016289L,
+                endTimeOffset = 3016290L,
                 trackId = 1L,
             ),
             Chapter(
@@ -149,7 +149,7 @@ class ChapterTest {
                 id = 1L,
                 index = 0L,
                 startTimeOffset = 0L,
-                endTimeOffset = 3016289L,
+                endTimeOffset = 3016290L,
                 trackId = 1L,
             ),
         )
@@ -167,7 +167,7 @@ class ChapterTest {
                 id = 1L,
                 index = 0L,
                 startTimeOffset = 0L,
-                endTimeOffset = 3016289L,
+                endTimeOffset = 3016290L,
                 trackId = 1L,
             ),
         )
@@ -192,7 +192,7 @@ class ChapterTest {
                 id = 1L,
                 index = 0L,
                 startTimeOffset = 0L,
-                endTimeOffset = 3016289L,
+                endTimeOffset = 3016290L,
                 trackId = 1L,
             ),
             Chapter(
