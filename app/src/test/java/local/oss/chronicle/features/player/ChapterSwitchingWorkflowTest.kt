@@ -35,8 +35,8 @@ class ChapterSwitchingWorkflowTest {
     @Before
     fun setup() {
         // Create 10 chapters, each 10 minutes (600,000ms) long
-        // Note: endTimeOffset of one chapter is 1ms before startTimeOffset of next
-        // to avoid boundary overlap issues
+        // Using overlapping boundaries: endTimeOffset equals startTimeOffset of next chapter
+        // This matches real Plex server data format
         chapters = (1..10).map { index ->
             Chapter(
                 title = "Chapter $index",
@@ -44,7 +44,7 @@ class ChapterSwitchingWorkflowTest {
                 index = index.toLong(),
                 discNumber = 1,
                 startTimeOffset = (index - 1) * 600_000L,
-                endTimeOffset = (index * 600_000L) - 1L,
+                endTimeOffset = index * 600_000L,
                 trackId = 1L,
                 bookId = 100L
             )
@@ -98,14 +98,14 @@ class ChapterSwitchingWorkflowTest {
         
         // Validate chapter offsets
         assertThat(currentlyPlaying.chapter.value.startTimeOffset, `is`(0L))
-        assertThat(currentlyPlaying.chapter.value.endTimeOffset, `is`(599_999L))
+        assertThat(currentlyPlaying.chapter.value.endTimeOffset, `is`(600_000L))
         
         // Validate chapter-relative position is 0
         val chapterRelativePosition = trackAtStart.progress - currentlyPlaying.chapter.value.startTimeOffset
         assertThat(chapterRelativePosition, `is`(0L))
         
-        // Validate chapter duration (599,999ms ≈ 10 minutes)
-        val chapterDuration = currentlyPlaying.chapter.value.endTimeOffset - currentlyPlaying.chapter.value.startTimeOffset + 1
+        // Validate chapter duration (600,000ms = 10 minutes)
+        val chapterDuration = currentlyPlaying.chapter.value.endTimeOffset - currentlyPlaying.chapter.value.startTimeOffset
         assertThat(chapterDuration, `is`(600_000L))
     }
     
@@ -128,8 +128,8 @@ class ChapterSwitchingWorkflowTest {
         val chapterRelativePosition = trackInProgress.progress - currentlyPlaying.chapter.value.startTimeOffset
         assertThat(chapterRelativePosition, `is`(300_000L))
         
-        // Validate progress bar shows ~50% (300,000/599,999)
-        val chapterDuration = currentlyPlaying.chapter.value.endTimeOffset - currentlyPlaying.chapter.value.startTimeOffset + 1
+        // Validate progress bar shows 50% (300,000/600,000)
+        val chapterDuration = currentlyPlaying.chapter.value.endTimeOffset - currentlyPlaying.chapter.value.startTimeOffset
         val progressPercentage = (chapterRelativePosition.toDouble() / chapterDuration.toDouble()) * 100
         assertThat(progressPercentage.toInt(), `is`(50))
     }
@@ -194,7 +194,7 @@ class ChapterSwitchingWorkflowTest {
         
         // Validate all progress markers reflect Chapter 3
         assertThat(currentlyPlaying.chapter.value.startTimeOffset, `is`(1_200_000L))
-        assertThat(currentlyPlaying.chapter.value.endTimeOffset, `is`(1_799_999L))
+        assertThat(currentlyPlaying.chapter.value.endTimeOffset, `is`(1_800_000L))
         
         // Validate chapter change listener was triggered
         assertThat(lastChapterChange?.title, `is`("Chapter 3"))
@@ -251,7 +251,7 @@ class ChapterSwitchingWorkflowTest {
         assertThat(chapterRelativePosition, `is`(300_000L))
         
         // Verify it's exactly halfway through the chapter
-        val chapterDuration = currentlyPlaying.chapter.value.endTimeOffset - currentlyPlaying.chapter.value.startTimeOffset + 1
+        val chapterDuration = currentlyPlaying.chapter.value.endTimeOffset - currentlyPlaying.chapter.value.startTimeOffset
         assertThat(chapterDuration, `is`(600_000L))
         
         val percentageIntoChapter = (chapterRelativePosition.toDouble() / chapterDuration.toDouble()) * 100
@@ -272,8 +272,8 @@ class ChapterSwitchingWorkflowTest {
         
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 3"))
         
-        // Validate that chapter duration is ~600,000ms, NOT 6,000,000ms
-        val chapterDuration = currentlyPlaying.chapter.value.endTimeOffset - currentlyPlaying.chapter.value.startTimeOffset + 1
+        // Validate that chapter duration is 600,000ms, NOT 6,000,000ms
+        val chapterDuration = currentlyPlaying.chapter.value.endTimeOffset - currentlyPlaying.chapter.value.startTimeOffset
         assertThat(chapterDuration, `is`(600_000L))
         
         // Verify it's NOT using track duration
@@ -310,7 +310,8 @@ class ChapterSwitchingWorkflowTest {
     
     @Test
     fun `when seeking to exact chapter boundary, correct chapter is selected`() {
-        // Seek to exactly 600,000ms (start of Chapter 2, since Chapter 1 ends at 599,999ms)
+        // Seek to exactly 600,000ms (start of Chapter 2)
+        // With half-open interval [start, end), position at end of Chapter 1 returns Chapter 2
         val trackAtBoundary = track.copy(progress = 600_000L)
         currentlyPlaying.update(
             track = trackAtBoundary,
@@ -365,15 +366,15 @@ class ChapterSwitchingWorkflowTest {
         val chapter1End = chapters.getChapterAt(trackId = 1L, timeStamp = 599_999L)
         assertThat(chapter1End.title, `is`("Chapter 1"))
         
-        // Test Chapter 2 boundary (600,000-1,199,999)
+        // Test Chapter 2 boundary (600,000-1,200,000)
         val chapter2 = chapters.getChapterAt(trackId = 1L, timeStamp = 600_000L)
         assertThat(chapter2.title, `is`("Chapter 2"))
         
-        // Test Chapter 5 (2,400,000-2,999,999)
+        // Test Chapter 5 (2,400,000-3,000,000)
         val chapter5 = chapters.getChapterAt(trackId = 1L, timeStamp = 2_700_000L)
         assertThat(chapter5.title, `is`("Chapter 5"))
         
-        // Test Chapter 10 (5,400,000-5,999,999)
+        // Test Chapter 10 (5,400,000-6,000,000)
         val chapter10 = chapters.getChapterAt(trackId = 1L, timeStamp = 5_700_000L)
         assertThat(chapter10.title, `is`("Chapter 10"))
     }
