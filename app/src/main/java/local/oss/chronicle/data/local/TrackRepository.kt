@@ -207,6 +207,8 @@ class TrackRepository
         ): List<MediaItemTrack> =
             withContext(Dispatchers.IO) {
                 val networkTracks = fetchNetworkTracksForBook(bookId)
+                // Re-read local tracks right before merge to minimize race condition window
+                // where ProgressUpdater might update progress between initial read and insertAll
                 val localTracks = getTracksForAudiobookAsync(bookId)
                 val mergedTracks =
                     mergeNetworkTracks(

@@ -24,6 +24,7 @@ import local.oss.chronicle.data.sources.plex.model.getDuration
 import local.oss.chronicle.features.currentlyplaying.CurrentlyPlaying
 import local.oss.chronicle.features.player.*
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.ACTIVE_TRACK
+import local.oss.chronicle.features.player.MediaPlayerService.Companion.EXTRA_ABSOLUTE_TRACK_POSITION
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.KEY_SEEK_TO_TRACK_WITH_ID
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.KEY_START_TIME_TRACK_OFFSET
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.PLEX_STATE_STOPPED
@@ -458,7 +459,7 @@ class AudiobookDetailsViewModel(
             } else {
                 Timber.i("Currently playing is $currentlyPlayingTrackId")
                 tracks.value?.let { trackList ->
-                    trackList.any { it.id == currentlyPlayingTrackId.toInt() }
+                    trackList.none { it.id == currentlyPlayingTrackId.toInt() }
                 } ?: false
             }
 
@@ -468,7 +469,8 @@ class AudiobookDetailsViewModel(
                     progressUpdater.updateProgress(
                         currentlyPlayingTrackId.toInt(),
                         PLEX_STATE_STOPPED,
-                        state.currentPlayBackPosition,
+                        state.extras?.getLong(EXTRA_ABSOLUTE_TRACK_POSITION)
+                            ?: state.currentPlayBackPosition,
                         true,
                     )
                 }

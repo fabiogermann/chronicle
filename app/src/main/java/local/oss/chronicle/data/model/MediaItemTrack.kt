@@ -81,19 +81,22 @@ data class MediaItemTrack(
 
         /**
          * Merges updated local fields with a network copy of the book. Prefers network metadata,
-         * but retains the following local fields if the local copy is more up to date:
-         * [lastViewedAt], [progress]
+         * but always preserves local [progress] and [lastViewedAt] to avoid race conditions
+         * where sync operations overwrite in-progress playback.
          *
-         * Always retains [cached] field from local copy
+         * Always retains [cached] field from local copy.
+         *
+         * Note: Local device is the source of truth for playback progress.
          */
         fun merge(
             network: MediaItemTrack,
             local: MediaItemTrack,
             forceUseNetwork: Boolean = false,
-        ) = if (forceUseNetwork || network.lastViewedAt > local.lastViewedAt) {
-            Timber.i("Integrating network track: $network")
+        ) = if (forceUseNetwork) {
+            Timber.i("Force using network track: $network")
             network.copy(cached = local.cached)
         } else {
+            // Always preserve local progress and lastViewedAt to prevent race conditions
             network.copy(
                 cached = local.cached,
                 lastViewedAt = local.lastViewedAt,

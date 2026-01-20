@@ -37,6 +37,7 @@ interface OnChapterChangeListener {
 @ExperimentalCoroutinesApi
 @Singleton
 class CurrentlyPlayingSingleton : CurrentlyPlaying {
+    
     override val book = MutableStateFlow(EMPTY_AUDIOBOOK)
     override val track = MutableStateFlow(EMPTY_TRACK)
     override val chapter = MutableStateFlow(EMPTY_CHAPTER)
@@ -55,6 +56,13 @@ class CurrentlyPlayingSingleton : CurrentlyPlaying {
         book: Audiobook,
         tracks: List<MediaItemTrack>,
     ) {
+        // Simple deduplication - skip if identical update
+        val currentTrack = this.track.value
+        if (track.id == currentTrack.id && track.progress == currentTrack.progress) {
+            Timber.d("[ChapterDebug] Skipping identical update: trackId=${track.id}, progress=${track.progress}")
+            return
+        }
+        
         this.book.value = book
         this.track.value = track
 

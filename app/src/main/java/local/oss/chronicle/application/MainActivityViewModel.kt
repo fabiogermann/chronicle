@@ -5,6 +5,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v4.media.session.PlaybackStateCompat.STATE_NONE
 import android.support.v4.media.session.PlaybackStateCompat.STATE_STOPPED
 import androidx.lifecycle.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import local.oss.chronicle.application.MainActivityViewModel.BottomSheetState.*
 import local.oss.chronicle.data.local.CollectionsRepository
 import local.oss.chronicle.data.local.IBookRepository
@@ -12,6 +13,7 @@ import local.oss.chronicle.data.local.ITrackRepository
 import local.oss.chronicle.data.model.*
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo.LoginState.LOGGED_IN_FULLY
+import local.oss.chronicle.features.currentlyplaying.CurrentlyPlaying
 import local.oss.chronicle.features.player.MediaServiceConnection
 import local.oss.chronicle.features.player.id
 import local.oss.chronicle.features.player.isPlaying
@@ -19,16 +21,19 @@ import local.oss.chronicle.util.DoubleLiveData
 import local.oss.chronicle.util.Event
 import local.oss.chronicle.util.mapAsync
 import local.oss.chronicle.util.postEvent
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+@ExperimentalCoroutinesApi
 class MainActivityViewModel(
     loginRepo: IPlexLoginRepo,
     private val trackRepository: ITrackRepository,
     private val bookRepository: IBookRepository,
     private val mediaServiceConnection: MediaServiceConnection,
     collectionsRepository: CollectionsRepository,
+    private val currentlyPlaying: CurrentlyPlaying,
 ) : ViewModel(), MainActivity.CurrentlyPlayingInterface {
     @Suppress("UNCHECKED_CAST")
     class Factory
@@ -39,6 +44,7 @@ class MainActivityViewModel(
             private val bookRepository: IBookRepository,
             private val mediaServiceConnection: MediaServiceConnection,
             private val collectionsRepository: CollectionsRepository,
+            private val currentlyPlaying: CurrentlyPlaying,
         ) : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 if (modelClass.isAssignableFrom(MainActivityViewModel::class.java)) {
@@ -48,6 +54,7 @@ class MainActivityViewModel(
                         bookRepository,
                         mediaServiceConnection,
                         collectionsRepository,
+                        currentlyPlaying,
                     ) as T
                 } else {
                     throw IllegalArgumentException(
@@ -114,17 +121,16 @@ class MainActivityViewModel(
             }
         }
 
-    val currentChapterTitle =
-        DoubleLiveData(tracks, chapters) { _tracks, _chapters ->
-            if (_chapters.isNullOrEmpty() || _tracks.isNullOrEmpty()) {
-                return@DoubleLiveData "No track playing"
+    val currentChapterTitle: LiveData<String> =
+        currentlyPlaying.chapter
+            .map { chapter ->
+                if (chapter == EMPTY_CHAPTER) {
+                    "No track playing"
+                } else {
+                    chapter.title
+                }
             }
-            val activeTrack = _tracks.getActiveTrack()
-            val currentTrackProgress: Long = activeTrack.progress
-            return@DoubleLiveData _chapters.filter {
-                it.trackId.toInt() == activeTrack.id
-            }.getChapterAt(_tracks.getActiveTrack().id.toLong(), currentTrackProgress).title
-        }
+            .asLiveData(viewModelScope.coroutineContext)
 
     val isPlaying =
         mediaServiceConnection.playbackState.map {

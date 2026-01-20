@@ -46,24 +46,9 @@ class OnMediaChangedCallback
             mediaController.playbackState?.let { state ->
                 serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
                     withContext(Dispatchers.IO) {
-                        val trackId = metadata?.id?.toInt() ?: TRACK_NOT_FOUND
-                        if (trackId == TRACK_NOT_FOUND) {
-                            return@withContext
-                        }
-                        val newBook =
-                            bookRepo.getAudiobookAsync(
-                                trackRepo.getBookIdForTrack(trackId),
-                            )
-                        val newBookId = newBook?.id ?: NO_AUDIOBOOK_FOUND_ID
-                        val newTracks = trackRepo.getTracksForAudiobookAsync(newBookId)
-                        val newTrack = trackRepo.getTrackAsync(trackId)
-                        if (newBook != null && newTrack != null && newTracks.isNotEmpty()) {
-                            currentlyPlaying.update(
-                                book = newBook,
-                                track = newTrack,
-                                tracks = newTracks,
-                            )
-                        }
+                        // OnMediaChangedCallback should NOT update currentlyPlaying
+                        // ProgressUpdater is the single source of truth for progress updates
+                        // This callback only rebuilds notifications based on current state
                         updateNotification(state.state)
                     }
                 }

@@ -209,27 +209,9 @@ class AudiobookMediaSessionCallback
         }
 
         override fun onSeekTo(pos: Long) {
-            Timber.i("Seeking to chapter-relative position: ${DateUtils.formatElapsedTime(pos / 1000)}")
-            
-            // Get current chapter to convert chapter-relative position to track-relative
-            val chapter = currentlyPlaying.chapter.value
-            
-            if (chapter != local.oss.chronicle.data.model.EMPTY_CHAPTER) {
-                // Convert chapter-relative position to track-relative position
-                val trackPosition = pos + chapter.startTimeOffset
-                
-                // Clamp to chapter bounds to prevent seeking outside current chapter
-                val clampedPosition = trackPosition.coerceIn(
-                    chapter.startTimeOffset,
-                    chapter.endTimeOffset
-                )
-                
-                Timber.i("Converted to track-relative position: ${DateUtils.formatElapsedTime(clampedPosition / 1000)}")
-                currentPlayer.seekTo(clampedPosition)
-            } else {
-                // No chapter data: use position as-is (track-relative)
-                currentPlayer.seekTo(pos)
-            }
+            Timber.i("Seeking to absolute track position: ${DateUtils.formatElapsedTime(pos / 1000)}")
+            // pos is already an absolute track position, no conversion needed
+            currentPlayer.seekTo(pos)
         }
 
         override fun onCustomAction(
@@ -413,11 +395,10 @@ class AudiobookMediaSessionCallback
                     else -> throw NoWhenBranchMatchedException("Unknown media player")
                 }
 
-                val updatedTrack = startingTrack.copy(progress = trackListStateManager.currentTrackProgress)
                 currentlyPlaying.update(
                     book = book,
                     tracks = tracks,
-                    track = updatedTrack,
+                    track = startingTrack.copy(progress = trackListStateManager.currentTrackProgress),
                 )
 
                 mediaSession.setQueueTitle(book.title)

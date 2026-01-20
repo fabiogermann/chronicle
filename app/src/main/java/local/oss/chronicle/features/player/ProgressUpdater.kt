@@ -290,7 +290,7 @@ class SimpleProgressUpdater
             bookDuration: Long,
         ) {
             tickCounter++
-            bookRepository.updateProgress(bookId, currentTime, trackProgress)
+            bookRepository.updateProgress(bookId, currentTime, bookProgress)
             trackRepository.updateTrackProgress(trackProgress, trackId, currentTime)
             bookRepository.updateTrackData(
                 bookId,
