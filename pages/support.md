@@ -6,8 +6,7 @@ title: Support Chronicle Epilogue
 # Support Chronicle Epilogue
 
 Chronicle Epilogue started as a passion project—built to make enjoying audiobooks through Plex simpler, smoother, and more enjoyable. It’s grown thanks to a community of listeners who care about open tools, thoughtful design, and owning their media.
-
-If you’ve found value in the app, thank you. This page explains how the project stays sustainable and how you can help shape its future.
+If you’ve found value in the app, thank you.
 
 ## Free & Open Source Forever
 
