@@ -1,0 +1,93 @@
+<svg width="1280" height="640" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a237e;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#4a148c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#311b92;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#7c4dff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#536dfe;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Subtle pattern overlay -->
+    <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="20" cy="20" r="1.5" fill="rgba(255,255,255,0.05)" />
+    </pattern>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1280" height="640" fill="url(#bgGradient)"/>
+  <rect width="1280" height="640" fill="url(#dots)"/>
+  
+  <!-- Decorative elements - Book icon representation -->
+  <g opacity="0.15">
+    <!-- Large open book icon in background -->
+    <path d="M 900 200 L 900 450 L 1050 420 L 1050 170 Z" fill="#ffffff" stroke="none"/>
+    <path d="M 900 200 L 900 450 L 750 420 L 750 170 Z" fill="#ffffff" stroke="none"/>
+    <path d="M 895 200 Q 900 195 905 200" stroke="#4a148c" stroke-width="3" fill="none"/>
+  </g>
+  
+  <!-- Sound wave decorative elements -->
+  <g opacity="0.2">
+    <rect x="180" y="480" width="5" height="40" rx="2.5" fill="#7c4dff"/>
+    <rect x="195" y="460" width="5" height="80" rx="2.5" fill="#7c4dff"/>
+    <rect x="210" y="470" width="5" height="60" rx="2.5" fill="#7c4dff"/>
+    <rect x="225" y="450" width="5" height="100" rx="2.5" fill="#7c4dff"/>
+    <rect x="240" y="465" width="5" height="70" rx="2.5" fill="#7c4dff"/>
+    <rect x="255" y="475" width="5" height="50" rx="2.5" fill="#7c4dff"/>
+  </g>
+  
+  <!-- Content area (40pt = ~53px border for safety) -->
+  <g transform="translate(80, 80)">
+    
+    <!-- Accent bar -->
+    <rect x="0" y="140" width="120" height="6" rx="3" fill="url(#accentGradient)"/>
+    
+    <!-- Main title -->
+    <text x="0" y="100" font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif" 
+          font-size="96" font-weight="bold" fill="#ffffff" letter-spacing="-2">
+      Chronicle Epilogue
+    </text>
+    
+    <!-- Tagline -->
+    <text x="0" y="200" font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif" 
+          font-size="42" font-weight="300" fill="#b39ddb" letter-spacing="1">
+      Audiobook Player for Plex
+    </text>
+    
+    <!-- Feature highlights -->
+    <g transform="translate(0, 280)">
+      <!-- Android icon indicator -->
+      <circle cx="15" cy="15" r="15" fill="url(#accentGradient)" opacity="0.9"/>
+      <text x="45" y="24" font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif" 
+            font-size="28" fill="#e1bee7" font-weight="300">
+        Native Android Experience
+      </text>
+    </g>
+    
+    <g transform="translate(0, 340)">
+      <!-- Play icon indicator -->
+      <circle cx="15" cy="15" r="15" fill="url(#accentGradient)" opacity="0.9"/>
+      <text x="45" y="24" font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif" 
+            font-size="28" fill="#e1bee7" font-weight="300">
+        Seamless Plex Integration
+      </text>
+    </g>
+    
+    <!-- GitHub info -->
+    <g transform="translate(0, 420)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, 'Segoe UI', monospace, Arial, sans-serif" 
+            font-size="24" fill="#9575cd" font-weight="400" letter-spacing="0.5">
+        github.com/fabiogermann/chronicle
+      </text>
+    </g>
+  </g>
+  
+  <!-- Decorative corner accents -->
+  <circle cx="1200" cy="80" r="4" fill="#7c4dff" opacity="0.6"/>
+  <circle cx="1220" cy="100" r="3" fill="#536dfe" opacity="0.5"/>
+  <circle cx="1190" cy="105" r="2.5" fill="#7c4dff" opacity="0.4"/>
+</svg>
