@@ -220,7 +220,7 @@
     <string name="settings_book_cover_type_rect">Rectangular</string>
     <string name="settings_premium_upgrade_label">Upgrade to pro</string>
     <string name="settings_premium_upgrade_explanation">Get access to your books offline, get adjustable playback speed, and more!</string>
-    <string name="settings_premium_unlocked_title">Pro is unlocked!</string>
+    <string name="settings_premium_unlocked_title">Well there is no PRO but you can support this project</string>
     <string name="settings_premium_unlocked_explanation">You have full access to all of Chronicle\'s features</string>
     <string name="settings_category_appearance">Appearance</string>
     <string name="settings_category_playback">Playback</string>

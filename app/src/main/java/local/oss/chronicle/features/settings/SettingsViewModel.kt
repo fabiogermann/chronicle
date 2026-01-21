@@ -171,6 +171,12 @@ class SettingsViewModel(
                             FormattableString.from(
                                 R.string.settings_premium_unlocked_explanation,
                             ),
+                        click =
+                            object : PreferenceClick {
+                                override fun onClick() {
+                                    _webLink.postEvent("https://www.chronicleapp.net/support")
+                                }
+                            },
                     )
                 } else {
                     PreferenceModel(
@@ -183,7 +189,7 @@ class SettingsViewModel(
                         click =
                             object : PreferenceClick {
                                 override fun onClick() {
-                                    startUpgradeToPremiumFlow()
+                                    _webLink.postEvent("https://www.chronicleapp.net/support")
                                 }
                             },
                     )
