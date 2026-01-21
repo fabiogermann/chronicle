@@ -44,6 +44,7 @@ Stream and enjoy your audiobook collection from your Plex server with a dedicate
 
 ## Resources
 
+- [Support Chronicle](support) ❤️
 - [Privacy Policy](privacy)
 - [GitHub Repository](https://github.com/fabiogermann/chronicle)
 - [Contributing Guide](https://github.com/fabiogermann/chronicle/blob/main/CONTRIBUTING.md)
