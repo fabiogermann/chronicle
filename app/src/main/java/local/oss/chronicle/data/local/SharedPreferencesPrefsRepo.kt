@@ -2,6 +2,7 @@ package local.oss.chronicle.data.local
 
 import android.content.SharedPreferences
 import local.oss.chronicle.BuildConfig
+import timber.log.Timber
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.data.local.PrefsRepo.Companion.KEY_ALLOW_AUTO
 import local.oss.chronicle.data.local.PrefsRepo.Companion.KEY_AUTO_REWIND_ENABLED
@@ -328,11 +329,22 @@ class SharedPreferencesPrefsRepo
 
         private val debugDisableLocalProgressTracking = false
         override var debugOnlyDisableLocalProgressTracking: Boolean
-            get() =
-                sharedPreferences.getBoolean(
+            get() {
+                val currentValue = sharedPreferences.getBoolean(
                     KEY_DEBUG_DISABLE_PROGRESS,
                     debugDisableLocalProgressTracking,
                 )
+                
+                // Auto-reset to false for non-debug builds to prevent accidental data loss
+                if (!BuildConfig.DEBUG && currentValue) {
+                    Timber.w("[ProgressSaveRestoreDebug] Auto-resetting debugOnlyDisableLocalProgressTracking " +
+                        "from TRUE to FALSE (not a debug build)")
+                    sharedPreferences.edit().putBoolean(KEY_DEBUG_DISABLE_PROGRESS, false).apply()
+                    return false
+                }
+                
+                return currentValue
+            }
             set(
             value
             ) = sharedPreferences.edit().putBoolean(KEY_DEBUG_DISABLE_PROGRESS, value).apply()

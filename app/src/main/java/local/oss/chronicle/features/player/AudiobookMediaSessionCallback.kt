@@ -355,6 +355,9 @@ class AudiobookMediaSessionCallback
                     } else {
                         startingTrack.progress
                     }
+                Timber.d("[ProgressSaveRestoreDebug] READ: bookId=$bookId, trackId=${startingTrack.id}, " +
+                    "trackProgress=${startingTrack.progress}, lastViewedAt=${startingTrack.lastViewedAt}, " +
+                    "usingSavedProgress=${startTimeOffsetMillis == USE_SAVED_TRACK_PROGRESS}")
                 Timber.i(
                     "Starting at index: $startingTrackIndex, offset by $trueStartTimeOffsetMillis",
                 )

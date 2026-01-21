@@ -234,6 +234,9 @@ class SimpleProgressUpdater
                         tracks = tracks,
                         bookDuration = bookDuration,
                     )
+                } else {
+                    Timber.w("[ProgressSaveRestoreDebug] SKIPPED WRITE: debugOnlyDisableLocalProgressTracking is TRUE - " +
+                        "progress will NOT be saved to database (bookId=$bookId, trackId=$trackId, progress=$progress)")
                 }
 
                 // Update server once every [networkCallFrequency] calls, or when manual updates
@@ -292,6 +295,8 @@ class SimpleProgressUpdater
             tickCounter++
             bookRepository.updateProgress(bookId, currentTime, bookProgress)
             trackRepository.updateTrackProgress(trackProgress, trackId, currentTime)
+            Timber.d("[ProgressSaveRestoreDebug] WRITE: bookId=$bookId, trackId=$trackId, " +
+                "trackProgress=$trackProgress, bookProgress=$bookProgress, timestamp=$currentTime")
             bookRepository.updateTrackData(
                 bookId,
                 bookProgress,
