@@ -13,6 +13,7 @@ Chronicle is a feature-rich Android audiobook player that integrates with Plex M
 | [Login & Authentication](features/login.md) | OAuth flow, user selection, server selection, library selection |
 | [Library & Browsing](features/library.md) | Home screen, library view, search, collections, audiobook details |
 | [Media Playback](features/playback.md) | Player architecture, sleep timer, speed control, progress sync, notifications |
+| [Chapter System](features/chapters.md) | Chapter data flow, detection algorithm, track-to-chapter mapping, navigation |
 | [Offline Downloads](features/downloads.md) | Download management, storage, offline mode |
 | [Android Auto](features/android-auto.md) | In-car playback, media browser, voice search |
 | [Settings](features/settings.md) | Configurable preferences and app settings |
@@ -96,6 +97,17 @@ Chronicle uses Media3 (ExoPlayer) for background audio playback with:
 
 ---
 
+### Chapter System
+Chronicle supports chapter navigation for M4B audiobooks and multi-file audiobooks:
+- Chapters sourced from Plex API or synthesized from track files
+- Chapter-scoped seekbar and progress display
+- Skip to next/previous chapter navigation
+- Chapter list with active chapter highlighting
+
+→ See [Chapter System](features/chapters.md) for detection algorithm and implementation details.
+
+---
+
 ### Offline Downloads
 Download audiobooks for offline playback:
 - Background download with progress notifications
@@ -137,6 +149,7 @@ graph TD
     Browse --> Details[Book Details]
     Details --> Play[Playback]
     Details --> Download[Downloads]
+    Play --> Chapters[Chapter Navigation]
     Play --> Progress[Progress Sync]
     Play --> Sleep[Sleep Timer]
     Play --> Speed[Speed Control]
@@ -153,6 +166,7 @@ graph TD
 - [Login & Authentication](features/login.md) - OAuth and server selection
 - [Library & Browsing](features/library.md) - Library and collections
 - [Media Playback](features/playback.md) - Player and controls
+- [Chapter System](features/chapters.md) - Chapter detection and navigation
 - [Offline Downloads](features/downloads.md) - Download management
 - [Android Auto](features/android-auto.md) - In-car support
 - [Settings](features/settings.md) - App preferences
