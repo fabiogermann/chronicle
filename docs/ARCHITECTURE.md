@@ -2,7 +2,22 @@
 
 ## Overview
 
-Chronicle is an Android audiobook player that integrates with Plex Media Server. The app follows a layered architecture with clear separation between Presentation, Domain/Business Logic, and Data layers.
+Chronicle is an Android audiobook player that integrates with Plex Media Server. The app follows a layered MVVM architecture with clear separation between Presentation, Domain/Business Logic, and Data layers.
+
+This document provides a high-level overview of Chronicle's architecture. For detailed information on specific topics, see the documentation links below.
+
+---
+
+## Documentation Index
+
+| Document | Description |
+|----------|-------------|
+| [Architecture Layers](architecture/layers.md) | Detailed description of Presentation, Domain, and Data layers |
+| [Dependency Injection](architecture/dependency-injection.md) | Dagger 2 component hierarchy, modules, and scopes |
+| [Architectural Patterns](architecture/patterns.md) | Key patterns: Repository, MVVM, MediaBrowserService, State Machines |
+| [Plex Integration](architecture/plex-integration.md) | Plex API integration, client profiles, bandwidth-aware playback |
+
+---
 
 ## Architecture Diagram
 
@@ -43,6 +58,8 @@ graph TB
     MPS --> MediaSession
 ```
 
+---
+
 ## Component Diagram
 
 ```mermaid
@@ -82,78 +99,24 @@ graph LR
     DI --> data
 ```
 
-## Layer Descriptions
+---
 
-### Presentation Layer
+## Layer Summary
 
-Located in [`features/`](../app/src/main/java/local/oss/chronicle/features/)
+| Layer | Location | Responsibility |
+|-------|----------|----------------|
+| **Presentation** | [`features/`](../app/src/main/java/local/oss/chronicle/features/) | UI, ViewModels, user interaction |
+| **Domain** | ViewModels, Repositories | Business logic, data transformation |
+| **Data** | [`data/`](../app/src/main/java/local/oss/chronicle/data/) | Storage, API calls, caching |
+| **Services** | [`features/player/`](../app/src/main/java/local/oss/chronicle/features/player/) | Background audio playback |
 
-| Feature | Purpose |
-|---------|---------|
-| [`login/`](../app/src/main/java/local/oss/chronicle/features/login/) | OAuth flow, server/user/library selection |
-| [`home/`](../app/src/main/java/local/oss/chronicle/features/home/) | Recently listened, recently added books |
-| [`library/`](../app/src/main/java/local/oss/chronicle/features/library/) | Full audiobook library with search/filter |
-| [`bookdetails/`](../app/src/main/java/local/oss/chronicle/features/bookdetails/) | Audiobook details, chapters, playback |
-| [`collections/`](../app/src/main/java/local/oss/chronicle/features/collections/) | Plex collections browsing |
-| [`currentlyplaying/`](../app/src/main/java/local/oss/chronicle/features/currentlyplaying/) | Full-screen player UI |
-| [`player/`](../app/src/main/java/local/oss/chronicle/features/player/) | MediaPlayerService, ExoPlayer integration |
-| [`settings/`](../app/src/main/java/local/oss/chronicle/features/settings/) | App preferences |
+→ See [Architecture Layers](architecture/layers.md) for detailed layer descriptions.
 
-**Pattern**: Each feature contains:
-- Fragment (UI)
-- ViewModel (UI State & Logic)
-- Adapters (RecyclerView)
-- Binding Adapters (Data Binding)
+---
 
-### Domain Layer
+## Dependency Injection Summary
 
-Business logic is primarily in ViewModels and Repositories. Key models in [`data/model/`](../app/src/main/java/local/oss/chronicle/data/model/):
-
-- [`Audiobook`](../app/src/main/java/local/oss/chronicle/data/model/Audiobook.kt) - Core audiobook entity
-- [`MediaItemTrack`](../app/src/main/java/local/oss/chronicle/data/model/MediaItemTrack.kt) - Individual audio track/file
-- [`Chapter`](../app/src/main/java/local/oss/chronicle/data/model/Chapter.kt) - Chapter marker within a track
-- [`Collection`](../app/src/main/java/local/oss/chronicle/data/model/Collection.kt) - Plex collection
-
-### Data Layer
-
-Located in [`data/`](../app/src/main/java/local/oss/chronicle/data/)
-
-**Local Storage** ([`data/local/`](../app/src/main/java/local/oss/chronicle/data/local/)):
-- Room databases for Books, Tracks, Collections
-- SharedPreferences for settings
-- File system for cached audio files
-
-**Remote** ([`data/sources/plex/`](../app/src/main/java/local/oss/chronicle/data/sources/plex/)):
-- Retrofit services for Plex API
-- Authentication and token management
-- Connection handling (local/remote/relay)
-
-## Dependency Injection (Dagger)
-
-Located in [`injection/`](../app/src/main/java/local/oss/chronicle/injection/)
-
-```mermaid
-graph TB
-    subgraph Components
-        AppComponent
-        ActivityComponent
-        ServiceComponent
-    end
-    
-    subgraph Modules
-        AppModule
-        ActivityModule
-        ServiceModule
-    end
-    
-    AppComponent --> AppModule
-    ActivityComponent --> AppComponent
-    ActivityComponent --> ActivityModule
-    ServiceComponent --> AppComponent
-    ServiceComponent --> ServiceModule
-```
-
-### Component Hierarchy
+Chronicle uses Dagger 2 with a three-component hierarchy:
 
 | Component | Scope | Purpose |
 |-----------|-------|---------|
@@ -161,125 +124,34 @@ graph TB
 | [`ActivityComponent`](../app/src/main/java/local/oss/chronicle/injection/components/ActivityComponent.kt) | @ActivityScope | Activity-scoped dependencies |
 | [`ServiceComponent`](../app/src/main/java/local/oss/chronicle/injection/components/ServiceComponent.kt) | @ServiceScope | MediaPlayerService dependencies |
 
-### Key Provided Dependencies
+→ See [Dependency Injection](architecture/dependency-injection.md) for component hierarchy and module details.
 
-**AppComponent** provides:
-- Room DAOs (BookDao, TrackDao, CollectionsDao)
-- Repositories (BookRepository, TrackRepository, CollectionsRepository)
-- Plex Services (PlexLoginService, PlexMediaService)
-- PlexConfig, PlexPrefsRepo
-- Moshi, WorkManager, Fetch (downloads)
+---
 
-**ServiceComponent** provides:
-- ExoPlayer
-- MediaSession
-- MediaController
-- NotificationBuilder
-- SleepTimer
-- PlaybackUrlResolver
+## Key Patterns Summary
 
-## Key Architectural Patterns
+| Pattern | Purpose |
+|---------|---------|
+| **Repository** | Single source of truth combining local and remote data |
+| **MVVM** | Separation of UI, state management, and data access |
+| **MediaBrowserService** | Background playback, Android Auto, media controls |
+| **State Machines** | Connection and login state management |
 
-### 1. Repository Pattern
-Repositories abstract data sources, providing a single source of truth combining local (Room) and remote (Plex API) data.
+→ See [Architectural Patterns](architecture/patterns.md) for detailed pattern implementations.
 
-```kotlin
-class BookRepository(
-    private val bookDao: BookDao,
-    private val plexService: PlexMediaService,
-    private val plexConfig: PlexConfig
-) : IBookRepository {
-    // Combines local cache with network data
-}
-```
+---
 
-### 2. MediaBrowserService Architecture
-[`MediaPlayerService`](../app/src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt) extends `MediaBrowserServiceCompat` for:
-- Background audio playback
-- Android Auto/Automotive support
-- Media button handling
-- Lock screen controls
+## Plex Integration Summary
 
-### 3. Dual HTTP Client Architecture
-Two HTTP clients serve different purposes:
+Chronicle integrates with Plex Media Server for:
+- OAuth authentication via plex.tv
+- Library browsing and metadata
+- Audio streaming with bandwidth-aware playback
+- Playback position sync
 
-| Client | Purpose | Configuration |
-|--------|---------|---------------|
-| OkHttp + PlexInterceptor | API calls, metadata | Adds all Plex headers |
-| ExoPlayer DefaultHttpDataSource | Audio streaming | Must also include Plex headers |
+→ See [Plex Integration](architecture/plex-integration.md) for API details and implementation.
 
-Both clients must include `X-Plex-Client-Profile-Extra` header for proper playback.
-
-### 4. Connection State Machine
-
-```mermaid
-stateDiagram-v2
-    [*] --> NOT_CONNECTED
-    NOT_CONNECTED --> CONNECTING: setPotentialConnections
-    CONNECTING --> CONNECTED: Connection test success
-    CONNECTING --> CONNECTION_FAILED: All connections fail
-    CONNECTION_FAILED --> CONNECTING: Retry
-    CONNECTED --> CONNECTING: Server change
-```
-
-### 5. Login State Machine
-
-```mermaid
-stateDiagram-v2
-    [*] --> NOT_LOGGED_IN
-    NOT_LOGGED_IN --> AWAITING_LOGIN_RESULTS: Start OAuth
-    AWAITING_LOGIN_RESULTS --> FAILED_TO_LOG_IN: OAuth error
-    AWAITING_LOGIN_RESULTS --> LOGGED_IN_NO_USER_CHOSEN: Multiple users
-    AWAITING_LOGIN_RESULTS --> LOGGED_IN_NO_SERVER_CHOSEN: Single user
-    LOGGED_IN_NO_USER_CHOSEN --> LOGGED_IN_NO_SERVER_CHOSEN: User selected
-    LOGGED_IN_NO_SERVER_CHOSEN --> LOGGED_IN_NO_LIBRARY_CHOSEN: Server selected
-    LOGGED_IN_NO_LIBRARY_CHOSEN --> LOGGED_IN_FULLY: Library selected
-```
-
-## Plex Client Profile System
-
-Chronicle declares its audio playback capabilities via the `X-Plex-Client-Profile-Extra` header:
-
-```kotlin
-"add-direct-play-profile(type=musicProfile&container=mp4,m4a,m4b,mp3,flac,ogg,opus&audioCodec=aac,mp3,flac,vorbis,opus&videoCodec=*&subtitleCodec=*)"
-```
-
-This enables Plex to make intelligent decisions about direct play vs. transcoding.
-
-### Supported Audio Formats
-
-| Format | Container | Direct Play |
-|--------|-----------|-------------|
-| AAC | mp4/m4a/m4b | ✅ |
-| MP3 | mp3 | ✅ |
-| FLAC | flac | ✅ |
-| Vorbis | ogg | ✅ |
-| Opus | opus/ogg | ✅ |
-
-## Bandwidth-Aware Playback
-
-Chronicle uses Plex's `/music/:/transcode/universal/decision` endpoint to negotiate playback:
-
-```mermaid
-sequenceDiagram
-    participant App
-    participant PlaybackUrlResolver
-    participant Plex Server
-    participant ExoPlayer
-    
-    App->>PlaybackUrlResolver: resolveStreamingUrl
-    PlaybackUrlResolver->>Plex Server: GET /transcode/universal/decision
-    Plex Server-->>PlaybackUrlResolver: Decision response
-    alt Direct Play OK
-        PlaybackUrlResolver-->>App: Direct file URL
-    else Bandwidth Limited
-        PlaybackUrlResolver-->>App: Transcode session URL
-    end
-    App->>ExoPlayer: Set media source
-    ExoPlayer->>Plex Server: Stream audio
-```
-
-This allows graceful degradation when bandwidth is limited instead of playback failure.
+---
 
 ## File Structure
 
@@ -312,7 +184,27 @@ app/src/main/java/local/oss/chronicle/
 └── views/               # Custom views, binding adapters
 ```
 
-## References
+---
+
+## Related Documentation
+
+### Architecture Details
+- [Architecture Layers](architecture/layers.md) - Presentation, Domain, Data layer details
+- [Dependency Injection](architecture/dependency-injection.md) - Dagger setup and components
+- [Architectural Patterns](architecture/patterns.md) - Key patterns and implementations
+- [Plex Integration](architecture/plex-integration.md) - Plex API and streaming
+
+### Feature Documentation
+- [Features Guide](FEATURES.md) - Feature-specific documentation
+- [API Flows](API_FLOWS.md) - Detailed API flow documentation
+- [Data Layer](DATA_LAYER.md) - Database and repository patterns
+
+### API Reference
+- [Example Query Responses](example-query-responses/) - Real Plex API response examples
+
+---
+
+## External References
 
 - [Plex API Documentation](https://developer.plex.tv/pms/)
 - [ExoPlayer Documentation](https://exoplayer.dev/)
