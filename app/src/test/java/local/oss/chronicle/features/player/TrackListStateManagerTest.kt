@@ -1,5 +1,6 @@
 package local.oss.chronicle.features.player
 
+import kotlinx.coroutines.runBlocking
 import local.oss.chronicle.data.model.MediaItemTrack
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -26,7 +27,7 @@ class TrackListStateManagerTest {
     }
 
     @Test
-    fun seekToActiveTrack() {
+    fun seekToActiveTrack() = runBlocking {
         manager.seekToActiveTrack()
 
         // assert track index correct
@@ -37,7 +38,7 @@ class TrackListStateManagerTest {
     }
 
     @Test
-    fun `test seeking forwards within track`() {
+    fun `test seeking forwards within track`() = runBlocking {
         manager.updatePosition(1, 25)
 
         assertThat(
@@ -54,7 +55,7 @@ class TrackListStateManagerTest {
     }
 
     @Test
-    fun `test seeking forwards into to next track`() {
+    fun `test seeking forwards into to next track`() = runBlocking {
         manager.updatePosition(1, 25)
 
         assertThat(
@@ -71,7 +72,7 @@ class TrackListStateManagerTest {
     }
 
     @Test
-    fun `test seeking forwards beyond end of track list`() {
+    fun `test seeking forwards beyond end of track list`() = runBlocking {
         manager.updatePosition(1, 25)
 
         assertThat(
@@ -88,7 +89,7 @@ class TrackListStateManagerTest {
     }
 
     @Test
-    fun `test seeking forwards beyond end of track list, starting with finished track`() {
+    fun `test seeking forwards beyond end of track list, starting with finished track`() = runBlocking {
         manager.updatePosition(2, 50)
 
         assertThat(
@@ -105,7 +106,7 @@ class TrackListStateManagerTest {
     }
 
     @Test
-    fun `test seeking backwards within track`() {
+    fun `test seeking backwards within track`() = runBlocking {
         manager.updatePosition(1, 25)
 
         assertThat(
@@ -122,7 +123,7 @@ class TrackListStateManagerTest {
     }
 
     @Test
-    fun `test seeking backwards into previous track`() {
+    fun `test seeking backwards into previous track`() = runBlocking {
         manager.updatePosition(1, 25)
 
         assertThat(
@@ -139,7 +140,7 @@ class TrackListStateManagerTest {
     }
 
     @Test
-    fun `test seeking backwards starting at index == 0, offset == 0`() {
+    fun `test seeking backwards starting at index == 0, offset == 0`() = runBlocking {
         manager.updatePosition(0, 0)
 
         assertThat(
@@ -156,7 +157,7 @@ class TrackListStateManagerTest {
     }
 
     @Test
-    fun `test seeking backwards beyond start of track list`() {
+    fun `test seeking backwards beyond start of track list`() = runBlocking {
         manager.updatePosition(1, 25)
 
         assertThat(
@@ -173,7 +174,7 @@ class TrackListStateManagerTest {
     }
 
     @Test
-    fun seekToTrack() {
+    fun seekToTrack() = runBlocking {
         manager.seekToActiveTrack()
 
         assertThat(

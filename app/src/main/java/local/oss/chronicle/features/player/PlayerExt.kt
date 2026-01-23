@@ -31,8 +31,8 @@ fun Player.seekRelative(
         seekTo(currentPosition + durationMillis)
     } else {
         Timber.i("Seeking via trackliststatemanager")
-        trackListStateManager.updatePosition(currentMediaItemIndex, currentPosition)
-        trackListStateManager.seekByRelative(durationMillis)
+        trackListStateManager.updatePositionBlocking(currentMediaItemIndex, currentPosition)
+        trackListStateManager.seekByRelativeBlocking(durationMillis)
         seekTo(trackListStateManager.currentTrackIndex, trackListStateManager.currentTrackProgress)
     }
 }

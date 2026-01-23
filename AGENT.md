@@ -136,7 +136,7 @@ app/src/main/java/local/oss/chronicle/
 ./gradlew testDebugUnitTest
 
 # Run specific test class
-./gradlew test --tests "local.oss.chronicle.features.player.TrackListStateManagerTest"
+./gradlew :app:testDebugUnitTest --tests "local.oss.chronicle.features.player.TrackListStateManagerTest"
 ```
 
 ## 5. Code Style

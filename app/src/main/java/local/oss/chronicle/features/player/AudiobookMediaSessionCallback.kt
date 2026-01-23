@@ -226,7 +226,7 @@ class AudiobookMediaSessionCallback
                     val offsetMs =
                         extras?.getLong(OFFSET_MS)
                             ?: throw IllegalStateException("Received ACTION_SEEK without an offset")
-                    trackListStateManager.seekByRelative(offsetMs)
+                    trackListStateManager.seekByRelativeBlocking(offsetMs)
                     currentPlayer.seekTo(
                         trackListStateManager.currentTrackIndex,
                         trackListStateManager.currentTrackProgress,
