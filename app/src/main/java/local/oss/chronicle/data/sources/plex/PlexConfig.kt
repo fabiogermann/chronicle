@@ -13,10 +13,17 @@ import local.oss.chronicle.data.sources.plex.PlexConfig.ConnectionResult.Failure
 import local.oss.chronicle.data.sources.plex.PlexConfig.ConnectionResult.Success
 import local.oss.chronicle.data.sources.plex.PlexConfig.ConnectionState.*
 import local.oss.chronicle.data.sources.plex.model.Connection
+import local.oss.chronicle.util.RetryConfig
+import local.oss.chronicle.util.RetryResult
 import local.oss.chronicle.util.getImage
 import local.oss.chronicle.util.toUri
+import local.oss.chronicle.util.withRetry
 import kotlinx.coroutines.*
 import timber.log.Timber
+import java.io.IOException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.random.Random
@@ -32,6 +39,28 @@ import kotlin.random.Random
 class PlexConfig
     @Inject
     constructor(private val plexPrefsRepo: PlexPrefsRepo) {
+        
+        companion object {
+            /** Timeout for individual connection attempt (reduced from 15s) */
+            const val CONNECTION_TIMEOUT_MS = 10_000L // 10 seconds per attempt
+            
+            /** Maximum total connection time with retries */
+            const val MAX_CONNECTION_TIME_MS = 30_000L // 30 seconds total
+            
+            const val PLACEHOLDER_URL = "http://placeholder.com"
+        }
+        
+        /**
+         * Retry configuration for server connections.
+         * Initial timeout reduced to 10s per attempt, with 3 attempts total = ~30s max.
+         */
+        private val connectionRetryConfig = RetryConfig(
+            maxAttempts = 3,
+            initialDelayMs = 1000L,
+            maxDelayMs = 5000L,
+            multiplier = 2.0
+        )
+        
         private val connectionSet = mutableSetOf<Connection>()
 
         var url: String = PLACEHOLDER_URL
@@ -160,6 +189,15 @@ class PlexConfig
 
         private var prevConnectToServerJob: CompletableJob? = null
 
+        /**
+         * Connects to the server without retry.
+         *
+         * @deprecated Use connectToServerWithRetry() for better network resilience
+         */
+        @Deprecated(
+            message = "Use connectToServerWithRetry() for better network resilience",
+            replaceWith = ReplaceWith("connectToServerWithRetry(plexMediaService)")
+        )
         @InternalCoroutinesApi
         fun connectToServer(plexMediaService: PlexMediaService) {
             prevConnectToServerJob?.cancel("Killing previous connection attempt")
@@ -176,6 +214,32 @@ class PlexConfig
                             Timber.i("Connection success: $url")
                         } else {
                             _connectionState.postValue(CONNECTION_FAILED)
+                        }
+                    }
+                }
+        }
+        
+        /**
+         * Connects to the server with retry logic and state management.
+         * Manages connection state updates for observers.
+         *
+         * @param plexMediaService Service for checking server connectivity
+         */
+        @InternalCoroutinesApi
+        fun connectToServerWithRetryAndState(plexMediaService: PlexMediaService) {
+            prevConnectToServerJob?.cancel("Killing previous connection attempt")
+            _connectionState.postValue(CONNECTING)
+            prevConnectToServerJob =
+                Job().also {
+                    val context = CoroutineScope(it + Dispatchers.Main)
+                    context.launch {
+                        val success = connectToServerWithRetry(plexMediaService)
+                        if (success) {
+                            _connectionState.postValue(CONNECTED)
+                            Timber.i("Connection success with retry: $url")
+                        } else {
+                            _connectionState.postValue(CONNECTION_FAILED)
+                            Timber.e("Connection failed with retry")
                         }
                     }
                 }
@@ -208,8 +272,96 @@ class PlexConfig
 
         sealed class ConnectionResult {
             data class Success(val url: String) : ConnectionResult()
+    
+            data class Failure(val reason: String, val originalException: Throwable? = null) : ConnectionResult()
+        }
 
-            data class Failure(val reason: String) : ConnectionResult()
+        /**
+         * Connects to the Plex server with retry logic.
+         * Attempts multiple connection methods in order, retrying on network failures.
+         *
+         * @param plexMediaService Service for checking server connectivity
+         * @return true if connection was established, false if all attempts failed
+         */
+        @OptIn(InternalCoroutinesApi::class)
+        suspend fun connectToServerWithRetry(plexMediaService: PlexMediaService): Boolean {
+            Timber.d("Attempting to connect to server with retry")
+            
+            return when (val result = withRetry(
+                config = connectionRetryConfig,
+                shouldRetry = { error -> isRetryableConnectionError(error) },
+                onRetry = { attempt, delay, error ->
+                    Timber.w("Connection attempt $attempt failed, retrying in ${delay}ms: ${error.message}")
+                }
+            ) { attempt ->
+                Timber.d("Connection attempt $attempt")
+                connectToServerInternal(plexMediaService)
+            }) {
+                is RetryResult.Success -> {
+                    Timber.d("Server connection successful after ${result.attemptNumber} attempt(s)")
+                    true
+                }
+                is RetryResult.Failure -> {
+                    Timber.e("Server connection failed after ${result.attemptsMade} attempts: ${result.error.message}")
+                    false
+                }
+            }
+        }
+        
+        /**
+         * Determines if an error is retryable based on its type.
+         * Network-related errors are retryable, while other errors are not.
+         */
+        private fun isRetryableConnectionError(error: Throwable): Boolean {
+            return when (error) {
+                is SocketTimeoutException,
+                is UnknownHostException,
+                is ConnectException,
+                is IOException -> true
+                else -> false
+            }
+        }
+        
+        /**
+         * Internal connection logic extracted from existing connectToServer.
+         * Throws exception on failure for retry handler to catch.
+         *
+         * @return true on successful connection
+         * @throws Exception on connection failure
+         */
+        @OptIn(InternalCoroutinesApi::class)
+        private suspend fun connectToServerInternal(plexMediaService: PlexMediaService): Boolean {
+            val startTime = System.currentTimeMillis()
+            Timber.d("Starting connection attempt to server")
+            
+            try {
+                val connectionResult = chooseViableConnections(plexMediaService)
+                val elapsed = System.currentTimeMillis() - startTime
+                
+                Timber.i("Returned connection $connectionResult after ${elapsed}ms")
+                
+                if (connectionResult is Success && connectionResult.url != PLACEHOLDER_URL) {
+                    url = connectionResult.url
+                    Timber.d("Connection established in ${elapsed}ms to: $url")
+                    return true
+                } else {
+                    val failure = connectionResult as? Failure
+                    val message = failure?.reason ?: "Unknown failure"
+                    Timber.w("Connection failed after ${elapsed}ms: $message")
+                    
+                    // Re-throw original exception if present (preserves non-retryable errors)
+                    if (failure?.originalException != null) {
+                        throw failure.originalException
+                    }
+                    
+                    // Otherwise throw IOException for retryable network errors
+                    throw IOException("Connection failed: $message")
+                }
+            } catch (e: Exception) {
+                val elapsed = System.currentTimeMillis() - startTime
+                Timber.w("Connection failed after ${elapsed}ms: ${e.message}")
+                throw e
+            }
         }
 
         /**
@@ -220,16 +372,32 @@ class PlexConfig
          *
          * If all connections fail: return a [Failure] as soon as all connections have completed
          *
-         * If no connections are made within 15 seconds, return a [ConnectionResult.Failure].
+         * If no connections are made within 10 seconds, return a [ConnectionResult.Failure].
          */
         @InternalCoroutinesApi
         @OptIn(ExperimentalCoroutinesApi::class)
         private suspend fun chooseViableConnections(plexMediaService: PlexMediaService): ConnectionResult {
             val timeoutFailureReason = "Connection timed out"
-            return withTimeoutOrNull(15000) {
+            val connections = connectionSet.sortedByDescending { it.local }
+            
+            //  If there's only one connection, don't catch exceptions - let them propagate for proper retry handling
+            if (connections.size == 1) {
+                val conn = connections.first()
+                Timber.i("Testing single connection: ${conn.uri}")
+                return withTimeoutOrNull(CONNECTION_TIMEOUT_MS) {
+                    val result = plexMediaService.checkServer(conn.uri)
+                    if (result.isSuccessful) {
+                        Success(conn.uri)
+                    } else {
+                        Failure(result.message() ?: "Failed for unknown reason")
+                    }
+                } ?: Failure(timeoutFailureReason)
+            }
+            
+            // Multiple connections - catch exceptions and try all
+            return withTimeoutOrNull(CONNECTION_TIMEOUT_MS) {
                 val unknownFailureReason = "Failed for unknown reason"
                 Timber.i("Choosing viable connection from: $connectionSet")
-                val connections = connectionSet.sortedByDescending { it.local }
                 val deferredConnections =
                     connections.map { conn ->
                         async {
@@ -242,11 +410,12 @@ class PlexConfig
                                     return@async Failure(result.message() ?: unknownFailureReason)
                                 }
                             } catch (e: Throwable) {
-                                return@async Failure(e.localizedMessage ?: unknownFailureReason)
+                                // Preserve original exception for proper retry handling
+                                return@async Failure(e.localizedMessage ?: unknownFailureReason, e)
                             }
                         }
                     }
-
+    
                 while (deferredConnections.any { it.isActive }) {
                     Timber.i("Connections: $deferredConnections")
                     deferredConnections.forEach { deferred ->
@@ -261,7 +430,7 @@ class PlexConfig
                     }
                     delay(500)
                 }
-
+    
                 // Check if the final completed job was a success
                 Timber.i("Connections: $deferredConnections")
                 deferredConnections.forEach { deferred ->
@@ -274,7 +443,7 @@ class PlexConfig
                         }
                     }
                 }
-
+    
                 Timber.i("Returning connection ${Failure(unknownFailureReason)}")
                 Failure(unknownFailureReason)
             } ?: Failure(timeoutFailureReason)
