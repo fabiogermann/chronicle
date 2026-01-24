@@ -22,9 +22,9 @@ import local.oss.chronicle.data.model.NO_AUDIOBOOK_FOUND_ID
 import local.oss.chronicle.features.download.DownloadNotificationWorker
 import local.oss.chronicle.features.download.FetchGroupStartFinishListener
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import local.oss.chronicle.util.ScopedCoroutineManager
 import timber.log.Timber
 import java.io.File
 import java.io.FileFilter
@@ -74,6 +74,8 @@ class CachedFileManager
         private val applicationContext: Context,
     ) : ICachedFileManager {
         private val externalFileDirs = Injector.get().externalDeviceDirs()
+        
+        private val scopeManager = ScopedCoroutineManager()
 
         private val downloadListener =
             object : BroadcastReceiver() {
@@ -119,7 +121,12 @@ class CachedFileManager
             bookTitle: String,
         ) {
             // Add downloads to Fetch
-            GlobalScope.launch {
+            scopeManager.launchSafe(
+                tag = "download-book-$bookId",
+                onError = { error ->
+                    Timber.e("Failed to download book $bookId: ${error.message}")
+                }
+            ) {
                 fetch.enqueue(makeRequests(bookId, bookTitle)) {
                     val errors =
                         it.mapNotNull { (_, error) ->
@@ -235,7 +242,12 @@ class CachedFileManager
         override suspend fun deleteCachedBook(bookId: Int) {
             Timber.i("Deleting downloaded book: $bookId")
             fetch.deleteGroup(bookId)
-            GlobalScope.launch {
+            scopeManager.launchSafe(
+                tag = "delete-cache-$bookId",
+                onError = { error ->
+                    Timber.e("Failed to delete cached book $bookId: ${error.message}")
+                }
+            ) {
                 withContext(Dispatchers.IO) {
                     val tracks = trackRepository.getTracksForAudiobookAsync(bookId)
                     tracks.forEach {
@@ -322,7 +334,12 @@ class CachedFileManager
                         val downloadSuccess =
                             downloads.all { it.error == Error.NONE } && downloads.isNotEmpty()
                         if (downloadSuccess) {
-                            GlobalScope.launch {
+                            scopeManager.launchSafe(
+                                tag = "update-cache-status-$groupId",
+                                onError = { error ->
+                                    Timber.e("Failed to update cache status for book $groupId: ${error.message}")
+                                }
+                            ) {
                                 withContext(Dispatchers.IO) {
                                     Timber.i("Book download success for ($groupId)")
                                     bookRepository.updateCachedStatus(groupId, true)
@@ -403,6 +420,28 @@ class CachedFileManager
                     )
                 }
             }
+        }
+
+        /**
+         * Cancels all pending download operations.
+         * Call this when the manager is no longer needed to prevent leaks.
+         */
+        fun cancelAllDownloads() {
+            scopeManager.cancelAll()
+        }
+
+        /**
+         * Cancels a specific download by book ID.
+         */
+        fun cancelDownload(bookId: Int) {
+            scopeManager.cancel("download-book-$bookId")
+        }
+
+        /**
+         * Returns true if a download is in progress for the given book.
+         */
+        fun isDownloading(bookId: Int): Boolean {
+            return scopeManager.isActive("download-book-$bookId")
         }
 
         /**
