@@ -7,19 +7,24 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import local.oss.chronicle.data.local.BookRepository
 import local.oss.chronicle.data.local.PrefsRepo
 import local.oss.chronicle.data.model.Audiobook
 import local.oss.chronicle.data.model.Chapter
 import local.oss.chronicle.data.model.MediaItemTrack
 import local.oss.chronicle.data.sources.plex.PlexMediaSource
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -31,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlaybackStateControllerTest {
+    private val testDispatcher = StandardTestDispatcher()
 
     private lateinit var bookRepository: BookRepository
     private lateinit var prefsRepo: PrefsRepo
@@ -81,6 +87,9 @@ class PlaybackStateControllerTest {
 
     @Before
     fun setup() {
+        // Set the main dispatcher for tests
+        Dispatchers.setMain(testDispatcher)
+        
         bookRepository = mockk(relaxed = true)
         prefsRepo = mockk(relaxed = true)
         
@@ -89,6 +98,11 @@ class PlaybackStateControllerTest {
         every { prefsRepo.playbackSpeed = any() } just Runs
         
         controller = PlaybackStateController(bookRepository, prefsRepo)
+    }
+    
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     // ========================
@@ -560,16 +574,17 @@ class PlaybackStateControllerTest {
         controller.updatePosition(1, 15_000L)
         advanceTimeBy(PlaybackStateController.DB_WRITE_DEBOUNCE_MS + 100)
 
-        val progressSlot = slot<Long>()
+        val progressList = mutableListOf<Long>()
         coVerify(atLeast = 2) {
             bookRepository.updateProgress(
                 testAudiobook.id,
                 any(),
-                capture(progressSlot)
+                capture(progressList)
             )
         }
 
         // Book position should be 60s (track 1) + 15s = 75s
-        assertEquals(75_000L, progressSlot.captured)
+        // The last captured call should have the correct book position
+        assertEquals(75_000L, progressList.last())
     }
 }

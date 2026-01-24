@@ -23,6 +23,7 @@ import local.oss.chronicle.data.local.*
 import local.oss.chronicle.data.sources.plex.*
 import local.oss.chronicle.features.currentlyplaying.CurrentlyPlaying
 import local.oss.chronicle.features.currentlyplaying.CurrentlyPlayingSingleton
+import local.oss.chronicle.features.player.PlaybackStateController
 import local.oss.chronicle.views.UrlQueryCacheKey
 import kotlinx.coroutines.CoroutineExceptionHandler
 import okhttp3.OkHttpClient
@@ -221,7 +222,9 @@ class AppModule(private val app: Application) {
 
     @Provides
     @Singleton
-    fun provideCurrentlyPlaying(): CurrentlyPlaying = CurrentlyPlayingSingleton()
+    fun provideCurrentlyPlaying(
+        playbackStateController: PlaybackStateController
+    ): CurrentlyPlaying = CurrentlyPlayingSingleton(playbackStateController)
 
     @Provides
     @Singleton

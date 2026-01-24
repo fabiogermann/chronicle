@@ -1,29 +1,52 @@
 package local.oss.chronicle.features.currentlyplaying
 
+import io.mockk.Runs
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import local.oss.chronicle.data.local.BookRepository
+import local.oss.chronicle.data.local.PrefsRepo
 import local.oss.chronicle.data.model.*
+import local.oss.chronicle.features.player.PlaybackStateController
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
+import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 
 /**
- * Regression test for chapter flip-flopping bug.
+ * Regression test for Critical Issue C1: Chapter detection uses stale DB progress.
  *
+ * **The Bug:**
  * The bug occurred when multiple update sources provided conflicting progress values:
  * - ProgressUpdater: uses current player position (e.g., 16573)
  * - OnMediaChangedCallback: used to read stale DB value (e.g., 0)
  *
- * This caused rapid chapter switching at chapter boundaries.
+ * This caused rapid chapter switching at chapter boundaries (flip-flopping).
  *
- * The fix implements defense-in-depth:
- * 1. OnMediaChangedCallback now uses player position instead of stale DB value
- * 2. CurrentlyPlayingSingleton rejects progress updates that drop to near-zero (stale data signature)
- *    but ALLOWS legitimate backward seeks to non-zero positions
+ * **The Fix (PR 2.2):**
+ * CurrentlyPlayingSingleton now derives all state from PlaybackStateController,
+ * which uses ExoPlayer's position as the single source of truth.
+ * The deprecated update() method is now a no-op.
+ *
+ * **These tests verify:**
+ * 1. Chapter is derived from controller position, not stale DB data
+ * 2. Deprecated update() cannot cause flip-flopping
+ * 3. Only controller position updates affect chapter detection
  */
 @ExperimentalCoroutinesApi
 class ChapterFlipFlopRegressionTest {
+    private val testDispatcher = StandardTestDispatcher()
+    
+    private lateinit var playbackStateController: PlaybackStateController
     private lateinit var currentlyPlaying: CurrentlyPlayingSingleton
     private var chapterChangeCount = 0
     private var lastChapterChange: Chapter? = null
@@ -69,7 +92,20 @@ class ChapterFlipFlopRegressionTest {
 
     @Before
     fun setup() {
-        currentlyPlaying = CurrentlyPlayingSingleton()
+        // Set the main dispatcher for tests
+        Dispatchers.setMain(testDispatcher)
+        
+        // Mock dependencies using MockK
+        val mockBookRepository = mockk<BookRepository>(relaxed = true)
+        val mockPrefsRepo = mockk<PrefsRepo>(relaxed = true)
+        
+        // Setup mock behaviors
+        coEvery { mockBookRepository.updateProgress(any(), any(), any()) } just Runs
+        every { mockPrefsRepo.playbackSpeed = any() } just Runs
+        
+        playbackStateController = PlaybackStateController(mockBookRepository, mockPrefsRepo)
+        currentlyPlaying = CurrentlyPlayingSingleton(playbackStateController)
+        
         chapterChangeCount = 0
         lastChapterChange = null
         chapterChanges.clear()
@@ -82,24 +118,29 @@ class ChapterFlipFlopRegressionTest {
             }
         })
     }
+    
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
 
-    @Ignore("Known regression - needs fix")
     @Test
-    fun `update should reject stale progress that drops to near-zero`() {
-        // Given: CurrentlyPlayingSingleton has track at position 16573 (chapter 2)
-        val trackAtChapterBoundary = testTracks[0].copy(progress = 16573L)
-        currentlyPlaying.update(
-            track = trackAtChapterBoundary,
-            book = testBook,
+    fun `FIXED - deprecated update with stale progress cannot cause flip-flop`() = runTest {
+        // Given: Controller has track at position 16573 (chapter 2)
+        playbackStateController.loadAudiobook(
+            audiobook = testBook,
             tracks = testTracks,
+            chapters = testBook.chapters,
+            startTrackIndex = 0,
+            startPositionMs = 16573L
         )
         
+        advanceUntilIdle()
         assertThat(currentlyPlaying.chapter.value.title, `is`("The Four Houses of Midgard"))
-        assertThat(currentlyPlaying.track.value.progress, `is`(16573L))
-        val chapterCountAfterFirstUpdate = chapterChangeCount
+        val chapterCountAfterLoad = chapterChangeCount
 
-        // When: update() is called with same track but progress=0 (stale DB value)
-        // This is the signature of the race condition
+        // When: deprecated update() is called with stale DB progress=0
+        // This used to cause flip-flop, but now it's a no-op
         val trackWithStaleProgress = testTracks[0].copy(progress = 0L)
         currentlyPlaying.update(
             track = trackWithStaleProgress,
@@ -107,205 +148,148 @@ class ChapterFlipFlopRegressionTest {
             tracks = testTracks,
         )
 
-        // Then: The update should be rejected, chapter should remain at chapter 2
+        advanceUntilIdle()
+
+        // Then: Chapter remains at chapter 2 (ignores stale DB data)
         assertThat(currentlyPlaying.chapter.value.title, `is`("The Four Houses of Midgard"))
         assertThat(currentlyPlaying.track.value.progress, `is`(16573L))
-        assertThat(chapterChangeCount, `is`(chapterCountAfterFirstUpdate))
+        
+        // No chapter change should have occurred (deprecated update is no-op)
+        assertThat(chapterChangeCount, `is`(chapterCountAfterLoad))
     }
 
     @Test
-    fun `update should accept progress that advances position`() {
-        // Given: CurrentlyPlayingSingleton has track at position 16573
-        val trackAtChapterBoundary = testTracks[0].copy(progress = 16573L)
-        currentlyPlaying.update(
-            track = trackAtChapterBoundary,
-            book = testBook,
+    fun `FIXED - rapid alternating progress values cannot cause flip-flop`() = runTest {
+        // Given: Controller at chapter boundary (16573)
+        playbackStateController.loadAudiobook(
+            audiobook = testBook,
             tracks = testTracks,
+            chapters = testBook.chapters,
+            startTrackIndex = 0,
+            startPositionMs = 16573L
         )
         
-        assertThat(currentlyPlaying.track.value.progress, `is`(16573L))
-
-        // When: update() is called with progress=17000
-        val trackWithAdvancedProgress = testTracks[0].copy(progress = 17000L)
-        currentlyPlaying.update(
-            track = trackWithAdvancedProgress,
-            book = testBook,
-            tracks = testTracks,
-        )
-
-        // Then: The update should be accepted
-        assertThat(currentlyPlaying.track.value.progress, `is`(17000L))
-        assertThat(currentlyPlaying.chapter.value.title, `is`("The Four Houses of Midgard"))
-    }
-
-    @Test
-    fun `update should accept progress for different track even if lower`() {
-        // Given: CurrentlyPlayingSingleton has track A at position 16573
-        val trackA = testTracks[0].copy(id = 1, progress = 16573L)
-        currentlyPlaying.update(
-            track = trackA,
-            book = testBook,
-            tracks = testTracks,
-        )
-        
-        assertThat(currentlyPlaying.track.value.id, `is`(1))
-        assertThat(currentlyPlaying.track.value.progress, `is`(16573L))
-
-        // When: update() is called with track B at progress=0
-        val trackB = MediaItemTrack(
-            id = 2,
-            title = "Test Track 2",
-            duration = 50000L,
-            progress = 0L,
-        )
-        val tracksWithB = listOf(trackA, trackB)
-        currentlyPlaying.update(
-            track = trackB,
-            book = testBook,
-            tracks = tracksWithB,
-        )
-
-        // Then: The update should be accepted (different track)
-        assertThat(currentlyPlaying.track.value.id, `is`(2))
-        assertThat(currentlyPlaying.track.value.progress, `is`(0L))
-    }
-
-    @Ignore("Known regression - needs fix")
-    @Test
-    fun `chapter should not flip-flop when receiving alternating progress values`() {
-        // Given: Chapter boundary at 16573
-        val trackAtBoundary = testTracks[0].copy(progress = 16573L)
-        currentlyPlaying.update(
-            track = trackAtBoundary,
-            book = testBook,
-            tracks = testTracks,
-        )
-        
+        advanceUntilIdle()
         assertThat(currentlyPlaying.chapter.value.title, `is`("The Four Houses of Midgard"))
         val initialChapterChangeCount = chapterChangeCount
 
-        // When: Rapid updates alternate between progress=16573 and progress=0
-        // Simulating the race condition scenario
-        val trackAtBoundary2 = testTracks[0].copy(progress = 16573L)
+        // When: Multiple rapid deprecated update() calls with alternating values
+        // This used to cause flip-flopping, but now all are no-ops
         currentlyPlaying.update(
-            track = trackAtBoundary2,
+            track = testTracks[0].copy(progress = 16573L),
             book = testBook,
             tracks = testTracks,
         )
         
-        val trackWithStaleProgress1 = testTracks[0].copy(progress = 0L)
         currentlyPlaying.update(
-            track = trackWithStaleProgress1,
+            track = testTracks[0].copy(progress = 0L),
             book = testBook,
             tracks = testTracks,
         )
         
-        val trackAtBoundary3 = testTracks[0].copy(progress = 16573L)
         currentlyPlaying.update(
-            track = trackAtBoundary3,
+            track = testTracks[0].copy(progress = 16573L),
             book = testBook,
             tracks = testTracks,
         )
         
-        val trackWithStaleProgress2 = testTracks[0].copy(progress = 0L)
         currentlyPlaying.update(
-            track = trackWithStaleProgress2,
+            track = testTracks[0].copy(progress = 0L),
             book = testBook,
             tracks = testTracks,
         )
 
-        // Then: Chapter should stabilize at the correct chapter for 16573, not flip-flop
+        advanceUntilIdle()
+
+        // Then: Chapter remains stable at chapter 2
         assertThat(currentlyPlaying.chapter.value.title, `is`("The Four Houses of Midgard"))
         assertThat(currentlyPlaying.chapter.value.index, `is`(2L))
         
-        // No additional chapter changes should have occurred (stale updates were rejected)
+        // No additional chapter changes (all deprecated updates ignored)
         assertThat(chapterChangeCount, `is`(initialChapterChangeCount))
     }
 
     @Test
-    fun `update should allow legitimate backward seeks within same track`() {
-        // Given: Track at position 50000 in chapter 2
-        val trackInMiddle = testTracks[0].copy(progress = 50000L)
-        currentlyPlaying.update(
-            track = trackInMiddle,
-            book = testBook,
+    fun `chapter derived from controller position not from DB`() = runTest {
+        // This is the core fix for Critical Issue C1
+        
+        // Given: Controller at position in chapter 2
+        playbackStateController.loadAudiobook(
+            audiobook = testBook,
             tracks = testTracks,
+            chapters = testBook.chapters,
+            startTrackIndex = 0,
+            startPositionMs = 50000L // Middle of chapter 2
         )
         
+        advanceUntilIdle()
         assertThat(currentlyPlaying.chapter.value.title, `is`("The Four Houses of Midgard"))
-        assertThat(currentlyPlaying.track.value.progress, `is`(50000L))
 
-        // When: User manually seeks back to 20000 (still in chapter 2)
-        val trackAfterSeekBack = testTracks[0].copy(progress = 20000L)
+        // When: Database returns stale progress=0 via deprecated update()
+        val trackWithStaleDbProgress = testTracks[0].copy(progress = 0L)
         currentlyPlaying.update(
-            track = trackAfterSeekBack,
+            track = trackWithStaleDbProgress,
             book = testBook,
             tracks = testTracks,
         )
 
-        // Then: The seek should be allowed (not near-zero, so not stale data)
-        assertThat(currentlyPlaying.track.value.progress, `is`(20000L))
+        advanceUntilIdle()
+
+        // Then: Chapter comes from controller (chapter 2), NOT from stale DB (chapter 1)
         assertThat(currentlyPlaying.chapter.value.title, `is`("The Four Houses of Midgard"))
+        assertThat(currentlyPlaying.track.value.progress, `is`(50000L)) // Controller position, not DB
     }
 
     @Test
-    fun `update should allow seeking to chapter start while playing`() {
-        // Given: Track at position 3022434 (mid-chapter)
-        val testChapters = listOf(
-            Chapter(
-                title = "Chapter 1",
-                id = 1L,
-                index = 1L,
-                startTimeOffset = 0L,
-                endTimeOffset = 3016290L,
-                trackId = 1L,
-                bookId = 1L,
-            ),
-            Chapter(
-                title = "Chapter 2",
-                id = 2L,
-                index = 2L,
-                startTimeOffset = 3016290L,
-                endTimeOffset = 4000000L,
-                trackId = 1L,
-                bookId = 1L,
-            ),
-        )
-        val bookWithChapters = testBook.copy(chapters = testChapters)
-        val trackInChapter2 = testTracks[0].copy(progress = 3022434L)
-        
-        currentlyPlaying.update(
-            track = trackInChapter2,
-            book = bookWithChapters,
+    fun `only controller updates affect chapter detection`() = runTest {
+        // Given: Controller at chapter 1
+        playbackStateController.loadAudiobook(
+            audiobook = testBook,
             tracks = testTracks,
+            chapters = testBook.chapters,
+            startTrackIndex = 0,
+            startPositionMs = 5000L
         )
         
-        assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 2"))
-        assertThat(currentlyPlaying.track.value.progress, `is`(3022434L))
+        advanceUntilIdle()
+        assertThat(currentlyPlaying.chapter.value.title, `is`("Opening Credits"))
+        val initialChapterCount = chapterChangeCount
 
-        // When: User seeks to chapter start (3016290)
-        // This is a legitimate backward seek, NOT stale data
-        val trackAtChapterStart = testTracks[0].copy(progress = 3016290L)
+        // When: Deprecated update() tries to change chapter
         currentlyPlaying.update(
-            track = trackAtChapterStart,
-            book = bookWithChapters,
-            tracks = testTracks,
-        )
-
-        // Then: The seek should be allowed
-        assertThat(currentlyPlaying.track.value.progress, `is`(3016290L))
-        assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 2"))
-    }
-
-    @Test
-    fun `update should handle exact chapter boundary correctly`() {
-        // Given: Track at position exactly at chapter boundary
-        val trackAtBoundary = testTracks[0].copy(progress = 16573L)
-        currentlyPlaying.update(
-            track = trackAtBoundary,
+            track = testTracks[0].copy(progress = 50000L), // Would be chapter 2
             book = testBook,
             tracks = testTracks,
         )
+
+        advanceUntilIdle()
+
+        // Then: Chapter unchanged (deprecated update ignored)
+        assertThat(currentlyPlaying.chapter.value.title, `is`("Opening Credits"))
+        assertThat(chapterChangeCount, `is`(initialChapterCount))
+
+        // When: Controller updates position to chapter 2
+        playbackStateController.updatePosition(0, 50000L)
+
+        advanceUntilIdle()
+
+        // Then: Chapter changes (controller update accepted)
+        assertThat(currentlyPlaying.chapter.value.title, `is`("The Four Houses of Midgard"))
+        assertThat(chapterChangeCount, `is`(initialChapterCount + 1))
+    }
+
+    @Test
+    fun `exact chapter boundary handled correctly by controller`() = runTest {
+        // Given: Controller at exact chapter boundary
+        playbackStateController.loadAudiobook(
+            audiobook = testBook,
+            tracks = testTracks,
+            chapters = testBook.chapters,
+            startTrackIndex = 0,
+            startPositionMs = 16573L
+        )
+        
+        advanceUntilIdle()
         
         // Then: Should be in chapter 2, not chapter 1
         assertThat(currentlyPlaying.chapter.value.title, `is`("The Four Houses of Midgard"))
@@ -313,32 +297,102 @@ class ChapterFlipFlopRegressionTest {
     }
 
     @Test
-    fun `update should handle progress just before chapter boundary`() {
-        // Given: Track at position 1ms before chapter boundary
-        val trackBeforeBoundary = testTracks[0].copy(progress = 16572L)
-        currentlyPlaying.update(
-            track = trackBeforeBoundary,
-            book = testBook,
+    fun `chapter changes are stable across rapid controller updates`() = runTest {
+        // Given: Start in chapter 1
+        playbackStateController.loadAudiobook(
+            audiobook = testBook,
             tracks = testTracks,
+            chapters = testBook.chapters,
+            startTrackIndex = 0,
+            startPositionMs = 5000L
         )
         
-        // Then: Should be in chapter 1
+        advanceUntilIdle()
+        chapterChanges.clear() // Reset tracking
+        chapterChangeCount = 0
+
+        // When: Rapid position updates in chapter 1
+        for (position in listOf(6000L, 7000L, 8000L, 9000L, 10000L)) {
+            playbackStateController.updatePosition(0, position)
+            advanceUntilIdle()
+        }
+
+        advanceUntilIdle()
+
+        // Then: No chapter changes (all positions in chapter 1)
+        assertThat(chapterChangeCount, `is`(0))
         assertThat(currentlyPlaying.chapter.value.title, `is`("Opening Credits"))
-        assertThat(currentlyPlaying.chapter.value.index, `is`(1L))
+
+        // When: Update to chapter 2  
+        playbackStateController.updatePosition(0, 20000L)
+        advanceUntilIdle()
+
+        // Then: Exactly one chapter change
+        assertThat(chapterChangeCount, `is`(1))
+        assertThat(chapterChanges.size, `is`(1))
+        assertThat(currentlyPlaying.chapter.value.title, `is`("The Four Houses of Midgard"))
     }
 
     @Test
-    fun `update should handle progress just after chapter boundary`() {
-        // Given: Track at position 1ms after chapter boundary
-        val trackAfterBoundary = testTracks[0].copy(progress = 16574L)
-        currentlyPlaying.update(
-            track = trackAfterBoundary,
-            book = testBook,
+    fun `no spurious chapter changes at boundaries`() = runTest {
+        // Given: Start just before boundary
+        playbackStateController.loadAudiobook(
+            audiobook = testBook,
             tracks = testTracks,
+            chapters = testBook.chapters,
+            startTrackIndex = 0,
+            startPositionMs = 16572L
         )
         
-        // Then: Should be in chapter 2
+        advanceUntilIdle()
+        assertThat(currentlyPlaying.chapter.value.title, `is`("Opening Credits"))
+        chapterChanges.clear()
+        chapterChangeCount = 0
+
+        // When: Cross boundary once
+        playbackStateController.updatePosition(0, 16573L)
+        advanceUntilIdle()
+
+        // Then: Exactly one chapter change
+        assertThat(chapterChangeCount, `is`(1))
+        assertThat(chapterChanges.size, `is`(1))
+        
+        // When: Continue in chapter 2
+        playbackStateController.updatePosition(0, 16574L)
+        advanceUntilIdle()
+        playbackStateController.updatePosition(0, 16575L)
+        advanceUntilIdle()
+
+        // Then: No additional chapter changes
+        assertThat(chapterChangeCount, `is`(1))
+        assertThat(chapterChanges.size, `is`(1))
+    }
+
+    @Test
+    fun `controller position is authoritative over deprecated update calls`() = runTest {
+        // Given: Controller at position A
+        playbackStateController.loadAudiobook(
+            audiobook = testBook,
+            tracks = testTracks,
+            chapters = testBook.chapters,
+            startTrackIndex = 0,
+            startPositionMs = 30000L
+        )
+        
+        advanceUntilIdle()
+        val controllerPosition = currentlyPlaying.track.value.progress
+        assertThat(controllerPosition, `is`(30000L))
+
+        // When: Multiple deprecated update() calls with different positions
+        currentlyPlaying.update(testTracks[0].copy(progress = 0L), testBook, testTracks)
+        advanceUntilIdle()
+        currentlyPlaying.update(testTracks[0].copy(progress = 5000L), testBook, testTracks)
+        advanceUntilIdle()
+        currentlyPlaying.update(testTracks[0].copy(progress = 10000L), testBook, testTracks)
+        advanceUntilIdle()
+
+        // Then: Position remains at controller's value
+        assertThat(currentlyPlaying.track.value.progress, `is`(30000L))
         assertThat(currentlyPlaying.chapter.value.title, `is`("The Four Houses of Midgard"))
-        assertThat(currentlyPlaying.chapter.value.index, `is`(2L))
     }
 }

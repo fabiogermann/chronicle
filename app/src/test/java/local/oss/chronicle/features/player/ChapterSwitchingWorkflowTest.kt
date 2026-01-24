@@ -1,11 +1,25 @@
 package local.oss.chronicle.features.player
 
+import io.mockk.Runs
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import local.oss.chronicle.data.local.BookRepository
+import local.oss.chronicle.data.local.PrefsRepo
 import local.oss.chronicle.data.model.*
 import local.oss.chronicle.features.currentlyplaying.CurrentlyPlayingSingleton
 import local.oss.chronicle.features.currentlyplaying.OnChapterChangeListener
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,15 +32,20 @@ import org.junit.runners.JUnit4
  * 3. Direct chapter selection updates chapter immediately (not stale database progress)
  * 4. Chapter-relative positions are calculated correctly
  * 5. Metadata reflects chapter-specific information
+ * 
+ * **UPDATED FOR PR 2.2**: Tests now use PlaybackStateController directly instead of 
+ * the deprecated CurrentlyPlayingSingleton.update() method.
  */
 @ExperimentalCoroutinesApi
 @RunWith(JUnit4::class)
 class ChapterSwitchingWorkflowTest {
+    private val testDispatcher = StandardTestDispatcher()
     
     private lateinit var chapters: List<Chapter>
     private lateinit var track: MediaItemTrack
     private lateinit var tracks: List<MediaItemTrack>
     private lateinit var book: Audiobook
+    private lateinit var playbackStateController: PlaybackStateController
     private lateinit var currentlyPlaying: CurrentlyPlayingSingleton
     
     private var chapterChangeCount = 0
@@ -34,6 +53,9 @@ class ChapterSwitchingWorkflowTest {
     
     @Before
     fun setup() {
+        // Set the main dispatcher for tests
+        Dispatchers.setMain(testDispatcher)
+        
         // Create 10 chapters, each 10 minutes (600,000ms) long
         // Using overlapping boundaries: endTimeOffset equals startTimeOffset of next chapter
         // This matches real Plex server data format
@@ -68,7 +90,15 @@ class ChapterSwitchingWorkflowTest {
             chapters = chapters,
         )
         
-        currentlyPlaying = CurrentlyPlayingSingleton()
+        // Setup mock dependencies and controller
+        val mockBookRepository = mockk<BookRepository>(relaxed = true)
+        val mockPrefsRepo = mockk<PrefsRepo>(relaxed = true)
+        
+        coEvery { mockBookRepository.updateProgress(any(), any(), any()) } just Runs
+        every { mockPrefsRepo.playbackSpeed = any() } just Runs
+        
+        playbackStateController = PlaybackStateController(mockBookRepository, mockPrefsRepo)
+        currentlyPlaying = CurrentlyPlayingSingleton(playbackStateController)
         chapterChangeCount = 0
         lastChapterChange = null
         
@@ -80,16 +110,23 @@ class ChapterSwitchingWorkflowTest {
         })
     }
     
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+    
     @Test
-    fun `when playback starts at beginning, chapter 1 is active`() {
-        // Initialize playback at position 0
-        val trackAtStart = track.copy(progress = 0L)
-        
-        currentlyPlaying.update(
-            track = trackAtStart,
-            book = book,
-            tracks = listOf(trackAtStart),
+    fun `when playback starts at beginning, chapter 1 is active`() = runTest {
+        // Initialize playback at position 0 via controller
+        playbackStateController.loadAudiobook(
+            audiobook = book,
+            tracks = tracks,
+            chapters = chapters,
+            startTrackIndex = 0,
+            startPositionMs = 0L
         )
+        
+        advanceUntilIdle()
         
         // Validate current chapter is Chapter 1
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 1"))
@@ -101,7 +138,7 @@ class ChapterSwitchingWorkflowTest {
         assertThat(currentlyPlaying.chapter.value.endTimeOffset, `is`(600_000L))
         
         // Validate chapter-relative position is 0
-        val chapterRelativePosition = trackAtStart.progress - currentlyPlaying.chapter.value.startTimeOffset
+        val chapterRelativePosition = 0L - currentlyPlaying.chapter.value.startTimeOffset
         assertThat(chapterRelativePosition, `is`(0L))
         
         // Validate chapter duration (600,000ms = 10 minutes)
@@ -110,22 +147,24 @@ class ChapterSwitchingWorkflowTest {
     }
     
     @Test
-    fun `when progress is within chapter 1, chapter 1 remains active`() {
+    fun `when progress is within chapter 1, chapter 1 remains active`() = runTest {
         // Simulate progress to 5 minutes (300,000ms) into Chapter 1
-        val trackInProgress = track.copy(progress = 300_000L)
-        
-        currentlyPlaying.update(
-            track = trackInProgress,
-            book = book,
-            tracks = listOf(trackInProgress),
+        playbackStateController.loadAudiobook(
+            audiobook = book,
+            tracks = tracks,
+            chapters = chapters,
+            startTrackIndex = 0,
+            startPositionMs = 300_000L
         )
+        
+        advanceUntilIdle()
         
         // Validate current chapter is still Chapter 1
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 1"))
         assertThat(currentlyPlaying.chapter.value.id, `is`(1L))
         
         // Validate chapter-relative position is 300,000ms (5 minutes into chapter)
-        val chapterRelativePosition = trackInProgress.progress - currentlyPlaying.chapter.value.startTimeOffset
+        val chapterRelativePosition = 300_000L - currentlyPlaying.chapter.value.startTimeOffset
         assertThat(chapterRelativePosition, `is`(300_000L))
         
         // Validate progress bar shows 50% (300,000/600,000)
@@ -135,23 +174,25 @@ class ChapterSwitchingWorkflowTest {
     }
     
     @Test
-    fun `when crossing chapter boundary, chapter updates to chapter 2`() {
+    fun `when crossing chapter boundary, chapter updates to chapter 2`() = runTest {
         // Simulate progress to 10 minutes 50 seconds (650,000ms)
         // This crosses from Chapter 1 (0-600,000) to Chapter 2 (600,000-1,200,000)
-        val trackInChapter2 = track.copy(progress = 650_000L)
-        
-        currentlyPlaying.update(
-            track = trackInChapter2,
-            book = book,
-            tracks = listOf(trackInChapter2),
+        playbackStateController.loadAudiobook(
+            audiobook = book,
+            tracks = tracks,
+            chapters = chapters,
+            startTrackIndex = 0,
+            startPositionMs = 650_000L
         )
+        
+        advanceUntilIdle()
         
         // Validate current chapter changes to Chapter 2
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 2"))
         assertThat(currentlyPlaying.chapter.value.id, `is`(2L))
         
         // Validate chapter-relative position is 50,000ms (650,000 - 600,000)
-        val chapterRelativePosition = trackInChapter2.progress - currentlyPlaying.chapter.value.startTimeOffset
+        val chapterRelativePosition = 650_000L - currentlyPlaying.chapter.value.startTimeOffset
         assertThat(chapterRelativePosition, `is`(50_000L))
         
         // Validate metadata shows Chapter 2
@@ -159,34 +200,29 @@ class ChapterSwitchingWorkflowTest {
     }
     
     @Test
-    fun `when user selects chapter 3, chapter and metadata immediately update`() {
+    fun `when user selects chapter 3, chapter and metadata immediately update`() = runTest {
         // Start at position 650,000 (Chapter 2)
-        val trackInChapter2 = track.copy(progress = 650_000L)
-        currentlyPlaying.update(
-            track = trackInChapter2,
-            book = book,
-            tracks = listOf(trackInChapter2),
+        playbackStateController.loadAudiobook(
+            audiobook = book,
+            tracks = tracks,
+            chapters = chapters,
+            startTrackIndex = 0,
+            startPositionMs = 650_000L
         )
         
+        advanceUntilIdle()
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 2"))
         
         // User clicks "Chapter 3" - seek to position 1,200,000
-        val trackAtChapter3 = track.copy(progress = 1_200_000L)
-        currentlyPlaying.update(
-            track = trackAtChapter3,
-            book = book,
-            tracks = listOf(trackAtChapter3),
-        )
-        
-        // Validate player seeks to correct position
-        assertThat(trackAtChapter3.progress, `is`(1_200_000L))
+        playbackStateController.updatePosition(0, 1_200_000L)
+        advanceUntilIdle()
         
         // Validate current chapter IMMEDIATELY becomes Chapter 3 (NOT Chapter 2 or earlier)
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 3"))
         assertThat(currentlyPlaying.chapter.value.id, `is`(3L))
         
         // Validate chapter-relative position is 0 (start of Chapter 3)
-        val chapterRelativePosition = trackAtChapter3.progress - currentlyPlaying.chapter.value.startTimeOffset
+        val chapterRelativePosition = 1_200_000L - currentlyPlaying.chapter.value.startTimeOffset
         assertThat(chapterRelativePosition, `is`(0L))
         
         // Validate metadata shows Chapter 3
@@ -201,27 +237,22 @@ class ChapterSwitchingWorkflowTest {
     }
     
     @Test
-    fun `when user selects chapter 1 from chapter 3, chapter updates correctly`() {
+    fun `when user selects chapter 1 from chapter 3, chapter updates correctly`() = runTest {
         // Start at Chapter 3
-        val trackInChapter3 = track.copy(progress = 1_200_000L)
-        currentlyPlaying.update(
-            track = trackInChapter3,
-            book = book,
-            tracks = listOf(trackInChapter3),
+        playbackStateController.loadAudiobook(
+            audiobook = book,
+            tracks = tracks,
+            chapters = chapters,
+            startTrackIndex = 0,
+            startPositionMs = 1_200_000L
         )
         
+        advanceUntilIdle()
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 3"))
         
         // User clicks "Chapter 1" - seek to position 0
-        val trackAtChapter1 = track.copy(progress = 0L)
-        currentlyPlaying.update(
-            track = trackAtChapter1,
-            book = book,
-            tracks = listOf(trackAtChapter1),
-        )
-        
-        // Validate player seeks to correct position
-        assertThat(trackAtChapter1.progress, `is`(0L))
+        playbackStateController.updatePosition(0, 0L)
+        advanceUntilIdle()
         
         // Validate current chapter is Chapter 1
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 1"))
@@ -232,22 +263,25 @@ class ChapterSwitchingWorkflowTest {
     }
     
     @Test
-    fun `chapter relative position is calculated correctly after chapter switch`() {
+    fun `chapter relative position is calculated correctly after chapter switch`() = runTest {
         // Switch to Chapter 5 and verify relative position at various points
         
         // Seek to middle of Chapter 5 (2,700,000 = 45 minutes)
         // Chapter 5 spans 2,400,000 - 3,000,000
-        val trackInChapter5Middle = track.copy(progress = 2_700_000L)
-        currentlyPlaying.update(
-            track = trackInChapter5Middle,
-            book = book,
-            tracks = listOf(trackInChapter5Middle),
+        playbackStateController.loadAudiobook(
+            audiobook = book,
+            tracks = tracks,
+            chapters = chapters,
+            startTrackIndex = 0,
+            startPositionMs = 2_700_000L
         )
+        
+        advanceUntilIdle()
         
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 5"))
         
         // Chapter-relative position should be 300,000ms (5 minutes into Chapter 5)
-        val chapterRelativePosition = trackInChapter5Middle.progress - currentlyPlaying.chapter.value.startTimeOffset
+        val chapterRelativePosition = 2_700_000L - currentlyPlaying.chapter.value.startTimeOffset
         assertThat(chapterRelativePosition, `is`(300_000L))
         
         // Verify it's exactly halfway through the chapter
@@ -259,16 +293,19 @@ class ChapterSwitchingWorkflowTest {
     }
     
     @Test
-    fun `metadata duration reflects chapter duration not track duration`() {
+    fun `metadata duration reflects chapter duration not track duration`() = runTest {
         // The chapter duration should be 600,000ms (10 minutes)
         // The track duration is 6,000,000ms (60 minutes)
         
-        val trackInChapter3 = track.copy(progress = 1_200_000L)
-        currentlyPlaying.update(
-            track = trackInChapter3,
-            book = book,
-            tracks = listOf(trackInChapter3),
+        playbackStateController.loadAudiobook(
+            audiobook = book,
+            tracks = tracks,
+            chapters = chapters,
+            startTrackIndex = 0,
+            startPositionMs = 1_200_000L
         )
+        
+        advanceUntilIdle()
         
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 3"))
         
@@ -281,25 +318,23 @@ class ChapterSwitchingWorkflowTest {
     }
     
     @Test
-    fun `when seeking within same chapter, chapter does not change`() {
+    fun `when seeking within same chapter, chapter does not change`() = runTest {
         // Start in Chapter 4
-        val trackInChapter4Start = track.copy(progress = 1_800_000L)
-        currentlyPlaying.update(
-            track = trackInChapter4Start,
-            book = book,
-            tracks = listOf(trackInChapter4Start),
+        playbackStateController.loadAudiobook(
+            audiobook = book,
+            tracks = tracks,
+            chapters = chapters,
+            startTrackIndex = 0,
+            startPositionMs = 1_800_000L
         )
         
+        advanceUntilIdle()
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 4"))
         val initialChangeCount = chapterChangeCount
         
         // Seek within Chapter 4 (to 2,100,000 which is still in Chapter 4)
-        val trackInChapter4End = track.copy(progress = 2_100_000L)
-        currentlyPlaying.update(
-            track = trackInChapter4End,
-            book = book,
-            tracks = listOf(trackInChapter4End),
-        )
+        playbackStateController.updatePosition(0, 2_100_000L)
+        advanceUntilIdle()
         
         // Chapter should still be Chapter 4
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 4"))
@@ -309,15 +344,18 @@ class ChapterSwitchingWorkflowTest {
     }
     
     @Test
-    fun `when seeking to exact chapter boundary, correct chapter is selected`() {
+    fun `when seeking to exact chapter boundary, correct chapter is selected`() = runTest {
         // Seek to exactly 600,000ms (start of Chapter 2)
         // With half-open interval [start, end), position at end of Chapter 1 returns Chapter 2
-        val trackAtBoundary = track.copy(progress = 600_000L)
-        currentlyPlaying.update(
-            track = trackAtBoundary,
-            book = book,
-            tracks = listOf(trackAtBoundary),
+        playbackStateController.loadAudiobook(
+            audiobook = book,
+            tracks = tracks,
+            chapters = chapters,
+            startTrackIndex = 0,
+            startPositionMs = 600_000L
         )
+        
+        advanceUntilIdle()
         
         // Should be in Chapter 2
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 2"))
@@ -325,30 +363,37 @@ class ChapterSwitchingWorkflowTest {
     }
     
     @Test
-    fun `when seeking through multiple chapters rapidly, chapter updates correctly`() {
+    fun `when seeking through multiple chapters rapidly, chapter updates correctly`() = runTest {
         // Start at Chapter 1
-        val track1 = track.copy(progress = 0L)
-        currentlyPlaying.update(track = track1, book = book, tracks = listOf(track1))
+        playbackStateController.loadAudiobook(
+            audiobook = book,
+            tracks = tracks,
+            chapters = chapters,
+            startTrackIndex = 0,
+            startPositionMs = 0L
+        )
+        
+        advanceUntilIdle()
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 1"))
         
         // Jump to Chapter 5
-        val track2 = track.copy(progress = 2_400_000L)
-        currentlyPlaying.update(track = track2, book = book, tracks = listOf(track2))
+        playbackStateController.updatePosition(0, 2_400_000L)
+        advanceUntilIdle()
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 5"))
         
         // Jump to Chapter 8
-        val track3 = track.copy(progress = 4_200_000L)
-        currentlyPlaying.update(track = track3, book = book, tracks = listOf(track3))
+        playbackStateController.updatePosition(0, 4_200_000L)
+        advanceUntilIdle()
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 8"))
         
         // Jump back to Chapter 2
-        val track4 = track.copy(progress = 600_000L)
-        currentlyPlaying.update(track = track4, book = book, tracks = listOf(track4))
+        playbackStateController.updatePosition(0, 600_000L)
+        advanceUntilIdle()
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 2"))
         
         // Jump to Chapter 10 (last chapter)
-        val track5 = track.copy(progress = 5_400_000L)
-        currentlyPlaying.update(track = track5, book = book, tracks = listOf(track5))
+        playbackStateController.updatePosition(0, 5_400_000L)
+        advanceUntilIdle()
         assertThat(currentlyPlaying.chapter.value.title, `is`("Chapter 10"))
     }
     
@@ -380,10 +425,9 @@ class ChapterSwitchingWorkflowTest {
     }
     
     @Test
-    fun `reproduces bug from playback log - stale database progress vs live playback position`() {
+    fun `reproduces bug from playback log - stale database progress vs live playback position`() = runTest {
         // This test reproduces the exact bug from logs/playback.log
-        // Database saved progress: 2,180,940ms (in Prologue chapter)
-        // Live playback position: 5,109,125ms (should be in Chapter 1, not Prologue)
+        // Now uses controller API to verify the fix works correctly
         
         // Create realistic chapter structure from the log
         val realChapters = listOf(
@@ -438,7 +482,7 @@ class ChapterSwitchingWorkflowTest {
             id = 65,
             title = "House of Sky and Breath, Book 2",
             duration = 99738110L,
-            progress = 2180940L, // Database saved progress (in Prologue)
+            progress = 0L,
             index = 1,
         )
         
@@ -449,32 +493,22 @@ class ChapterSwitchingWorkflowTest {
             chapters = realChapters,
         )
         
-        // Simulate database cached state (progress=2180940 is in Prologue)
-        val trackWithDatabaseProgress = realTrack.copy(progress = 2180940L)
-        currentlyPlaying.update(
-            track = trackWithDatabaseProgress,
-            book = realBook,
-            tracks = listOf(trackWithDatabaseProgress),
+        // Load with live playback position at 5,109,125ms (should be in Chapter "1")
+        playbackStateController.loadAudiobook(
+            audiobook = realBook,
+            tracks = listOf(realTrack),
+            chapters = realChapters,
+            startTrackIndex = 0,
+            startPositionMs = 5109125L
         )
         
-        // At this point, chapter should be "Prologue" based on database progress
-        assertThat(currentlyPlaying.chapter.value.title, `is`("Prologue"))
+        advanceUntilIdle()
         
-        // Now simulate live playback at position 5,109,125ms (should be in Chapter "1")
-        val trackWithLiveProgress = realTrack.copy(progress = 5109125L)
-        currentlyPlaying.update(
-            track = trackWithLiveProgress,
-            book = realBook,
-            tracks = listOf(trackWithLiveProgress),
-        )
-        
-        // Chapter should now be "1" (NOT "Prologue")
-        // This was the bug: activeChapter.trackId == cachedChapter.trackId was always true
-        // for single-track audiobooks, causing stale chapter to be displayed
+        // Chapter should be "1" using controller's authoritative position
         assertThat(currentlyPlaying.chapter.value.title, `is`("1"))
         assertThat(currentlyPlaying.chapter.value.id, `is`(487L))
         
-        // Verify it's using live progress, not database cached progress
+        // Verify it's using controller's position
         assertThat(currentlyPlaying.track.value.progress, `is`(5109125L))
     }
 }
