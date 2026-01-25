@@ -56,6 +56,14 @@ graph TB
     VM --> MPS
     MPS --> ExoPlayer
     MPS --> MediaSession
+    
+    subgraph State Management
+        PSC[PlaybackStateController]
+        PS[PlaybackState]
+    end
+    
+    MPS --> PSC
+    PSC --> PS
 ```
 
 ---
@@ -136,6 +144,9 @@ Chronicle uses Dagger 2 with a three-component hierarchy:
 | **MVVM** | Separation of UI, state management, and data access |
 | **MediaBrowserService** | Background playback, Android Auto, media controls |
 | **State Machines** | Connection and login state management |
+| **PlaybackStateController** | Single source of truth for playback state with StateFlow |
+| **Retry with Exponential Backoff** | Resilient network operations with automatic retry |
+| **Structured Error Handling** | Type-safe error categories via sealed classes |
 
 → See [Architectural Patterns](architecture/patterns.md) for detailed pattern implementations.
 
@@ -181,6 +192,10 @@ app/src/main/java/local/oss/chronicle/
 │   └── scopes/
 ├── navigation/          # Navigation utilities
 ├── util/                # Extension functions, utilities
+│   ├── ErrorHandling.kt      # ChronicleError sealed class
+│   ├── RetryHandler.kt       # Retry with exponential backoff
+│   ├── NetworkMonitor.kt     # Network connectivity monitoring
+│   └── ScopedCoroutines.kt   # Lifecycle-aware coroutine management
 └── views/               # Custom views, binding adapters
 ```
 

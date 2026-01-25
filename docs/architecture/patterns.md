@@ -96,7 +96,10 @@ graph TB
 | [`MediaPlayerService`](../../app/src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt) | Main service managing playback lifecycle |
 | [`AudiobookMediaSessionCallback`](../../app/src/main/java/local/oss/chronicle/features/player/AudiobookMediaSessionCallback.kt) | Handles play/pause/seek commands |
 | [`TrackListStateManager`](../../app/src/main/java/local/oss/chronicle/features/player/TrackListStateManager.kt) | Manages playlist state and chapter detection |
+| [`PlaybackStateController`](../../app/src/main/java/local/oss/chronicle/features/player/PlaybackStateController.kt) | Single source of truth for playback state |
 | [`PlaybackUrlResolver`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlaybackUrlResolver.kt) | Resolves streaming URLs with authentication |
+| [`SeekHandler`](../../app/src/main/java/local/oss/chronicle/features/player/SeekHandler.kt) | Atomic seek operations with timeout |
+| [`ChapterValidator`](../../app/src/main/java/local/oss/chronicle/features/player/ChapterValidator.kt) | Validates positions against chapter bounds |
 | [`NotificationBuilder`](../../app/src/main/java/local/oss/chronicle/features/player/NotificationBuilder.kt) | Creates playback notifications |
 
 ---
@@ -279,9 +282,198 @@ val audiobooks = bookRepository.observeAudiobooks()
 
 ---
 
+## PlaybackStateController Pattern
+
+The [`PlaybackStateController`](../../app/src/main/java/local/oss/chronicle/features/player/PlaybackStateController.kt) is the single source of truth for all playback state, providing thread-safe, reactive state management.
+
+### Architecture
+
+```mermaid
+graph TB
+    subgraph Sources
+        EP[ExoPlayer Events]
+        UI[UI Interactions]
+        MS[MediaSession Commands]
+    end
+    
+    subgraph PlaybackStateController
+        Mutex[Mutex Lock]
+        SF[StateFlow]
+        PS[PlaybackState]
+        Persist[DB Persistence]
+    end
+    
+    subgraph Consumers
+        CPS[CurrentlyPlayingSingleton]
+        MPS[MediaPlayerService]
+        LD[LiveData Bridge]
+    end
+    
+    EP --> Mutex
+    UI --> Mutex
+    MS --> Mutex
+    Mutex --> PS
+    PS --> SF
+    SF --> CPS
+    SF --> MPS
+    CPS --> LD
+    PS --> Persist
+```
+
+### Key Design Principles
+
+1. **Immutable State**: [`PlaybackState`](../../app/src/main/java/local/oss/chronicle/features/player/PlaybackState.kt) is immutable; updates create new instances via `copy()`
+2. **Thread Safety**: All updates go through a `Mutex` to prevent race conditions
+3. **StateFlow Observation**: State changes propagate reactively via `StateFlow`
+4. **Debounced Persistence**: Database writes are debounced to reduce I/O overhead
+
+### Implementation
+
+```kotlin
+@Singleton
+class PlaybackStateController @Inject constructor(
+    private val bookRepository: BookRepository
+) {
+    private val mutex = Mutex()
+    private val _state = MutableStateFlow(PlaybackState.EMPTY)
+    val state: StateFlow<PlaybackState> = _state.asStateFlow()
+    
+    suspend fun updatePosition(trackIndex: Int, positionMs: Long) = mutex.withLock {
+        val newState = _state.value.withPosition(trackIndex, positionMs)
+        _state.value = newState
+        scheduleDatabaseWrite(newState)
+    }
+}
+```
+
+### StateFlow → LiveData Bridge
+
+The [`CurrentlyPlayingSingleton`](../../app/src/main/java/local/oss/chronicle/features/currentlyplaying/CurrentlyPlayingSingleton.kt) bridges StateFlow to LiveData for UI consumption:
+
+```kotlin
+// Convert StateFlow to LiveData for Fragments
+val bookPositionMs: LiveData<Long> = playbackStateController.state
+    .map { it.bookPositionMs }
+    .asLiveData()
+```
+
+---
+
+## Retry with Exponential Backoff Pattern
+
+For resilient network operations, Chronicle uses [`withRetry()`](../../app/src/main/java/local/oss/chronicle/util/RetryHandler.kt) with configurable exponential backoff.
+
+### Configuration
+
+```kotlin
+data class RetryConfig(
+    val maxAttempts: Int = 3,
+    val initialDelayMs: Long = 1000L,
+    val maxDelayMs: Long = 30_000L,
+    val multiplier: Double = 2.0
+)
+```
+
+### Usage
+
+```kotlin
+val result = withRetry(
+    config = RetryConfig(maxAttempts = 3),
+    shouldRetry = { error -> error is IOException },
+    onRetry = { attempt, delay, error ->
+        Timber.w("Retry $attempt after ${delay}ms: $error")
+    }
+) { attempt ->
+    plexService.fetchMetadata(bookId)
+}
+
+when (result) {
+    is RetryResult.Success -> handleSuccess(result.value)
+    is RetryResult.Failure -> handleError(result.error)
+}
+```
+
+### Backoff Timeline
+
+```
+Attempt 1: Immediate
+Attempt 2: 1000ms delay
+Attempt 3: 2000ms delay
+Attempt 4: 4000ms delay (capped at maxDelayMs)
+```
+
+---
+
+## Structured Error Handling Pattern
+
+Chronicle uses a [`ChronicleError`](../../app/src/main/java/local/oss/chronicle/util/ErrorHandling.kt) sealed class for type-safe error handling.
+
+### Error Categories
+
+```kotlin
+sealed class ChronicleError(
+    open val message: String,
+    open val cause: Throwable? = null
+) {
+    data class NetworkError(...)     // Connectivity issues
+    data class AuthenticationError(...)  // Token/login issues
+    data class PlaybackError(...)    // Player failures
+    data class StorageError(...)     // File/database errors
+    data class UnknownError(...)     // Fallback
+}
+```
+
+### Usage
+
+```kotlin
+// Convert any throwable to structured error
+val error = exception.toChronicleError()
+
+when (error) {
+    is ChronicleError.NetworkError -> showRetryDialog()
+    is ChronicleError.AuthenticationError -> navigateToLogin()
+    is ChronicleError.PlaybackError -> showPlaybackError(error.trackKey)
+    is ChronicleError.StorageError -> showStorageError()
+    is ChronicleError.UnknownError -> showGenericError()
+}
+```
+
+---
+
+## Thread Safety with Mutex Pattern
+
+[`TrackListStateManager`](../../app/src/main/java/local/oss/chronicle/features/player/TrackListStateManager.kt) uses Kotlin's `Mutex` for thread-safe state updates.
+
+### Implementation
+
+```kotlin
+class TrackListStateManager {
+    private val mutex = Mutex()
+    private var currentState: PlayerState? = null
+    
+    suspend fun updateState(newState: PlayerState) = mutex.withLock {
+        currentState = newState
+        notifyListeners(newState)
+    }
+    
+    suspend fun <T> withState(action: (PlayerState?) -> T): T = mutex.withLock {
+        action(currentState)
+    }
+}
+```
+
+### Why Mutex over synchronized?
+
+- Works with coroutines (non-blocking suspension)
+- More idiomatic in Kotlin coroutine code
+- Prevents thread starvation in high-contention scenarios
+
+---
+
 ## Related Documentation
 
 - [Architecture Overview](../ARCHITECTURE.md) - High-level architecture diagrams
 - [Architecture Layers](layers.md) - Layer descriptions and responsibilities
 - [Dependency Injection](dependency-injection.md) - Dagger component hierarchy
 - [Plex Integration](plex-integration.md) - Plex-specific implementation details
+- [Playback Feature](../features/playback.md) - Full playback architecture

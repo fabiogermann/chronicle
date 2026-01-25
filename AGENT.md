@@ -106,6 +106,10 @@ app/src/main/java/local/oss/chronicle/
 │   └── Navigator.kt
 │
 ├── util/                   # Extension functions, utilities
+│   ├── ErrorHandling.kt        # ChronicleError sealed class for structured errors
+│   ├── RetryHandler.kt         # withRetry() with exponential backoff
+│   ├── NetworkMonitor.kt       # Real-time network connectivity monitoring
+│   └── ScopedCoroutines.kt     # Lifecycle-aware coroutine management
 │
 └── views/                  # Custom views, binding adapters (Data Binding)
     ├── BindingAdapters.kt
@@ -183,12 +187,28 @@ For implementation details, see [`PlexInterceptor.kt`](app/src/main/java/local/o
 The player uses **Media3 (ExoPlayer)** with:
 - [`MediaPlayerService`](app/src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt) - Foreground service for background playback
 - [`AudiobookMediaSessionCallback`](app/src/main/java/local/oss/chronicle/features/player/AudiobookMediaSessionCallback.kt) - Handles play/pause/seek commands
-- [`TrackListStateManager`](app/src/main/java/local/oss/chronicle/features/player/TrackListStateManager.kt) - Manages playlist state and chapter detection
-- [`PlaybackUrlResolver`](app/src/main/java/local/oss/chronicle/data/sources/plex/PlaybackUrlResolver.kt) - Resolves streaming URLs with authentication
+- [`PlaybackStateController`](app/src/main/java/local/oss/chronicle/features/player/PlaybackStateController.kt) - **Single source of truth** for playback state
+- [`PlaybackState`](app/src/main/java/local/oss/chronicle/features/player/PlaybackState.kt) - Immutable playback state data class
+- [`TrackListStateManager`](app/src/main/java/local/oss/chronicle/features/player/TrackListStateManager.kt) - Manages playlist state and chapter detection (Mutex-protected)
+- [`SeekHandler`](app/src/main/java/local/oss/chronicle/features/player/SeekHandler.kt) - Atomic seek operations with timeout
+- [`ChapterValidator`](app/src/main/java/local/oss/chronicle/features/player/ChapterValidator.kt) - Validates positions against chapter bounds
+- [`PlaybackUrlResolver`](app/src/main/java/local/oss/chronicle/data/sources/plex/PlaybackUrlResolver.kt) - Resolves streaming URLs with retry logic and caching
 
 All media playback follows Android's MediaSession/MediaBrowser API.
 
-### 6.3 Data Persistence (Room)
+### 6.3 Playback State Management
+
+Chronicle uses a centralized state management pattern with [`PlaybackStateController`](app/src/main/java/local/oss/chronicle/features/player/PlaybackStateController.kt):
+
+- **Immutable State**: Updates create new `PlaybackState` instances via `copy()`
+- **Thread Safety**: All updates go through `Mutex.withLock {}`
+- **Reactive**: State exposed via `StateFlow` for observation
+- **Debounced Persistence**: Database writes debounced (3 seconds) to reduce I/O
+- **StateFlow → LiveData Bridge**: [`CurrentlyPlayingSingleton`](app/src/main/java/local/oss/chronicle/features/currentlyplaying/CurrentlyPlayingSingleton.kt) converts StateFlow to LiveData for UI
+
+See [`docs/architecture/patterns.md`](docs/architecture/patterns.md) for detailed patterns.
+
+### 6.4 Data Persistence (Room)
 
 Chronicle uses **Room** (AndroidX) for local data:
 
@@ -201,13 +221,13 @@ Chronicle uses **Room** (AndroidX) for local data:
 
 **Database migrations** are defined within database class files. Schema versions are stored in [`app/schemas/`](app/schemas/).
 
-### 6.4 Offline Playback
+### 6.5 Offline Playback
 
 Uses **[Fetch library](https://github.com/tonyofrancis/Fetch)** for downloads:
-- [`CachedFileManager`](app/src/main/java/local/oss/chronicle/data/sources/plex/CachedFileManager.kt) - Manages cached audio files
+- [`CachedFileManager`](app/src/main/java/local/oss/chronicle/data/sources/plex/CachedFileManager.kt) - Manages cached audio files (uses ScopedCoroutineManager)
 - [`DownloadNotificationWorker`](app/src/main/java/local/oss/chronicle/features/download/DownloadNotificationWorker.kt) - Background download handling (WorkManager)
 
-### 6.5 Important Implementation Notes
+### 6.6 Important Implementation Notes
 
 - **Authentication tokens expire** - Implement token refresh logic when modifying auth code
 - **Chapter detection** is complex - See [`TrackListStateManager`](app/src/main/java/local/oss/chronicle/features/player/TrackListStateManager.kt) for current implementation
@@ -457,5 +477,5 @@ For reported and confirmed bugs a test recreating the scenario is required. The 
 
 ---
 
-**Last Updated:** 2026-01-23  
+**Last Updated:** 2026-01-25
 **Project Version:** Check [`CHANGELOG.md`](CHANGELOG.md) for current version

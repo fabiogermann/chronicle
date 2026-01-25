@@ -42,6 +42,7 @@ The media browser hierarchy is designed for easy navigation while driving, with 
 | [`MediaPlayerService.onGetRoot()`](../../app/src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt) | Returns root of browsable content |
 | [`MediaPlayerService.onLoadChildren()`](../../app/src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt) | Loads content for a browsable node |
 | [`MediaPlayerService.onSearch()`](../../app/src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt) | Handles voice search queries |
+| [`AudiobookMediaSessionCallback`](../../app/src/main/java/local/oss/chronicle/features/player/AudiobookMediaSessionCallback.kt) | Handles playback commands with error handling |
 
 ### Client Validation
 
@@ -99,6 +100,75 @@ sequenceDiagram
 
 ---
 
+## Error Handling
+
+### Logging and Debugging
+
+Android Auto operations use `[AndroidAuto]` prefixed log tags for easier debugging:
+
+```kotlin
+Timber.d("[AndroidAuto] Loading children for parentId: $parentId")
+Timber.e("[AndroidAuto] Error loading book: ${error.message}")
+```
+
+### Defensive Null Checks
+
+All browse tree operations include null safety:
+
+```kotlin
+// Safe book lookup with fallback
+val books = bookRepository.getAllBooks()
+    .filterNotNull()
+    .map { it.toMediaItem() }
+```
+
+### Error Recovery
+
+When media loading fails:
+
+1. Log error with `[AndroidAuto]` tag
+2. Return empty browser result (not crash)
+3. Display user-friendly message if possible
+
+---
+
+## MediaSession State Synchronization
+
+Android Auto receives playback state through [`PlaybackStateController`](../../app/src/main/java/local/oss/chronicle/features/player/PlaybackStateController.kt):
+
+```mermaid
+graph LR
+    subgraph State Updates
+        PSC[PlaybackStateController]
+        SF[StateFlow]
+    end
+    
+    subgraph MediaSession
+        MS[MediaSession]
+        PSB[PlaybackStateCompat.Builder]
+    end
+    
+    subgraph Android Auto
+        AA[Android Auto UI]
+    end
+    
+    PSC --> SF
+    SF --> MS
+    MS --> PSB
+    PSB --> AA
+```
+
+### State Synchronization
+
+| State | Source | Update Trigger |
+|-------|--------|----------------|
+| Playing/Paused | ExoPlayer | Player state change |
+| Position | PlaybackStateController | Position updates (debounced) |
+| Track metadata | TrackListStateManager | Track change |
+| Error state | ChronicleError | Playback error |
+
+---
+
 ## Safety Considerations
 
 - UI is simplified for driver safety
@@ -111,6 +181,6 @@ sequenceDiagram
 ## Related Documentation
 
 - [Features Index](../FEATURES.md) - Overview of all features
-- [Playback](playback.md) - Media playback architecture
+- [Playback](playback.md) - Media playback architecture and state management
 - [Settings](settings.md) - Enabling Android Auto
-- [Architecture Patterns](../architecture/patterns.md) - MediaBrowserService pattern
+- [Architecture Patterns](../architecture/patterns.md) - MediaBrowserService pattern, PlaybackStateController

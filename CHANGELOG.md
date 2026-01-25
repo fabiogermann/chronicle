@@ -53,3 +53,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Automatic changelog generation in GitHub release workflow
 - CHANGELOG.md file to track all notable changes to the project
+
+### Improved (Playback Robustness)
+
+#### Phase 1: Foundation - New Utility Classes
+- **ErrorHandling**: `ChronicleError` sealed class for structured error handling with categories (Network, Playback, Data, Authentication, Configuration)
+- **RetryHandler**: `withRetry()` function with exponential backoff, configurable max attempts, initial delay, max delay
+- **NetworkMonitor**: `NetworkState` sealed class with StateFlow observation for real-time connectivity monitoring
+- **ScopedCoroutineManager**: Replaces GlobalScope with proper lifecycle management
+
+#### Phase 2: Thread Safety - State Management
+- **PlaybackState**: New immutable data class for playback state with computed properties via `copy()` pattern
+- **PlaybackStateController**: Single source of truth for playback state with StateFlow-based reactive state management and debounced database persistence
+- **TrackListStateManager**: Added Mutex protection for thread-safe atomic state updates
+- **CurrentlyPlayingSingleton**: Now observes PlaybackStateController, bridges StateFlow to LiveData for UI consumption
+
+#### Phase 3: Network Resilience
+- **PlaybackUrlResolver**: Thread-safe URL caching, retry logic for URL resolution using exponential backoff
+- **PlexConfig**: Connection retry with exponential backoff, reduced initial timeout for faster failover
+
+#### Phase 4: Error Handling
+- **CachedFileManager**: Replaced GlobalScope with ScopedCoroutineManager for proper lifecycle management
+
+#### Phase 5: Playback Service
+- **SeekHandler**: New component for atomic seek operations with timeout, prevents seek race conditions
+- **ChapterValidator**: New component that validates positions against chapter bounds, prevents invalid chapter transitions
+- **CurrentlyPlayingBindingAdapters**: Safe valueTo adapter for Slider to prevent crash with 0 duration
+
+#### Phase 6: Android Auto
+- **MediaPlayerService**: Enhanced error handling with `[AndroidAuto]` log tags
+- **AudiobookMediaSessionCallback**: MediaSession state sync with PlaybackStateController, defensive null checks in browse tree operations
+
+### Documentation
+- Updated architecture documentation with new state management patterns
+- Added PlaybackStateController, retry with exponential backoff, and error handling patterns to patterns.md
+- Updated playback feature documentation with thread safety and error handling details
+- Enhanced Android Auto documentation with error handling and state sync details
+- Updated AGENT.md with new components and patterns
