@@ -127,7 +127,10 @@ class AppModule(private val app: Application) {
     @Singleton
     fun loggingInterceptor() =
         if (LOG_NETWORK_REQUESTS) {
-            HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+            HttpLoggingInterceptor { message ->
+                // Log at DEBUG level instead of INFO to reduce log verbosity
+                Timber.d(message)
+            }.setLevel(HttpLoggingInterceptor.Level.BODY)
         } else {
             HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.NONE)
         }

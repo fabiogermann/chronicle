@@ -73,6 +73,7 @@ class SimpleProgressUpdater
         private val workManager: WorkManager,
         private val prefsRepo: PrefsRepo,
         private val currentlyPlaying: CurrentlyPlaying,
+        private val playbackStateController: PlaybackStateController,
     ) : ProgressUpdater {
         var mediaController: MediaControllerCompat? = null
 
@@ -203,6 +204,13 @@ class SimpleProgressUpdater
                     "trackId=$trackId, " +
                     "playbackState=$playbackState")
 
+                // Find track index in the track list (0-based)
+                val trackIndex = tracks.indexOfFirst { it.id == trackId }
+                if (trackIndex >= 0) {
+                    // Update PlaybackStateController with current position
+                    playbackStateController.updatePosition(trackIndex, progress)
+                }
+
                 // Use the current progress from the player, not the stale value from DB
                 val trackWithCurrentProgress = track.copy(progress = progress)
                 
@@ -217,6 +225,8 @@ class SimpleProgressUpdater
                         "willUsePlayerPos=$progress")
                 }
                 
+                // Keep calling currentlyPlaying.update() for backward compatibility
+                // This will be a no-op once CurrentlyPlayingSingleton fully observes the controller
                 currentlyPlaying.update(
                     book = book ?: EMPTY_AUDIOBOOK,
                     track = trackWithCurrentProgress,

@@ -70,6 +70,8 @@ interface AppComponent {
     fun cachedFileManager(): ICachedFileManager
 
     fun currentlyPlaying(): CurrentlyPlaying
+    
+    fun playbackStateController(): local.oss.chronicle.features.player.PlaybackStateController
 
     fun fetch(): Fetch
 

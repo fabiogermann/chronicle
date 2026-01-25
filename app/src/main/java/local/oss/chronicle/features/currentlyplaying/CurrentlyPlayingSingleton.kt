@@ -133,25 +133,24 @@ class CurrentlyPlayingSingleton @Inject constructor(
     /**
      * Updates the current playback state with track, book, and chapter information.
      *
-     * **TEMPORARY RESTORATION:**
-     * This method was refactored to be a no-op as part of the state management migration,
-     * but the migration to PlaybackStateController integration in MediaPlayerService was
-     * never completed. This has been restored to fix the broken UI data flow.
+     * **MIGRATION COMPLETE (PR 5.3):**
+     * This method is now a no-op. All state updates are handled by PlaybackStateController.
+     * The method signature is kept for backward compatibility with existing callers.
      *
-     * **Future TODO:** Complete the migration by:
-     * 1. Injecting PlaybackStateController in MediaPlayerService
-     * 2. Calling playbackStateController.updatePosition() from ExoPlayer callbacks
-     * 3. Then this method can be converted back to a no-op
+     * State flow:
+     * - ProgressUpdater calls playbackStateController.updatePosition()
+     * - Controller updates its internal StateFlow
+     * - CurrentlyPlayingSingleton observes controller.state in init block
+     * - Backward compatibility flows are automatically updated
      *
-     * @param track The current track being played (with current progress)
-     * @param book The audiobook being played
-     * @param tracks All tracks in the audiobook
+     * @param track Ignored - for backward compatibility only
+     * @param book Ignored - for backward compatibility only
+     * @param tracks Ignored - for backward compatibility only
      */
     @Deprecated(
-        message = "State management migration incomplete. This method remains functional until PlaybackStateController is integrated in MediaPlayerService.",
+        message = "State is now managed by PlaybackStateController. This method is a no-op kept for backward compatibility.",
         replaceWith = ReplaceWith(
-            "playbackStateController.updatePosition(trackIndex, positionMs)",
-            "kotlinx.coroutines.launch"
+            "// State automatically updated via PlaybackStateController"
         ),
         level = DeprecationLevel.WARNING
     )
@@ -160,32 +159,8 @@ class CurrentlyPlayingSingleton @Inject constructor(
         book: Audiobook,
         tracks: List<MediaItemTrack>,
     ) {
-        // Update book
-        _book.value = book
-        
-        // Update track with current progress
-        _track.value = track
-        
-        // Calculate and update current chapter
-        val previousChapter = _chapter.value
-        
-        val chapters = if (book.chapters.isNotEmpty()) {
-            book.chapters
-        } else {
-            tracks.asChapterList()
-        }
-        
-        val currentChapter = if (chapters.isNotEmpty()) {
-            chapters.getChapterAt(track.id.toLong(), track.progress)
-        } else {
-            EMPTY_CHAPTER
-        }
-        
-        _chapter.value = currentChapter
-        
-        // Notify listener if chapter changed
-        if (previousChapter.id != currentChapter.id && currentChapter != EMPTY_CHAPTER) {
-            listener?.onChapterChange(currentChapter)
-        }
+        // No-op: State updates are handled by PlaybackStateController
+        // The init block observes playbackStateController.state and updates the flows
+        Timber.d("CurrentlyPlayingSingleton.update() called - delegating to PlaybackStateController (no-op)")
     }
 }

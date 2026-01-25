@@ -120,6 +120,9 @@ class MediaPlayerService :
     @Inject
     lateinit var plexLoginRepo: IPlexLoginRepo
 
+    @Inject
+    lateinit var playbackStateController: PlaybackStateController
+
     companion object {
         /** Strings used by plex to indicate playback state */
         const val PLEX_STATE_PLAYING = "playing"
@@ -555,6 +558,12 @@ class MediaPlayerService :
         } else {
             Timber.d("onDestroy: Skipping progress update - no valid track metadata available")
         }
+        
+        // Clear playback state in controller
+        serviceScope.launch {
+            playbackStateController.clear()
+        }
+        
         progressUpdater.cancel()
         serviceJob.cancel()
 
@@ -818,10 +827,18 @@ class MediaPlayerService :
                 playWhenReady: Boolean,
                 reason: Int,
             ) {
+                // Update playing state in controller
+                serviceScope.launch {
+                    playbackStateController.updatePlayingState(playWhenReady)
+                }
                 updateSessionPlaybackState()
             }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
+                // Update playing state in controller
+                serviceScope.launch {
+                    playbackStateController.updatePlayingState(isPlaying)
+                }
                 updateSessionPlaybackState()
             }
 

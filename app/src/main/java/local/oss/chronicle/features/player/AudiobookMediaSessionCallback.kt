@@ -57,6 +57,7 @@ class AudiobookMediaSessionCallback
         private val currentlyPlaying: CurrentlyPlaying,
         private val progressUpdater: ProgressUpdater,
         private val playbackUrlResolver: local.oss.chronicle.data.sources.plex.PlaybackUrlResolver,
+        private val playbackStateController: PlaybackStateController,
         defaultPlayer: ExoPlayer,
     ) : MediaSessionCompat.Callback() {
         // Default to ExoPlayer to prevent having a nullable field
@@ -398,6 +399,19 @@ class AudiobookMediaSessionCallback
                     else -> throw NoWhenBranchMatchedException("Unknown media player")
                 }
 
+                // Load the audiobook into PlaybackStateController
+                val chapters = book.chapters.ifEmpty { tracks.asChapterList() }
+                serviceScope.launch {
+                    playbackStateController.loadAudiobook(
+                        audiobook = book,
+                        tracks = tracks,
+                        chapters = chapters,
+                        startTrackIndex = startingTrackIndex,
+                        startPositionMs = trackListStateManager.currentTrackProgress
+                    )
+                }
+                
+                // Keep calling currentlyPlaying.update() for backward compatibility
                 currentlyPlaying.update(
                     book = book,
                     tracks = tracks,

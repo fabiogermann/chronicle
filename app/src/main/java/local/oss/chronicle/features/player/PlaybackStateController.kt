@@ -42,7 +42,7 @@ import javax.inject.Singleton
  * playbackStateController.state.collect { state ->
  *     updateUI(state)
  * }
- * 
+ *
  * // Update from player
  * playbackStateController.updatePosition(trackIndex, positionMs)
  * ```
