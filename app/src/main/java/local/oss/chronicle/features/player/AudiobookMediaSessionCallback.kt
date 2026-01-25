@@ -72,18 +72,26 @@ class AudiobookMediaSessionCallback
             query: String?,
             extras: Bundle?,
         ) {
-            Timber.i("Prepare from search!")
-            handleSearch(query, false)
+            Timber.i("[AndroidAuto] Prepare from search: $query")
+            try {
+                handleSearch(query, false)
+            } catch (e: Exception) {
+                Timber.e(e, "[AndroidAuto] Error in onPrepareFromSearch")
+            }
         }
-
+    
         override fun onPlayFromSearch(
             query: String?,
             extras: Bundle?,
         ) {
-            Timber.i("Play from search!")
-            handleSearch(query, true)
+            Timber.i("[AndroidAuto] Play from search: $query")
+            try {
+                handleSearch(query, true)
+            } catch (e: Exception) {
+                Timber.e(e, "[AndroidAuto] Error in onPlayFromSearch")
+            }
         }
-
+    
         private fun handleSearch(
             query: String?,
             playWhenReady: Boolean,
@@ -91,30 +99,46 @@ class AudiobookMediaSessionCallback
             if (query.isNullOrEmpty()) {
                 // take most recently played book, start that
                 serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
-                    val mostRecentlyPlayed = bookRepository.getMostRecentlyPlayed()
-                    val bookToPlay =
-                        if (mostRecentlyPlayed == EMPTY_AUDIOBOOK) {
-                            bookRepository.getRandomBookAsync()
-                        } else {
-                            mostRecentlyPlayed
+                    try {
+                        val mostRecentlyPlayed = bookRepository.getMostRecentlyPlayed()
+                        val bookToPlay =
+                            if (mostRecentlyPlayed == EMPTY_AUDIOBOOK) {
+                                bookRepository.getRandomBookAsync()
+                            } else {
+                                mostRecentlyPlayed
+                            }
+                        
+                        if (bookToPlay == EMPTY_AUDIOBOOK) {
+                            Timber.w("[AndroidAuto] No book available for empty search query")
+                            return@launch
                         }
-                    if (playWhenReady) {
-                        onPlayFromMediaId(bookToPlay.id.toString(), null)
-                    } else {
-                        onPrepareFromMediaId(bookToPlay.id.toString(), null)
+                        
+                        if (playWhenReady) {
+                            onPlayFromMediaId(bookToPlay.id.toString(), null)
+                        } else {
+                            onPrepareFromMediaId(bookToPlay.id.toString(), null)
+                        }
+                    } catch (e: Exception) {
+                        Timber.e(e, "[AndroidAuto] Error handling empty search query")
                     }
                 }
                 return
             }
             serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
-                val matchingBooks = bookRepository.searchAsync(query)
-                if (matchingBooks.isNotEmpty()) {
-                    val result = matchingBooks.first().id.toString()
-                    if (playWhenReady) {
-                        onPlayFromMediaId(result, null)
+                try {
+                    val matchingBooks = bookRepository.searchAsync(query)
+                    if (matchingBooks.isNotEmpty()) {
+                        val result = matchingBooks.first().id.toString()
+                        if (playWhenReady) {
+                            onPlayFromMediaId(result, null)
+                        } else {
+                            onPrepareFromMediaId(result, null)
+                        }
                     } else {
-                        onPrepareFromMediaId(result, null)
+                        Timber.w("[AndroidAuto] No matching books found for query: $query")
                     }
+                } catch (e: Exception) {
+                    Timber.e(e, "[AndroidAuto] Error searching for query: $query")
                 }
             }
         }
@@ -248,25 +272,32 @@ class AudiobookMediaSessionCallback
             bookId: String?,
             extras: Bundle?,
         ) {
-            if (bookId.isNullOrEmpty()) {
-                throw IllegalArgumentException(
-                    "MediaControllerCallback.onPlayFromMediaId() must be passed a Book ID. Received bookId = $bookId",
-                )
+            try {
+                if (bookId.isNullOrEmpty()) {
+                    Timber.e("[AndroidAuto] onPlayFromMediaId called with null/empty bookId")
+                    return
+                }
+                Timber.i("[AndroidAuto] Playing media from ID: $bookId")
+                playBook(bookId, extras ?: Bundle(), true)
+            } catch (e: Exception) {
+                Timber.e(e, "[AndroidAuto] Error in onPlayFromMediaId for bookId=$bookId")
             }
-            Timber.i("Playing media from ID!")
-            playBook(bookId, extras ?: Bundle(), true)
         }
-
+    
         override fun onPrepareFromMediaId(
             bookId: String?,
             extras: Bundle?,
         ) {
-            if (bookId.isNullOrEmpty()) {
-                throw IllegalArgumentException(
-                    "MediaControllerCallback.onPrepareFromMediaId() must be passed a Book ID. Received bookId = $bookId",
-                )
+            try {
+                if (bookId.isNullOrEmpty()) {
+                    Timber.e("[AndroidAuto] onPrepareFromMediaId called with null/empty bookId")
+                    return
+                }
+                Timber.i("[AndroidAuto] Preparing media from ID: $bookId")
+                playBook(bookId, extras ?: Bundle(), false)
+            } catch (e: Exception) {
+                Timber.e(e, "[AndroidAuto] Error in onPrepareFromMediaId for bookId=$bookId")
             }
-            playBook(bookId, extras ?: Bundle(), false)
         }
 
         private fun playBook(

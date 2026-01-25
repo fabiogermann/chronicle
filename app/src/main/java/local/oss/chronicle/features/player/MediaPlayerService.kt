@@ -242,6 +242,17 @@ class MediaPlayerService :
 
         // Register chapter change listener to update metadata when chapter changes
         currentlyPlaying.setOnChapterChangeListener(this)
+        
+        // Observe PlaybackStateController to keep MediaSession in sync
+        // This ensures Android Auto and other media clients always have current state
+        serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
+            playbackStateController.state.collect { state ->
+                Timber.d("[AndroidAuto] PlaybackStateController state changed: hasMedia=${state.hasMedia}, " +
+                    "isPlaying=${state.isPlaying}, trackIndex=${state.currentTrackIndex}")
+                // Trigger MediaSession update when controller state changes
+                updateSessionPlaybackState()
+            }
+        }
 
         // startForeground has to be called within 5 seconds of starting the service or the app
         // will ANR (on Android 9.0 and above, maybe earlier).
@@ -645,7 +656,10 @@ class MediaPlayerService :
         parentId: String,
         result: Result<MutableList<MediaBrowserCompat.MediaItem>>,
     ) {
+        Timber.d("[AndroidAuto] onLoadChildren: parentId=$parentId")
+        
         if (parentId == CHRONICLE_MEDIA_EMPTY_ROOT || !prefsRepo.allowAuto) {
+            Timber.d("[AndroidAuto] Returning empty result (empty root or auto disabled)")
             result.sendResult(mutableListOf())
             return
         }
@@ -656,6 +670,7 @@ class MediaPlayerService :
                 withContext(Dispatchers.IO) {
                     when (parentId) {
                         CHRONICLE_MEDIA_ROOT_ID -> {
+                            Timber.d("[AndroidAuto] Loading root categories")
                             result.sendResult(
                                 (
                                     listOf(
@@ -686,41 +701,53 @@ class MediaPlayerService :
                             )
                         }
                         getString(R.string.auto_category_recently_listened) -> {
+                            Timber.d("[AndroidAuto] Loading recently listened")
                             val recentlyListened = bookRepository.getRecentlyListenedAsync()
-                            result.sendResult(
-                                recentlyListened.map { it.toMediaItem(plexConfig) }
-                                    .toMutableList(),
-                            )
+                            val items = recentlyListened
+                                .filterNotNull()
+                                .map { it.toMediaItem(plexConfig) }
+                                .toMutableList()
+                            Timber.d("[AndroidAuto] Loaded ${items.size} recently listened items")
+                            result.sendResult(items)
                         }
                         getString(R.string.auto_category_recently_added) -> {
+                            Timber.d("[AndroidAuto] Loading recently added")
                             val recentlyAdded = bookRepository.getRecentlyAddedAsync()
-                            result.sendResult(
-                                recentlyAdded.map { it.toMediaItem(plexConfig) }
-                                    .toMutableList(),
-                            )
+                            val items = recentlyAdded
+                                .filterNotNull()
+                                .map { it.toMediaItem(plexConfig) }
+                                .toMutableList()
+                            Timber.d("[AndroidAuto] Loaded ${items.size} recently added items")
+                            result.sendResult(items)
                         }
                         getString(R.string.auto_category_library) -> {
+                            Timber.d("[AndroidAuto] Loading full library")
                             val books = bookRepository.getAllBooksAsync()
-                            result.sendResult(
-                                books.map { it.toMediaItem(plexConfig) }
-                                    .toMutableList(),
-                            )
+                            val items = books
+                                .filterNotNull()
+                                .map { it.toMediaItem(plexConfig) }
+                                .toMutableList()
+                            Timber.d("[AndroidAuto] Loaded ${items.size} library items")
+                            result.sendResult(items)
                         }
                         getString(R.string.auto_category_offline) -> {
+                            Timber.d("[AndroidAuto] Loading offline content")
                             val offline = bookRepository.getCachedAudiobooksAsync()
-                            result.sendResult(
-                                offline.map { it.toMediaItem(plexConfig) }
-                                    .toMutableList(),
-                            )
+                            val items = offline
+                                .filterNotNull()
+                                .map { it.toMediaItem(plexConfig) }
+                                .toMutableList()
+                            Timber.d("[AndroidAuto] Loaded ${items.size} offline items")
+                            result.sendResult(items)
                         }
                         else -> {
-                            Timber.w("Unknown parentId in onLoadChildren: $parentId")
+                            Timber.w("[AndroidAuto] Unknown parentId in onLoadChildren: $parentId")
                             result.sendResult(mutableListOf())
                         }
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Error loading children for parentId: $parentId")
+                Timber.e(e, "[AndroidAuto] Error loading children for parentId: $parentId")
                 result.sendResult(mutableListOf())
             }
         }
@@ -731,14 +758,34 @@ class MediaPlayerService :
         extras: Bundle?,
         result: Result<MutableList<MediaBrowserCompat.MediaItem>>,
     ) {
-        Timber.i("Searching! Query = $query")
+        Timber.i("[AndroidAuto] onSearch: query='$query'")
+        
+        if (!prefsRepo.allowAuto) {
+            Timber.w("[AndroidAuto] Search rejected - Android Auto is disabled")
+            result.sendResult(mutableListOf())
+            return
+        }
+        
+        if (query.isBlank()) {
+            Timber.w("[AndroidAuto] Empty search query")
+            result.sendResult(mutableListOf())
+            return
+        }
+        
         result.detach()
         serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
             try {
-                val books = bookRepository.searchAsync(query)
-                result.sendResult(books.map { it.toMediaItem(plexConfig) }.toMutableList())
+                withContext(Dispatchers.IO) {
+                    val books = bookRepository.searchAsync(query)
+                    val items = books
+                        .filterNotNull()
+                        .map { it.toMediaItem(plexConfig) }
+                        .toMutableList()
+                    Timber.d("[AndroidAuto] Search found ${items.size} results for: $query")
+                    result.sendResult(items)
+                }
             } catch (e: Exception) {
-                Timber.e(e, "Error searching for: $query")
+                Timber.e(e, "[AndroidAuto] Error searching for: $query")
                 result.sendResult(mutableListOf())
             }
         }
@@ -749,7 +796,7 @@ class MediaPlayerService :
         clientUid: Int,
         rootHints: Bundle?,
     ): BrowserRoot? {
-        Timber.i("Getting root!")
+        Timber.i("[AndroidAuto] onGetRoot: package=$clientPackageName, uid=$clientUid")
 
         val isClientLegal = packageValidator.isKnownCaller(clientPackageName, clientUid) || BuildConfig.DEBUG
 
@@ -770,42 +817,49 @@ class MediaPlayerService :
 
         return when {
             !prefsRepo.allowAuto -> {
+                Timber.w("[AndroidAuto] Access denied - Android Auto is disabled")
                 setSessionCustomErrorMessage(
                     getString(R.string.auto_access_error_auto_is_disabled),
                 )
                 BrowserRoot(CHRONICLE_MEDIA_EMPTY_ROOT, extras)
             }
             !isClientLegal -> {
+                Timber.w("[AndroidAuto] Access denied - invalid client: $clientPackageName")
                 setSessionCustomErrorMessage(
                     getString(R.string.auto_access_error_invalid_client),
                 )
                 BrowserRoot(CHRONICLE_MEDIA_EMPTY_ROOT, extras)
             }
             plexLoginRepo.loginEvent.value?.peekContent() == NOT_LOGGED_IN -> {
+                Timber.w("[AndroidAuto] Access denied - not logged in")
                 setSessionCustomErrorMessage(
                     getString(R.string.auto_access_error_not_logged_in),
                 )
                 BrowserRoot(CHRONICLE_MEDIA_EMPTY_ROOT, extras)
             }
             plexLoginRepo.loginEvent.value?.peekContent() == LOGGED_IN_NO_USER_CHOSEN -> {
+                Timber.w("[AndroidAuto] Access denied - no user chosen")
                 setSessionCustomErrorMessage(
                     getString(R.string.auto_access_error_no_user_chosen),
                 )
                 BrowserRoot(CHRONICLE_MEDIA_EMPTY_ROOT, extras)
             }
             plexLoginRepo.loginEvent.value?.peekContent() == LOGGED_IN_NO_SERVER_CHOSEN -> {
+                Timber.w("[AndroidAuto] Access denied - no server chosen")
                 setSessionCustomErrorMessage(
                     getString(R.string.auto_access_error_no_server_chosen),
                 )
                 BrowserRoot(CHRONICLE_MEDIA_EMPTY_ROOT, extras)
             }
             plexLoginRepo.loginEvent.value?.peekContent() == LOGGED_IN_NO_LIBRARY_CHOSEN -> {
+                Timber.w("[AndroidAuto] Access denied - no library chosen")
                 setSessionCustomErrorMessage(
                     getString(R.string.auto_access_error_no_library_chosen),
                 )
                 BrowserRoot(CHRONICLE_MEDIA_EMPTY_ROOT, extras)
             }
             else -> {
+                Timber.d("[AndroidAuto] Access granted")
                 setSessionCustomErrorMessage(null)
                 BrowserRoot(CHRONICLE_MEDIA_ROOT_ID, extras)
             }
