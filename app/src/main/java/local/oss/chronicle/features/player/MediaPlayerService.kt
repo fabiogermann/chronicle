@@ -540,15 +540,20 @@ class MediaPlayerService :
     override fun onDestroy() {
         Timber.i("Service destroyed")
         // Send one last update to local/remote servers that playback has stopped
-        val trackId = mediaController.metadata.id
+        val metadata = mediaController.metadata
+        val trackId = metadata?.id
+        Timber.d("onDestroy: metadata=${if (metadata != null) "present" else "null"}, trackId=$trackId")
         if (trackId != null && trackId.toInt() != TRACK_NOT_FOUND) {
             val finalPosition = currentPlayer?.currentPosition ?: 0L
+            Timber.d("onDestroy: Sending final progress update for trackId=$trackId, position=$finalPosition")
             progressUpdater.updateProgress(
                 trackId.toInt(),
                 PLEX_STATE_STOPPED,
                 finalPosition,
                 true,
             )
+        } else {
+            Timber.d("onDestroy: Skipping progress update - no valid track metadata available")
         }
         progressUpdater.cancel()
         serviceJob.cancel()

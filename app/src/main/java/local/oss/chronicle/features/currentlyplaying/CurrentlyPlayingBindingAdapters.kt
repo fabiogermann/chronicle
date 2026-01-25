@@ -8,6 +8,7 @@ import androidx.constraintlayout.widget.ConstraintSet.*
 import androidx.databinding.BindingAdapter
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.transition.AutoTransition
+import com.google.android.material.slider.Slider
 import local.oss.chronicle.R
 import local.oss.chronicle.application.MainActivityViewModel
 import local.oss.chronicle.application.MainActivityViewModel.BottomSheetState.*
@@ -56,4 +57,33 @@ private fun expandConstraint(constraintSet: ConstraintSet) {
 private fun hideConstraint(constraintSet: ConstraintSet) {
     constraintSet.connect(R.id.currently_playing_container, TOP, R.id.bottom_nav, TOP)
     constraintSet.connect(R.id.currently_playing_container, BOTTOM, R.id.bottom_nav, TOP)
+}
+
+/**
+ * Binding adapter that safely sets the Slider's valueTo property.
+ * Ensures valueTo is always greater than valueFrom to prevent IllegalStateException.
+ *
+ * When chapter data is not yet loaded, duration may be 0, which would cause
+ * the Slider to crash with "valueFrom(0.0) must be smaller than valueTo(0.0)".
+ * This adapter ensures a minimum value of 1 is used when the duration is 0 or negative.
+ */
+@BindingAdapter("safeValueTo")
+fun setSafeValueTo(slider: Slider, valueTo: Int) {
+    // Ensure valueTo is always greater than valueFrom (which defaults to 0)
+    // Use 1 as the minimum to prevent the IllegalStateException
+    val safeValueTo = if (valueTo <= slider.valueFrom) {
+        1f
+    } else {
+        valueTo.toFloat()
+    }
+
+    // Only update if the value has changed to avoid unnecessary updates
+    if (slider.valueTo != safeValueTo) {
+        slider.valueTo = safeValueTo
+
+        // Also ensure the current value doesn't exceed the new maximum
+        if (slider.value > safeValueTo) {
+            slider.value = safeValueTo
+        }
+    }
 }

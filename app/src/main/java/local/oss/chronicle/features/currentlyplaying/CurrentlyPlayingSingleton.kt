@@ -1,6 +1,8 @@
 package local.oss.chronicle.features.currentlyplaying
 
 import local.oss.chronicle.data.model.*
+import local.oss.chronicle.data.model.asChapterList
+import local.oss.chronicle.data.model.getChapterAt
 import local.oss.chronicle.features.player.OnChapterChangeListener as NewOnChapterChangeListener
 import local.oss.chronicle.features.player.PlaybackStateController
 import kotlinx.coroutines.CoroutineScope
@@ -129,18 +131,24 @@ class CurrentlyPlayingSingleton @Inject constructor(
     }
 
     /**
-     * @deprecated State is now managed by [PlaybackStateController].
-     * This method is kept for backward compatibility but does nothing.
-     * 
-     * **Migration:** Call [PlaybackStateController.updatePosition] instead.
-     * 
-     * **Why deprecated:**
-     * This method previously caused Critical Issue C1 where chapter detection
-     * used stale DB progress. Now all updates go through the controller which
-     * uses ExoPlayer's authoritative position.
+     * Updates the current playback state with track, book, and chapter information.
+     *
+     * **TEMPORARY RESTORATION:**
+     * This method was refactored to be a no-op as part of the state management migration,
+     * but the migration to PlaybackStateController integration in MediaPlayerService was
+     * never completed. This has been restored to fix the broken UI data flow.
+     *
+     * **Future TODO:** Complete the migration by:
+     * 1. Injecting PlaybackStateController in MediaPlayerService
+     * 2. Calling playbackStateController.updatePosition() from ExoPlayer callbacks
+     * 3. Then this method can be converted back to a no-op
+     *
+     * @param track The current track being played (with current progress)
+     * @param book The audiobook being played
+     * @param tracks All tracks in the audiobook
      */
     @Deprecated(
-        message = "State is now managed by PlaybackStateController. This is a no-op.",
+        message = "State management migration incomplete. This method remains functional until PlaybackStateController is integrated in MediaPlayerService.",
         replaceWith = ReplaceWith(
             "playbackStateController.updatePosition(trackIndex, positionMs)",
             "kotlinx.coroutines.launch"
@@ -152,9 +160,32 @@ class CurrentlyPlayingSingleton @Inject constructor(
         book: Audiobook,
         tracks: List<MediaItemTrack>,
     ) {
-        // No-op - state is derived from PlaybackStateController
-        Timber.w("[Deprecated] CurrentlyPlayingSingleton.update() called but is deprecated. " +
-            "State is now managed by PlaybackStateController. " +
-            "This call is ignored to prevent state inconsistencies.")
+        // Update book
+        _book.value = book
+        
+        // Update track with current progress
+        _track.value = track
+        
+        // Calculate and update current chapter
+        val previousChapter = _chapter.value
+        
+        val chapters = if (book.chapters.isNotEmpty()) {
+            book.chapters
+        } else {
+            tracks.asChapterList()
+        }
+        
+        val currentChapter = if (chapters.isNotEmpty()) {
+            chapters.getChapterAt(track.id.toLong(), track.progress)
+        } else {
+            EMPTY_CHAPTER
+        }
+        
+        _chapter.value = currentChapter
+        
+        // Notify listener if chapter changed
+        if (previousChapter.id != currentChapter.id && currentChapter != EMPTY_CHAPTER) {
+            listener?.onChapterChange(currentChapter)
+        }
     }
 }
