@@ -15,7 +15,7 @@ This document provides a high-level overview of Chronicle's architecture. For de
 | [Architecture Layers](architecture/layers.md) | Detailed description of Presentation, Domain, and Data layers |
 | [Dependency Injection](architecture/dependency-injection.md) | Dagger 2 component hierarchy, modules, and scopes |
 | [Architectural Patterns](architecture/patterns.md) | Key patterns: Repository, MVVM, MediaBrowserService, State Machines |
-| [Plex Integration](architecture/plex-integration.md) | Plex API integration, client profiles, bandwidth-aware playback |
+| [Plex Integration](architecture/plex-integration.md) | Plex API integration, server connection selection, client profiles, bandwidth-aware playback |
 
 ---
 
@@ -156,11 +156,12 @@ Chronicle uses Dagger 2 with a three-component hierarchy:
 
 Chronicle integrates with Plex Media Server for:
 - OAuth authentication via plex.tv
+- **Server connection selection** - Automatic selection from multiple URIs (local, remote, relay)
 - Library browsing and metadata
 - Audio streaming with bandwidth-aware playback
 - Playback position sync
 
-→ See [Plex Integration](architecture/plex-integration.md) for API details and implementation.
+→ See [Plex Integration](architecture/plex-integration.md) for API details, server connection selection, and implementation.
 
 ---
 

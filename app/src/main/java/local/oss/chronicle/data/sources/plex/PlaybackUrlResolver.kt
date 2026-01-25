@@ -234,7 +234,9 @@ class PlaybackUrlResolver @Inject constructor(
             ?: throw IllegalStateException("Decision succeeded but no stream URL returned for track ${track.id}")
         
         // Convert to full URL with server
+        Timber.d("URL_DEBUG: Resolving playback URL - server base: ${plexConfig.url}, relative path: $streamUrl")
         val fullUrl = plexConfig.toServerString(streamUrl)
+        Timber.d("URL_DEBUG: Resolved playback URL - full URL: $fullUrl")
         Timber.i("Resolved streaming URL for track ${track.id}: $streamUrl")
         return fullUrl
     }

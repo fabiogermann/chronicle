@@ -124,38 +124,262 @@ See [`PlaybackUrlResolver`](../../app/src/main/java/local/oss/chronicle/data/sou
 
 ---
 
-## Connection Management
+## Server Connection Selection
 
-Chronicle supports multiple connection types to Plex servers:
+Chronicle must handle multiple connection URIs for each Plex server (local IP addresses, remote URLs, plex.direct relay addresses). The connection selection system automatically chooses the best available connection and adapts to network changes.
 
-### Connection Types
+### The Connection Problem
 
-| Type | Description | Use Case |
-|------|-------------|----------|
-| **Local** | Direct LAN connection | Same network as server |
-| **Remote** | Direct WAN connection | Port forwarded server |
-| **Relay** | Plex relay servers | Server behind NAT without port forwarding |
+When querying plex.tv for available servers, each server returns multiple `Connection` objects with different URIs:
 
-### Connection Selection
+- **Local connections** - Direct LAN access (e.g., `http://192.168.1.100:32400`)
+- **Remote connections** - Direct WAN access (e.g., `http://203.0.113.42:32400`)
+- **Relay connections** - Plex.direct relay URLs (e.g., `https://abc123.plex.direct:443`)
+
+The app must:
+1. Test all connections to find working ones
+2. Prefer local connections when available (lowest latency)
+3. Adapt to network changes (switching between WiFi/cellular)
+4. Persist connections across app restarts
+
+### Connection Flow Overview
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant ChooseServerVM as ChooseServerViewModel
+    participant PlexLoginRepo
+    participant PlexConfig
+    participant PlexMediaService
+    participant PlexPrefsRepo as SharedPreferencesPlexPrefsRepo
+    
+    Note over User,PlexPrefsRepo: Initial Login Flow
+    User->>ChooseServerVM: Select server from list
+    ChooseServerVM->>PlexLoginRepo: chooseServer(serverModel)
+    PlexLoginRepo->>PlexConfig: setPotentialConnections(connections)
+    Note over PlexConfig: Stores connections in<br/>connectionSet
+    PlexLoginRepo->>PlexPrefsRepo: server = serverModel
+    Note over PlexPrefsRepo: Persists server + connections<br/>to SharedPreferences
+    
+    Note over User,PlexPrefsRepo: App Startup / Network Change
+    PlexConfig->>PlexConfig: chooseViableConnections()
+    Note over PlexConfig: Tests all connections in parallel,<br/>prioritizing local (sorted by local flag)
+    
+    par Test each connection in parallel
+        PlexConfig->>PlexMediaService: checkServer(connection1.uri)
+        PlexConfig->>PlexMediaService: checkServer(connection2.uri)
+        PlexConfig->>PlexMediaService: checkServer(connection3.uri)
+    end
+    
+    PlexMediaService-->>PlexConfig: First successful response
+    Note over PlexConfig: First success wins,<br/>cancel remaining tests
+    PlexConfig->>PlexConfig: url = successful_connection.uri
+    Note over PlexConfig: PlexConfig.url now used<br/>for all API calls
+```
+
+### Detailed Connection Selection Process
+
+#### 1. Server Discovery (Login Flow)
+
+When a user logs in, [`ChooseServerViewModel`](../../app/src/main/java/local/oss/chronicle/features/login/ChooseServerViewModel.kt:53-76) fetches available servers from plex.tv:
+
+```kotlin
+// ChooseServerViewModel.loadServers()
+val serverContainer = plexLoginService.resources()
+val servers = serverContainer
+    .filter { it.provides.contains("server") }
+    .map { it.asServer() }
+```
+
+Each server contains multiple `Connection` objects with different URIs.
+
+#### 2. User Selection & Storage
+
+When the user selects a server, [`PlexLoginRepo.chooseServer()`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexLoginRepo.kt:151-157) stores all connections:
+
+```kotlin
+// PlexLoginRepo.chooseServer()
+plexConfig.setPotentialConnections(serverModel.connections)
+plexPrefsRepo.server = serverModel
+```
+
+The connections are persisted to [`SharedPreferences`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt:149-167) as part of the `ServerModel`.
+
+#### 3. Parallel Connection Testing
+
+When the app needs to connect (startup or network change), [`PlexConfig.chooseViableConnections()`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt:369-465) tests all connections in parallel:
+
+**Key characteristics:**
+- **Sorted by local flag** - Local connections tested first for priority
+- **Parallel execution** - All connections tested simultaneously using coroutines
+- **First success wins** - Returns immediately on first successful connection
+- **Timeout protection** - 10 second timeout per connection attempt
+- **Cancellation** - Remaining tests cancelled once one succeeds
+
+```kotlin
+// PlexConfig.chooseViableConnections()
+val connections = connectionSet.sortedByDescending { it.local }
+
+// Test all in parallel
+val deferredConnections = connections.map { conn ->
+    async {
+        val result = plexMediaService.checkServer(conn.uri)
+        if (result.isSuccessful) {
+            Success(conn.uri)
+        } else {
+            Failure(result.message() ?: "Failed")
+        }
+    }
+}
+
+// Return first success
+while (deferredConnections.any { it.isActive }) {
+    deferredConnections.forEach { deferred ->
+        if (deferred.isCompleted && deferred.getCompleted() is Success) {
+            deferredConnections.forEach { it.cancel() }
+            return@withTimeoutOrNull completed
+        }
+    }
+}
+```
+
+#### 4. Selected URL Storage
+
+The winning connection URI is stored in [`PlexConfig.url`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt:66):
+
+```kotlin
+// PlexConfig.connectToServerInternal()
+if (connectionResult is Success && connectionResult.url != PLACEHOLDER_URL) {
+    url = connectionResult.url
+}
+```
+
+This `url` field is used by:
+- All Plex API calls via [`PlexConfig.toServerString()`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt:97-107)
+- [`PlaybackUrlResolver`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlaybackUrlResolver.kt) for streaming URLs
+- Image thumbnail generation via [`PlexConfig.makeThumbUri()`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt:165-175)
+
+### App Startup Connection Refresh
+
+On app startup, [`ChronicleApplication.setupNetwork()`](../../app/src/main/java/local/oss/chronicle/application/ChronicleApplication.kt:136-207) refreshes connections by merging stored and fresh data:
 
 ```mermaid
 flowchart TD
-    Start[Need to connect] --> GetConnections[Get potential connections from Plex]
-    GetConnections --> TestLocal{Test local connection}
-    TestLocal -->|Success| UseLocal[Use local connection]
-    TestLocal -->|Fail| TestRemote{Test remote connection}
-    TestRemote -->|Success| UseRemote[Use remote connection]
-    TestRemote -->|Fail| TestRelay{Test relay connection}
-    TestRelay -->|Success| UseRelay[Use relay connection]
-    TestRelay -->|Fail| ConnectionFailed[Connection failed]
+    Start[App Startup] --> LoadStored[Load stored server from SharedPreferences]
+    LoadStored --> SetPotential[Set stored connections in PlexConfig]
+    SetPotential --> FetchFresh[Fetch fresh connections from plex.tv]
+    FetchFresh --> Timeout{Timeout 4s?}
+    Timeout -->|Success| MergeConnections[Merge stored + fresh connections]
+    Timeout -->|Timeout| UseStored[Use only stored connections]
+    MergeConnections --> UpdatePrefs[Update SharedPreferences with merged list]
+    UpdatePrefs --> TestConnections[Test all connections via chooseViableConnections]
+    UseStored --> TestConnections
+    TestConnections --> SetURL[Set PlexConfig.url to winning connection]
 ```
 
-### Implementation
+**Why merge stored + fresh?**
+- **Stored connections** may have changed (server IP changed)
+- **Fresh connections** require network call to plex.tv (may fail if offline)
+- **Merging** maximizes likelihood of finding a working connection
 
-Connection management is handled by [`PlexConfig`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt), which:
-- Tests connections in priority order (local → remote → relay)
-- Caches successful connection for reuse
-- Handles connection failures gracefully
+```kotlin
+// ChronicleApplication.setupNetwork()
+val server = plexPrefs.server
+plexConfig.setPotentialConnections(server.connections)
+
+val retrievedConnections = withTimeoutOrNull(4000L) {
+    plexLoginService.resources()
+        .filter { it.provides.contains("server") }
+        .map { it.asServer() }
+        .filter { it.serverId == server.serverId }
+        .flatMap { it.connections }
+} ?: emptyList()
+
+val mergedConnections = server.connections + retrievedConnections
+plexPrefs.server = server.copy(connections = mergedConnections)
+plexConfig.connectToServer(plexMediaService)
+```
+
+### Network Change Handling
+
+Chronicle monitors network connectivity via [`ConnectivityManager.NetworkCallback`](../../app/src/main/java/local/oss/chronicle/application/ChronicleApplication.kt:140-158):
+
+- **`onAvailable()`** - Network becomes available → reconnect to server
+- **`onLost()`** - Network lost → update connection state to NOT_CONNECTED
+
+This allows the app to automatically switch between WiFi and cellular, preferring local connections when on the same network as the server.
+
+### Connection Types
+
+| Type | Example | Characteristics |
+|------|---------|----------------|
+| **Local** | `http://192.168.1.100:32400` | Low latency, only works on same LAN, highest priority |
+| **Remote** | `http://203.0.113.42:32400` | Direct connection over internet, requires port forwarding |
+| **Relay** | `https://abc-123-xyz.plex.direct:443` | Plex relay servers, works behind NAT, higher latency |
+
+Local connections are identified by the `Connection.local` boolean flag from plex.tv.
+
+### Retry Logic
+
+Connection attempts use exponential backoff retry logic via [`PlexConfig.connectToServerWithRetry()`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt:280-310):
+
+**Retry configuration:**
+- **Max attempts:** 3
+- **Initial delay:** 1 second
+- **Max delay:** 5 seconds
+- **Multiplier:** 2.0 (exponential backoff)
+- **Retryable errors:** `SocketTimeoutException`, `UnknownHostException`, `ConnectException`, `IOException`
+
+### Connection State Management
+
+[`PlexConfig.connectionState`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt:72-85) LiveData exposes connection status to the UI:
+
+| State | Meaning |
+|-------|---------|
+| `CONNECTING` | Testing connections in progress |
+| `CONNECTED` | Successfully connected to server |
+| `NOT_CONNECTED` | Network lost or not yet connected |
+| `CONNECTION_FAILED` | All connection attempts failed |
+
+### Debug Logging
+
+The codebase includes extensive debug logging with the `URL_DEBUG` tag for troubleshooting connection issues:
+
+```kotlin
+Timber.d("URL_DEBUG: Discovered ${servers.size} servers from plex.tv")
+Timber.d("URL_DEBUG: User selected server '${serverModel.name}' with ${serverModel.connections.size} connections")
+Timber.d("URL_DEBUG: Testing ${connections.size} connections")
+Timber.d("URL_DEBUG: Connection test SUCCESS: ${conn.uri} (local=${conn.local})")
+Timber.d("URL_DEBUG: SELECTED URL (first success): ${completed.url}")
+Timber.d("URL_DEBUG: Connection established - PlexConfig.url set to: $url")
+```
+
+Filter Logcat by `URL_DEBUG` to trace the entire connection selection flow.
+
+### Key Files & Responsibilities
+
+| File | Responsibility |
+|------|----------------|
+| [`PlexConfig.kt`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt) | Manages `connectionSet`, tests connections in parallel, stores selected `url` |
+| [`PlexConfig.chooseViableConnections()`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt:369-465) | Core parallel connection testing logic with timeout |
+| [`PlexConfig.setPotentialConnections()`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt:177-181) | Sets available connections from server selection or app startup |
+| [`ChooseServerViewModel.loadServers()`](../../app/src/main/java/local/oss/chronicle/features/login/ChooseServerViewModel.kt:53-76) | Fetches servers from plex.tv during login |
+| [`PlexLoginRepo.chooseServer()`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexLoginRepo.kt:151-157) | Handles user server selection, stores connections |
+| [`SharedPreferencesPlexPrefsRepo`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt:133-167) | Persists server and connections to SharedPreferences |
+| [`ChronicleApplication.setupNetwork()`](../../app/src/main/java/local/oss/chronicle/application/ChronicleApplication.kt:136-207) | App startup connection refresh with stored + fresh connection merge |
+| [`PlaybackUrlResolver`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlaybackUrlResolver.kt) | Uses `PlexConfig.url` to resolve streaming URLs |
+
+### Connection Endpoint
+
+Connections are tested via the Plex `/identity` endpoint:
+
+```kotlin
+// PlexService.kt
+@GET("/identity")
+suspend fun checkServer(@Url serverUrl: String): Response<PlexMediaContainer>
+```
+
+This lightweight endpoint verifies server reachability without transferring large amounts of data.
 
 ---
 

@@ -150,6 +150,7 @@ class PlexLoginRepo
 
         override fun chooseServer(serverModel: ServerModel) {
             Timber.i("User chose server: $serverModel")
+            Timber.d("URL_DEBUG: User selected server '${serverModel.name}' with ${serverModel.connections.size} connections: ${serverModel.connections.map { "${it.uri} (local=${it.local})" }}")
             plexConfig.setPotentialConnections(serverModel.connections)
             plexPrefsRepo.server = serverModel
             _loginState.postEvent(LOGGED_IN_NO_LIBRARY_CHOSEN)

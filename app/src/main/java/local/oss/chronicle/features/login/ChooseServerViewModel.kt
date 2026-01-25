@@ -57,11 +57,16 @@ class ChooseServerViewModel
                     val serverContainer = plexLoginService.resources()
                     Timber.i("Server: $serverContainer")
                     _loadingStatus.value = LoadingStatus.DONE
-                    _servers.postValue(
-                        serverContainer
-                            .filter { it.provides.contains("server") }
-                            .map { it.asServer() },
-                    )
+                    val servers = serverContainer
+                        .filter { it.provides.contains("server") }
+                        .map { it.asServer() }
+                    
+                    Timber.d("URL_DEBUG: Discovered ${servers.size} servers from plex.tv:")
+                    servers.forEach { server ->
+                        Timber.d("URL_DEBUG:   Server '${server.name}' has ${server.connections.size} connections: ${server.connections.map { "${it.uri} (local=${it.local})" }}")
+                    }
+                    
+                    _servers.postValue(servers)
                 } catch (e: Throwable) {
                     Timber.e(e, "Failed to get servers")
                     _userMessage.postEvent("Failed to load servers: ${e.message}")

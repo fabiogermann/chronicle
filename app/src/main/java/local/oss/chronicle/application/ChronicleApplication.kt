@@ -169,6 +169,7 @@ open class ChronicleApplication : Application() {
         }
         val server = plexPrefs.server
         if (server != null) {
+            Timber.d("URL_DEBUG: App startup - stored server '${server.name}' has ${server.connections.size} connections: ${server.connections.map { "${it.uri} (local=${it.local})" }}")
             plexConfig.setPotentialConnections(server.connections)
             applicationScope.launch(unhandledExceptionHandler) {
                 val retrievedConnections: List<Connection> =
@@ -184,10 +185,15 @@ open class ChronicleApplication : Application() {
                             emptyList()
                         }
                     } ?: emptyList()
+                Timber.d("URL_DEBUG: App startup - retrieved ${retrievedConnections.size} fresh connections from plex.tv: ${retrievedConnections.map { "${it.uri} (local=${it.local})" }}")
                 Timber.i("Updated new connections: $retrievedConnections")
+                
+                val mergedConnections = server.connections + retrievedConnections
+                Timber.d("URL_DEBUG: App startup - merged total ${mergedConnections.size} connections: ${mergedConnections.map { "${it.uri} (local=${it.local})" }}")
+                
                 plexPrefs.server =
                     server.copy(
-                        connections = server.connections + retrievedConnections,
+                        connections = mergedConnections,
                     )
                 Timber.i("Retrieved new connections: $retrievedConnections")
                 try {

@@ -175,6 +175,7 @@ class PlexConfig
         }
 
         fun setPotentialConnections(connections: List<Connection>) {
+            Timber.d("URL_DEBUG: Setting ${connections.size} potential connections: ${connections.map { "${it.uri} (local=${it.local})" }}")
             connectionSet.clear()
             connectionSet.addAll(connections)
         }
@@ -342,6 +343,7 @@ class PlexConfig
                 
                 if (connectionResult is Success && connectionResult.url != PLACEHOLDER_URL) {
                     url = connectionResult.url
+                    Timber.d("URL_DEBUG: Connection established - PlexConfig.url set to: $url")
                     Timber.d("Connection established in ${elapsed}ms to: $url")
                     return true
                 } else {
@@ -379,19 +381,26 @@ class PlexConfig
         private suspend fun chooseViableConnections(plexMediaService: PlexMediaService): ConnectionResult {
             val timeoutFailureReason = "Connection timed out"
             val connections = connectionSet.sortedByDescending { it.local }
+            Timber.d("URL_DEBUG: Testing ${connections.size} connections: ${connections.map { "${it.uri} (local=${it.local})" }}")
             
             //  If there's only one connection, don't catch exceptions - let them propagate for proper retry handling
             if (connections.size == 1) {
                 val conn = connections.first()
+                Timber.d("URL_DEBUG: Testing single connection: ${conn.uri} (local=${conn.local})")
                 Timber.i("Testing single connection: ${conn.uri}")
                 return withTimeoutOrNull(CONNECTION_TIMEOUT_MS) {
                     val result = plexMediaService.checkServer(conn.uri)
                     if (result.isSuccessful) {
+                        Timber.d("URL_DEBUG: Single connection test SUCCESS: ${conn.uri}")
                         Success(conn.uri)
                     } else {
+                        Timber.d("URL_DEBUG: Single connection test FAILED: ${conn.uri} - ${result.message()}")
                         Failure(result.message() ?: "Failed for unknown reason")
                     }
-                } ?: Failure(timeoutFailureReason)
+                } ?: run {
+                    Timber.d("URL_DEBUG: Single connection test TIMEOUT: ${conn.uri}")
+                    Failure(timeoutFailureReason)
+                }
             }
             
             // Multiple connections - catch exceptions and try all
@@ -405,11 +414,14 @@ class PlexConfig
                             try {
                                 val result = plexMediaService.checkServer(conn.uri)
                                 if (result.isSuccessful) {
+                                    Timber.d("URL_DEBUG: Connection test SUCCESS: ${conn.uri} (local=${conn.local})")
                                     return@async Success(conn.uri)
                                 } else {
+                                    Timber.d("URL_DEBUG: Connection test FAILED: ${conn.uri} (local=${conn.local}) - ${result.message()}")
                                     return@async Failure(result.message() ?: unknownFailureReason)
                                 }
                             } catch (e: Throwable) {
+                                Timber.d("URL_DEBUG: Connection test EXCEPTION: ${conn.uri} (local=${conn.local}) - ${e.message}")
                                 // Preserve original exception for proper retry handling
                                 return@async Failure(e.localizedMessage ?: unknownFailureReason, e)
                             }
@@ -422,6 +434,7 @@ class PlexConfig
                         if (deferred.isCompleted) {
                             val completed = deferred.getCompleted()
                             if (completed is Success) {
+                                Timber.d("URL_DEBUG: SELECTED URL (first success): ${completed.url}")
                                 Timber.i("Returning connection $completed")
                                 deferredConnections.forEach { it.cancel("Sibling completed, killing connection attempt: $it") }
                                 return@withTimeoutOrNull completed
@@ -435,6 +448,8 @@ class PlexConfig
                 Timber.i("Connections: $deferredConnections")
                 deferredConnections.forEach { deferred ->
                     if (deferred.isCompleted && deferred.getCompleted() is Success) {
+                        val success = deferred.getCompleted() as Success
+                        Timber.d("URL_DEBUG: SELECTED URL (final check): ${success.url}")
                         Timber.i("Returning final completed connection ${deferred.getCompleted()}")
                         return@withTimeoutOrNull deferred.getCompleted()
                     } else {
