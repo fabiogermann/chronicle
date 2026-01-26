@@ -179,6 +179,14 @@ class PlexConfig
             connectionSet.clear()
             connectionSet.addAll(connections)
         }
+    
+        /**
+         * Returns the current set of potential server connections.
+         * Used by debug tools to display connection options.
+         */
+        fun getAvailableConnections(): Set<Connection> {
+            return connectionSet.toSet() // Return a copy to prevent modification
+        }
 
         /**
          * Indicates to observers that connectivity has been lost, but does not update URL yet, as

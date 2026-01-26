@@ -123,6 +123,11 @@ class SettingsFragment : Fragment() {
             },
         )
 
+        viewModel.showDebugDialog.observeEvent(viewLifecycleOwner) {
+            DebugInfoDialogFragment.newInstance()
+                .show(parentFragmentManager, DebugInfoDialogFragment.TAG)
+        }
+
         return binding.root
     }
 }

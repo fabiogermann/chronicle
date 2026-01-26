@@ -138,6 +138,12 @@ class SettingsViewModel(
     val upgradeToPremium: LiveData<Event<Unit>>
         get() = _upgradeToPremium
 
+    private var _showDebugDialog = MutableLiveData<Event<Unit>>()
+    val showDebugDialog: LiveData<Event<Unit>>
+        get() = _showDebugDialog
+
+    private val tapCounter = TapCounter()
+
     private val prefsListener =
         OnSharedPreferenceChangeListener { _, _ ->
             // Rebuild the prefs list whenever any prefs change
@@ -880,6 +886,12 @@ class SettingsViewModel(
                     type = PreferenceType.CLICKABLE,
                     title = FormattableString.from(R.string.settings_version_title),
                     explanation = FormattableString.from(BuildConfig.VERSION_NAME),
+                    click =
+                        object : PreferenceClick {
+                            override fun onClick() {
+                                onVersionTapped()
+                            }
+                        },
                 ),
                 PreferenceModel(
                     type = PreferenceType.CLICKABLE,
@@ -1027,5 +1039,46 @@ class SettingsViewModel(
 
     fun setShowLicenseActivity(showLicense: Boolean) {
         _showLicenseActivity.postValue(showLicense)
+    }
+
+    fun onVersionTapped() {
+        if (tapCounter.recordTap()) {
+            _showDebugDialog.postEvent(Unit)
+        }
+    }
+
+    /**
+     * Tracks taps within a time window to detect Easter egg trigger
+     */
+    class TapCounter(
+        private val requiredTaps: Int = 10,
+        private val windowMs: Long = 15_000L,
+    ) {
+        private val tapTimestamps = mutableListOf<Long>()
+
+        /**
+         * Records a tap and returns true if the threshold was reached
+         */
+        fun recordTap(): Boolean {
+            val now = System.currentTimeMillis()
+
+            // Remove old taps outside the window
+            tapTimestamps.removeAll { now - it > windowMs }
+
+            // Add current tap
+            tapTimestamps.add(now)
+
+            // Check threshold
+            if (tapTimestamps.size >= requiredTaps) {
+                tapTimestamps.clear()
+                return true
+            }
+
+            return false
+        }
+
+        fun reset() {
+            tapTimestamps.clear()
+        }
     }
 }

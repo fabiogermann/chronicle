@@ -14,6 +14,8 @@ import local.oss.chronicle.features.home.HomeFragment
 import local.oss.chronicle.features.library.LibraryFragment
 import local.oss.chronicle.features.player.MediaServiceConnection
 import local.oss.chronicle.features.player.ProgressUpdater
+import local.oss.chronicle.features.settings.DebugInfoDialogFragment
+import local.oss.chronicle.features.settings.DebugInfoViewModel
 import local.oss.chronicle.features.settings.SettingsFragment
 import local.oss.chronicle.features.settings.SettingsViewModel
 import local.oss.chronicle.injection.modules.ActivityModule
@@ -40,6 +42,8 @@ interface ActivityComponent {
 
     fun settingsViewModelFactory(): SettingsViewModel.Factory
 
+    fun debugInfoViewModelFactory(): DebugInfoViewModel.Factory
+
     fun inject(activity: MainActivity)
 
     fun inject(libraryFragment: LibraryFragment)
@@ -57,4 +61,6 @@ interface ActivityComponent {
     fun inject(currentlyPlayingFragment: CurrentlyPlayingFragment)
 
     fun inject(modalBottomSheetSpeedChooser: ModalBottomSheetSpeedChooser)
+
+    fun inject(debugInfoDialogFragment: DebugInfoDialogFragment)
 }
