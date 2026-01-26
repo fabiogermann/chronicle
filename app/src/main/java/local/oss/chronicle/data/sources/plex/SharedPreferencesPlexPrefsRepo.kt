@@ -38,6 +38,9 @@ interface PlexPrefsRepo {
      */
     var oAuthTempId: Long
 
+    /** Timestamp when server list was last refreshed from plex.tv (epoch millis) */
+    var serverListLastRefreshed: Long
+
     /** Unique user id */
     val uuid: String
 
@@ -65,6 +68,7 @@ class SharedPreferencesPlexPrefsRepo
             const val PREFS_LOCAL_SERVER_CONNECTIONS_KEY = "local_server_connections"
             const val PREFS_UUID_KEY = "uuid"
             const val PREFS_TEMP_ID = "id"
+            const val PREFS_SERVER_LIST_LAST_REFRESHED = "server_list_last_refreshed"
             const val NO_TEMP_ID_FOUND = -1L
         }
 
@@ -181,6 +185,14 @@ class SharedPreferencesPlexPrefsRepo
             @SuppressLint("ApplySharedPref")
             set(value) {
                 prefs.edit().putLong(PREFS_TEMP_ID, value).commit()
+            }
+
+        override var serverListLastRefreshed: Long
+            get() = prefs.getLong(PREFS_SERVER_LIST_LAST_REFRESHED, 0L)
+
+            @SuppressLint("ApplySharedPref")
+            set(value) {
+                prefs.edit().putLong(PREFS_SERVER_LIST_LAST_REFRESHED, value).commit()
             }
 
         override fun clear() {

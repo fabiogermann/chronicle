@@ -54,6 +54,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic changelog generation in GitHub release workflow
 - CHANGELOG.md file to track all notable changes to the project
 
+### Fixed
+- Fixed server connections accumulating over time - server list now refreshes every 24 hours (every startup in debug builds) and replaces stale connections instead of merging
+
 ### Improved (Playback Robustness)
 
 #### Phase 1: Foundation - New Utility Classes

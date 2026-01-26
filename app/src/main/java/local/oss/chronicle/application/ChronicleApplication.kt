@@ -132,6 +132,20 @@ open class ChronicleApplication : Application() {
         fun get(): ChronicleApplication = INSTANCE!!
     }
 
+    /**
+     * Determines if the server list should be refreshed from plex.tv
+     * Debug builds: always refresh
+     * Release builds: refresh if > 24 hours old
+     */
+    private fun shouldRefreshServerList(lastRefreshed: Long): Boolean {
+        // Debug builds: always refresh
+        if (BuildConfig.DEBUG) return true
+        
+        // Release builds: refresh if > 24 hours old
+        val twentyFourHoursMs = 24 * 60 * 60 * 1000L
+        return (System.currentTimeMillis() - lastRefreshed) > twentyFourHoursMs
+    }
+
     @OptIn(InternalCoroutinesApi::class)
     private fun setupNetwork(plexPrefs: PlexPrefsRepo) {
         val connectivityManager =
@@ -171,36 +185,62 @@ open class ChronicleApplication : Application() {
         if (server != null) {
             Timber.d("URL_DEBUG: App startup - stored server '${server.name}' has ${server.connections.size} connections: ${server.connections.map { "${it.uri} (local=${it.local})" }}")
             plexConfig.setPotentialConnections(server.connections)
-            applicationScope.launch(unhandledExceptionHandler) {
-                val retrievedConnections: List<Connection> =
-                    withTimeoutOrNull(4000L) {
-                        try {
-                            plexLoginService.resources()
-                                .filter { it.provides.contains("server") }
-                                .map { it.asServer() }
-                                .filter { it.serverId == server.serverId }
-                                .flatMap { it.connections }
-                        } catch (e: Exception) {
-                            Timber.e("Failed to retrieve new connections: $e")
-                            emptyList()
-                        }
-                    } ?: emptyList()
-                Timber.d("URL_DEBUG: App startup - retrieved ${retrievedConnections.size} fresh connections from plex.tv: ${retrievedConnections.map { "${it.uri} (local=${it.local})" }}")
-                Timber.i("Updated new connections: $retrievedConnections")
-                
-                val mergedConnections = server.connections + retrievedConnections
-                Timber.d("URL_DEBUG: App startup - merged total ${mergedConnections.size} connections: ${mergedConnections.map { "${it.uri} (local=${it.local})" }}")
-                
-                plexPrefs.server =
-                    server.copy(
-                        connections = mergedConnections,
-                    )
-                Timber.i("Retrieved new connections: $retrievedConnections")
-                try {
-                    Timber.i("Connection to server!")
-                    plexConfig.connectToServer(plexMediaService)
-                } catch (t: Throwable) {
-                    Timber.e("Exception in chooseViableConnections in ChronicleApplication: $t")
+            
+            // Check if we should refresh the server list
+            val shouldRefresh = shouldRefreshServerList(plexPrefs.serverListLastRefreshed)
+            Timber.d("Server list refresh check: shouldRefresh=$shouldRefresh, lastRefreshed=${plexPrefs.serverListLastRefreshed}")
+            
+            if (shouldRefresh) {
+                applicationScope.launch(unhandledExceptionHandler) {
+                    val retrievedConnections: List<Connection> =
+                        withTimeoutOrNull(4000L) {
+                            try {
+                                plexLoginService.resources()
+                                    .filter { it.provides.contains("server") }
+                                    .map { it.asServer() }
+                                    .filter { it.serverId == server.serverId }
+                                    .flatMap { it.connections }
+                            } catch (e: Exception) {
+                                Timber.e("Failed to retrieve new connections: $e")
+                                emptyList()
+                            }
+                        } ?: emptyList()
+                    
+                    if (retrievedConnections.isNotEmpty()) {
+                        // Fresh data retrieved - REPLACE connections (don't merge)
+                        Timber.d("URL_DEBUG: App startup - retrieved ${retrievedConnections.size} fresh connections from plex.tv: ${retrievedConnections.map { "${it.uri} (local=${it.local})" }}")
+                        Timber.i("Retrieved fresh connections (replacing cached): $retrievedConnections")
+                        
+                        plexPrefs.server =
+                            server.copy(
+                                connections = retrievedConnections,
+                            )
+                        
+                        // Update timestamp after successful refresh
+                        plexPrefs.serverListLastRefreshed = System.currentTimeMillis()
+                        Timber.d("Server list refreshed successfully, timestamp updated")
+                    } else {
+                        // Network fetch failed or timed out - continue with cached connections
+                        Timber.w("Failed to retrieve fresh connections, continuing with ${server.connections.size} cached connections")
+                    }
+                    
+                    try {
+                        Timber.i("Connection to server!")
+                        plexConfig.connectToServer(plexMediaService)
+                    } catch (t: Throwable) {
+                        Timber.e("Exception in chooseViableConnections in ChronicleApplication: $t")
+                    }
+                }
+            } else {
+                // No refresh needed - connect with cached connections
+                Timber.d("Using cached server connections (${server.connections.size} connections)")
+                applicationScope.launch(unhandledExceptionHandler) {
+                    try {
+                        Timber.i("Connection to server!")
+                        plexConfig.connectToServer(plexMediaService)
+                    } catch (t: Throwable) {
+                        Timber.e("Exception in chooseViableConnections in ChronicleApplication: $t")
+                    }
                 }
             }
         }

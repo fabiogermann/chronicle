@@ -18,6 +18,7 @@ class FakePlexPrefsRepo
         override var server: ServerModel? = null
 
         override var oAuthTempId: Long = 0L
+        override var serverListLastRefreshed: Long = 0L
         override val uuid: String = ""
 
         override fun clear() {

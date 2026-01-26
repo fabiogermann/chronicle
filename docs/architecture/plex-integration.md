@@ -259,6 +259,35 @@ This `url` field is used by:
 - [`PlaybackUrlResolver`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlaybackUrlResolver.kt) for streaming URLs
 - Image thumbnail generation via [`PlexConfig.makeThumbUri()`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt:165-175)
 
+### Server List Refresh Policy
+
+To prevent stale server connections from accumulating, Chronicle implements time-based server list refresh logic:
+
+**Refresh Schedule:**
+- **Debug builds**: Server list refreshes on every app startup
+- **Release builds**: Server list refreshes if last refresh was more than 24 hours ago
+
+**Implementation:**
+
+The refresh timestamp is tracked in [`SharedPreferencesPlexPrefsRepo`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt) using the `serverListLastRefreshed` property, stored in SharedPreferences.
+
+During app startup in [`ChronicleApplication.setupNetwork()`](../../app/src/main/java/local/oss/chronicle/application/ChronicleApplication.kt:136-207), the app:
+
+1. Checks if refresh is needed based on build type and last refresh time
+2. If refresh is needed, fetches fresh server list from plex.tv
+3. **Replaces** (not merges) stored connections with fresh connections
+4. Updates the `serverListLastRefreshed` timestamp
+
+This approach ensures that:
+- Stale connections are removed instead of accumulating
+- Debug builds always get fresh connections for testing
+- Release builds balance freshness with API call efficiency
+- Users have up-to-date connection information without excessive network requests
+
+**Key Files:**
+- [`ChronicleApplication.kt`](../../app/src/main/java/local/oss/chronicle/application/ChronicleApplication.kt) - Implements refresh logic
+- [`SharedPreferencesPlexPrefsRepo.kt`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/SharedPreferencesPlexPrefsRepo.kt) - Stores refresh timestamp
+
 ### App Startup Connection Refresh
 
 On app startup, [`ChronicleApplication.setupNetwork()`](../../app/src/main/java/local/oss/chronicle/application/ChronicleApplication.kt:136-207) refreshes connections by merging stored and fresh data:
