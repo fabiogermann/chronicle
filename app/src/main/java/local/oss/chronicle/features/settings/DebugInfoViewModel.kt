@@ -123,8 +123,21 @@ class DebugInfoViewModel(
                 Timber.d("Connection test successful: $uri")
                 ConnectionStatus.SUCCESSFUL
             } else {
-                Timber.w("Connection test failed: $uri - ${response.message()}")
-                ConnectionStatus.FAILED
+                // Check if this is a WAF/ban/block response by inspecting the body
+                val responseBody = response.errorBody()?.string()
+                val isBlocked = responseBody?.let { body ->
+                    body.contains("banned", ignoreCase = true) ||
+                        body.contains("blocked", ignoreCase = true) ||
+                        body.contains("You got banned permanently from this server", ignoreCase = true)
+                } ?: false
+
+                if (isBlocked) {
+                    Timber.w("Connection potentially blocked by WAF: $uri - ${response.message()}")
+                    ConnectionStatus.BLOCKED
+                } else {
+                    Timber.w("Connection test failed: $uri - ${response.message()}")
+                    ConnectionStatus.FAILED
+                }
             }
         } catch (e: Exception) {
             Timber.e("Connection test exception: $uri - ${e.message}")
@@ -162,5 +175,6 @@ enum class ConnectionStatus {
     CONNECTED,  // Green - this is the active connection
     SUCCESSFUL, // Green check - test passed but not active
     FAILED,     // Red X - test failed
+    BLOCKED,    // Yellow warning - potentially blocked by WAF or protection software
     TESTING,    // Spinner - currently testing
 }

@@ -150,7 +150,11 @@ class DebugInfoDialogFragment : DialogFragment() {
             private val connectionType: TextView = itemView.findViewById(R.id.connectionType)
 
             fun bind(connection: ConnectionTestResult) {
-                connectionUrl.text = connection.uri
+                val displayUrl = when (connection.status) {
+                    ConnectionStatus.BLOCKED -> "${connection.uri} (potentially blocked by WAF or protection software)"
+                    else -> connection.uri
+                }
+                connectionUrl.text = displayUrl
                 connectionType.text = if (connection.isLocal) "L" else "R"
 
                 when (connection.status) {
@@ -169,6 +173,10 @@ class DebugInfoDialogFragment : DialogFragment() {
                     ConnectionStatus.FAILED -> {
                         statusIndicator.text = "✗"
                         statusIndicator.setTextColor(Color.RED)
+                    }
+                    ConnectionStatus.BLOCKED -> {
+                        statusIndicator.text = "⚠"
+                        statusIndicator.setTextColor(Color.parseColor("#FFA500")) // Orange color
                     }
                     ConnectionStatus.TESTING -> {
                         statusIndicator.text = "⟳"
