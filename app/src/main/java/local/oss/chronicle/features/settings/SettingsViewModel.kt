@@ -7,6 +7,9 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.facebook.drawee.backends.pipeline.Fresco
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import local.oss.chronicle.BuildConfig
 import local.oss.chronicle.R
 import local.oss.chronicle.application.FEATURE_FLAG_IS_AUTO_ENABLED
@@ -27,9 +30,6 @@ import local.oss.chronicle.util.bytesAvailable
 import local.oss.chronicle.util.postEvent
 import local.oss.chronicle.views.BottomSheetChooser.*
 import local.oss.chronicle.views.BottomSheetChooser.BottomChooserState.Companion.EMPTY_BOTTOM_CHOOSER
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject

@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import local.oss.chronicle.application.MainActivity
 import local.oss.chronicle.data.local.IBookRepository
 import local.oss.chronicle.data.local.PrefsRepo
@@ -20,7 +21,6 @@ import local.oss.chronicle.databinding.FragmentCollectionDetailsBinding
 import local.oss.chronicle.features.library.AudiobookAdapter
 import local.oss.chronicle.features.library.LibraryFragment
 import local.oss.chronicle.navigation.Navigator
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import timber.log.Timber
 import javax.inject.Inject
 

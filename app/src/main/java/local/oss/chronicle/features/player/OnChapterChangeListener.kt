@@ -13,5 +13,9 @@ fun interface OnChapterChangeListener {
      * @param newChapter The chapter that is now playing, or null if none
      * @param chapterIndex The index of the new chapter (0-based), or -1 if none
      */
-    fun onChapterChanged(previousChapter: Chapter?, newChapter: Chapter?, chapterIndex: Int)
+    fun onChapterChanged(
+        previousChapter: Chapter?,
+        newChapter: Chapter?,
+        chapterIndex: Int,
+    )
 }

@@ -24,18 +24,21 @@ import timber.log.Timber
 import javax.inject.Inject
 
 class PlexOAuthDialogFragment : DialogFragment() {
-
     companion object {
         private const val ARG_OAUTH_URL = "oauth_url"
         private const val ARG_PIN_ID = "pin_id"
         const val TAG = "PlexOAuthDialogFragment"
 
-        fun newInstance(oauthUrl: String, pinId: Long): PlexOAuthDialogFragment {
+        fun newInstance(
+            oauthUrl: String,
+            pinId: Long,
+        ): PlexOAuthDialogFragment {
             return PlexOAuthDialogFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_OAUTH_URL, oauthUrl)
-                    putLong(ARG_PIN_ID, pinId)
-                }
+                arguments =
+                    Bundle().apply {
+                        putString(ARG_OAUTH_URL, oauthUrl)
+                        putLong(ARG_PIN_ID, pinId)
+                    }
             }
         }
     }
@@ -44,7 +47,7 @@ class PlexOAuthDialogFragment : DialogFragment() {
     lateinit var viewModelFactory: PlexOAuthViewModel.Factory
 
     private lateinit var viewModel: PlexOAuthViewModel
-    
+
     private var _binding: FragmentPlexOauthBinding? = null
     private val binding get() = _binding!!
 
@@ -67,14 +70,17 @@ class PlexOAuthDialogFragment : DialogFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentPlexOauthBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         // Set soft input mode to resize the window when keyboard appears
@@ -84,10 +90,11 @@ class PlexOAuthDialogFragment : DialogFragment() {
         setupWebView()
         observeAuthState()
 
-        val oauthUrl = requireArguments().getString(ARG_OAUTH_URL)
-            ?: throw IllegalStateException("OAuth URL is required")
+        val oauthUrl =
+            requireArguments().getString(ARG_OAUTH_URL)
+                ?: throw IllegalStateException("OAuth URL is required")
         val pinId = requireArguments().getLong(ARG_PIN_ID, -1L)
-        
+
         if (pinId == -1L) {
             throw IllegalStateException("PIN ID is required")
         }
@@ -110,25 +117,37 @@ class PlexOAuthDialogFragment : DialogFragment() {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.userAgentString = buildUserAgent()
-            
-            webViewClient = object : WebViewClient() {
-                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                    super.onPageStarted(view, url, favicon)
-                    binding.progressBar.visibility = View.VISIBLE
+
+            webViewClient =
+                object : WebViewClient() {
+                    override fun onPageStarted(
+                        view: WebView?,
+                        url: String?,
+                        favicon: Bitmap?,
+                    ) {
+                        super.onPageStarted(view, url, favicon)
+                        binding.progressBar.visibility = View.VISIBLE
+                    }
+
+                    override fun onPageFinished(
+                        view: WebView?,
+                        url: String?,
+                    ) {
+                        super.onPageFinished(view, url)
+                        binding.progressBar.visibility = View.GONE
+                    }
                 }
 
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    super.onPageFinished(view, url)
-                    binding.progressBar.visibility = View.GONE
+            webChromeClient =
+                object : WebChromeClient() {
+                    override fun onProgressChanged(
+                        view: WebView?,
+                        newProgress: Int,
+                    ) {
+                        super.onProgressChanged(view, newProgress)
+                        binding.progressBar.progress = newProgress
+                    }
                 }
-            }
-            
-            webChromeClient = object : WebChromeClient() {
-                override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                    super.onProgressChanged(view, newProgress)
-                    binding.progressBar.progress = newProgress
-                }
-            }
         }
     }
 

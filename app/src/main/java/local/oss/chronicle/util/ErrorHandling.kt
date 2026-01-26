@@ -6,33 +6,33 @@ package local.oss.chronicle.util
  */
 sealed class ChronicleError(
     open val message: String,
-    open val cause: Throwable? = null
+    open val cause: Throwable? = null,
 ) {
     data class NetworkError(
         override val message: String,
         override val cause: Throwable? = null,
-        val isRecoverable: Boolean = true
+        val isRecoverable: Boolean = true,
     ) : ChronicleError(message, cause)
 
     data class AuthenticationError(
         override val message: String,
-        override val cause: Throwable? = null
+        override val cause: Throwable? = null,
     ) : ChronicleError(message, cause)
 
     data class PlaybackError(
         override val message: String,
         override val cause: Throwable? = null,
-        val trackKey: String? = null
+        val trackKey: String? = null,
     ) : ChronicleError(message, cause)
 
     data class StorageError(
         override val message: String,
-        override val cause: Throwable? = null
+        override val cause: Throwable? = null,
     ) : ChronicleError(message, cause)
 
     data class UnknownError(
         override val message: String,
-        override val cause: Throwable? = null
+        override val cause: Throwable? = null,
     ) : ChronicleError(message, cause)
 }
 
@@ -44,21 +44,23 @@ fun Throwable.toChronicleError(): ChronicleError {
         is java.net.UnknownHostException,
         is java.net.SocketTimeoutException,
         is java.net.ConnectException,
-        is javax.net.ssl.SSLException ->
+        is javax.net.ssl.SSLException,
+        ->
             ChronicleError.NetworkError(
                 message = this.message ?: "Network error",
                 cause = this,
-                isRecoverable = true
+                isRecoverable = true,
             )
         is java.io.IOException ->
             ChronicleError.StorageError(
                 message = this.message ?: "Storage error",
-                cause = this
+                cause = this,
             )
-        else -> ChronicleError.UnknownError(
-            message = this.message ?: "Unknown error",
-            cause = this
-        )
+        else ->
+            ChronicleError.UnknownError(
+                message = this.message ?: "Unknown error",
+                cause = this,
+            )
     }
 }
 

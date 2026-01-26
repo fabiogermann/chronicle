@@ -2,6 +2,8 @@ package local.oss.chronicle.features.login
 
 import androidx.lifecycle.*
 import androidx.lifecycle.Observer
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.launch
 import local.oss.chronicle.data.model.LoadingStatus
 import local.oss.chronicle.data.model.PlexLibrary
 import local.oss.chronicle.data.sources.plex.PlexConfig
@@ -12,8 +14,6 @@ import local.oss.chronicle.data.sources.plex.model.asLibrary
 import local.oss.chronicle.util.DoubleLiveData
 import local.oss.chronicle.util.Event
 import local.oss.chronicle.util.postEvent
-import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject

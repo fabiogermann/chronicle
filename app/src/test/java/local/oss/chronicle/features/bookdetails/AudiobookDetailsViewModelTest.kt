@@ -3,13 +3,6 @@ package local.oss.chronicle.features.bookdetails
 import android.support.v4.media.session.MediaControllerCompat
 import android.util.Log
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import local.oss.chronicle.data.local.IBookRepository
-import local.oss.chronicle.data.local.ITrackRepository
-import local.oss.chronicle.data.model.MediaItemTrack
-import local.oss.chronicle.data.sources.plex.CachedFileManager
-import local.oss.chronicle.data.sources.plex.PlexPrefsRepo
-import local.oss.chronicle.features.player.MediaServiceConnection
-import local.oss.chronicle.features.player.ProgressUpdater
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -21,6 +14,13 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import local.oss.chronicle.data.local.IBookRepository
+import local.oss.chronicle.data.local.ITrackRepository
+import local.oss.chronicle.data.model.MediaItemTrack
+import local.oss.chronicle.data.sources.plex.CachedFileManager
+import local.oss.chronicle.data.sources.plex.PlexPrefsRepo
+import local.oss.chronicle.features.player.MediaServiceConnection
+import local.oss.chronicle.features.player.ProgressUpdater
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule

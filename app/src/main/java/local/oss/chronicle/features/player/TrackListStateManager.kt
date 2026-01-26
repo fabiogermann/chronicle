@@ -78,9 +78,10 @@ class TrackListStateManager {
      * Set the track list. Thread-safe version.
      * Prefer this over the property setter for consistent thread-safety.
      */
-    suspend fun setTrackList(tracks: List<MediaItemTrack>) = mutex.withLock {
-        _state = _state.copy(trackList = tracks)
-    }
+    suspend fun setTrackList(tracks: List<MediaItemTrack>) =
+        mutex.withLock {
+            _state = _state.copy(trackList = tracks)
+        }
 
     /**
      * Update [currentTrackIndex] to [activeTrackIndex] and [currentTrackProgress] to
@@ -97,10 +98,11 @@ class TrackListStateManager {
                 "Cannot set current track index = $activeTrackIndex if tracklist.size == ${_state.trackList.size}",
             )
         }
-        _state = _state.copy(
-            currentTrackIndex = activeTrackIndex,
-            currentTrackProgress = offsetFromTrackStart,
-        )
+        _state =
+            _state.copy(
+                currentTrackIndex = activeTrackIndex,
+                currentTrackProgress = offsetFromTrackStart,
+            )
     }
 
     /**
@@ -123,14 +125,16 @@ class TrackListStateManager {
      *
      * **Prefer this suspend version when calling from coroutine context.**
      */
-    suspend fun seekToActiveTrack() = mutex.withLock {
-        Timber.i("Seeking to active track")
-        val activeTrack = _state.trackList.getActiveTrack()
-        _state = _state.copy(
-            currentTrackIndex = _state.trackList.indexOf(activeTrack),
-            currentTrackProgress = activeTrack.progress,
-        )
-    }
+    suspend fun seekToActiveTrack() =
+        mutex.withLock {
+            Timber.i("Seeking to active track")
+            val activeTrack = _state.trackList.getActiveTrack()
+            _state =
+                _state.copy(
+                    currentTrackIndex = _state.trackList.indexOf(activeTrack),
+                    currentTrackProgress = activeTrack.progress,
+                )
+        }
 
     /**
      * Update position based on tracks in [trackList], picking the one with the most recent
@@ -139,9 +143,10 @@ class TrackListStateManager {
      * **Deprecated:** Use the suspend version when possible. This blocking version
      * is provided for gradual migration of calling code.
      */
-    fun seekToActiveTrackBlocking() = runBlocking {
-        seekToActiveTrack()
-    }
+    fun seekToActiveTrackBlocking() =
+        runBlocking {
+            seekToActiveTrack()
+        }
 
     /**
      * Seeks forwards or backwards in the playlist by [offsetMillis] millis.
@@ -149,13 +154,14 @@ class TrackListStateManager {
      *
      * **Prefer this suspend version when calling from coroutine context.**
      */
-    suspend fun seekByRelative(offsetMillis: Long) = mutex.withLock {
-        if (offsetMillis >= 0) {
-            _state = seekForwards(_state, offsetMillis)
-        } else {
-            _state = seekBackwards(_state, abs(offsetMillis))
+    suspend fun seekByRelative(offsetMillis: Long) =
+        mutex.withLock {
+            if (offsetMillis >= 0) {
+                _state = seekForwards(_state, offsetMillis)
+            } else {
+                _state = seekBackwards(_state, abs(offsetMillis))
+            }
         }
-    }
 
     /**
      * Seeks forwards or backwards in the playlist by [offsetMillis] millis.
@@ -164,9 +170,10 @@ class TrackListStateManager {
      * **Deprecated:** Use the suspend version when possible. This blocking version
      * is provided for gradual migration of calling code.
      */
-    fun seekByRelativeBlocking(offsetMillis: Long) = runBlocking {
-        seekByRelative(offsetMillis)
-    }
+    fun seekByRelativeBlocking(offsetMillis: Long) =
+        runBlocking {
+            seekByRelative(offsetMillis)
+        }
 
     // ========== Atomic state access methods ==========
 
@@ -181,9 +188,10 @@ class TrackListStateManager {
      * }
      * ```
      */
-    suspend fun <T> withState(block: (State) -> T): T = mutex.withLock {
-        block(_state)
-    }
+    suspend fun <T> withState(block: (State) -> T): T =
+        mutex.withLock {
+            block(_state)
+        }
 
     /**
      * Atomically update state with a transformation function.
@@ -196,17 +204,19 @@ class TrackListStateManager {
      * }
      * ```
      */
-    suspend fun updateState(transform: (State) -> State) = mutex.withLock {
-        _state = transform(_state)
-    }
+    suspend fun updateState(transform: (State) -> State) =
+        mutex.withLock {
+            _state = transform(_state)
+        }
 
     /**
      * Get an immutable snapshot of the current state.
      * This is atomic - all fields come from the same point in time.
      */
-    suspend fun getCurrentState(): State = mutex.withLock {
-        _state
-    }
+    suspend fun getCurrentState(): State =
+        mutex.withLock {
+            _state
+        }
 
     // ========== Private helper methods (pure functions) ==========
 
@@ -214,7 +224,10 @@ class TrackListStateManager {
      * Seek backwards by [offset] ms. [offset] must be a positive [Long].
      * Pure function - returns new state without modifying input.
      */
-    private fun seekBackwards(state: State, offset: Long): State {
+    private fun seekBackwards(
+        state: State,
+        offset: Long,
+    ): State {
         check(offset >= 0) { "Attempted to seek by a negative number: $offset" }
         var offsetRemaining =
             offset + (state.trackList[state.currentTrackIndex].duration - state.currentTrackProgress)
@@ -238,7 +251,10 @@ class TrackListStateManager {
      * Seek forwards by [offset] ms. [offset] must be a positive [Long].
      * Pure function - returns new state without modifying input.
      */
-    private fun seekForwards(state: State, offset: Long): State {
+    private fun seekForwards(
+        state: State,
+        offset: Long,
+    ): State {
         check(offset >= 0) { "Attempted to seek by a negative number: $offset" }
         var offsetRemaining = offset + state.currentTrackProgress
         for (index in state.currentTrackIndex until state.trackList.size) {

@@ -7,13 +7,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dagger.Module
 import dagger.Provides
+import kotlinx.coroutines.CoroutineScope
 import local.oss.chronicle.features.player.MediaPlayerService
 import local.oss.chronicle.features.player.MediaServiceConnection
 import local.oss.chronicle.features.player.ProgressUpdater
 import local.oss.chronicle.features.player.SimpleProgressUpdater
 import local.oss.chronicle.injection.scopes.ActivityScope
 import local.oss.chronicle.util.ServiceUtils
-import kotlinx.coroutines.CoroutineScope
 import timber.log.Timber
 
 @Module

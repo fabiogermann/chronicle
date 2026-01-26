@@ -1,5 +1,7 @@
 package local.oss.chronicle.data.local
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import local.oss.chronicle.BuildConfig
 import local.oss.chronicle.data.model.Chapter
 import local.oss.chronicle.data.model.MediaItemTrack
@@ -7,8 +9,6 @@ import local.oss.chronicle.data.model.asChapter
 import local.oss.chronicle.data.sources.plex.PlexMediaService
 import local.oss.chronicle.data.sources.plex.PlexPrefsRepo
 import local.oss.chronicle.data.sources.plex.model.toChapter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton

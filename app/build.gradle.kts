@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.play.publisher)
     id("kotlin-parcelize")
-    id("kotlin-kapt")  // Still needed for data binding
+    id("kotlin-kapt") // Still needed for data binding
     id("com.google.android.gms.oss-licenses-plugin")
 }
 
@@ -36,7 +36,7 @@ android {
             // For GitHub Actions: use environment variables
             // For local builds: use keystore.properties file
             val keystorePropertiesFile = rootProject.file("keystore.properties")
-            
+
             if (System.getenv("KEYSTORE_FILE") != null) {
                 // GitHub Actions signing configuration
                 storeFile = file(System.getenv("KEYSTORE_FILE"))
@@ -47,7 +47,7 @@ android {
                 // Local signing configuration from keystore.properties
                 val keystoreProperties = Properties()
                 keystoreProperties.load(keystorePropertiesFile.inputStream())
-                
+
                 storeFile = file(keystoreProperties["storeFile"].toString())
                 storePassword = keystoreProperties["storePassword"].toString()
                 keyAlias = keystoreProperties["keyAlias"].toString()
@@ -65,7 +65,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            
+
             // Use release signing config if available
             val releaseSigningConfig = signingConfigs.findByName("release")
             if (releaseSigningConfig?.storeFile != null) {
@@ -80,16 +80,17 @@ android {
     kotlinOptions {
         jvmTarget = "17"
 
-        freeCompilerArgs += listOf(
-            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-            "-Xallow-unstable-dependencies"  // Enable Kotlin 2.0+ support for KAPT
-        )
+        freeCompilerArgs +=
+            listOf(
+                "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                // Enable Kotlin 2.0+ support for KAPT
+                "-Xallow-unstable-dependencies",
+            )
     }
     buildFeatures {
         dataBinding = true
         buildConfig = true
     }
-
 }
 
 // Play Publisher configuration
@@ -98,15 +99,15 @@ play {
     val credentialsFile = file("play-store-credentials.json")
     if (System.getenv("PLAY_STORE_SERVICE_ACCOUNT_JSON") != null) {
         serviceAccountCredentials.set(
-            file(System.getenv("PLAY_CREDENTIALS_FILE") ?: "play-credentials.json")
+            file(System.getenv("PLAY_CREDENTIALS_FILE") ?: "play-credentials.json"),
         )
     } else if (credentialsFile.exists()) {
         serviceAccountCredentials.set(credentialsFile)
     }
-    
-    track.set("internal")  // Default track
-    defaultToAppBundles.set(true)  // Use AAB by default
-    
+
+    track.set("internal") // Default track
+    defaultToAppBundles.set(true) // Use AAB by default
+
     // For apps not yet published to production, releases must be drafts
     // Change to COMPLETED once the app is live on Play Store
     releaseStatus.set(com.github.triplet.gradle.androidpublisher.ReleaseStatus.DRAFT)

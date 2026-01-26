@@ -5,6 +5,9 @@ import android.os.Looper
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.work.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import local.oss.chronicle.data.local.IBookRepository
 import local.oss.chronicle.data.local.ITrackRepository
 import local.oss.chronicle.data.local.ITrackRepository.Companion.TRACK_NOT_FOUND
@@ -16,9 +19,6 @@ import local.oss.chronicle.data.sources.plex.model.getDuration
 import local.oss.chronicle.features.currentlyplaying.CurrentlyPlaying
 import local.oss.chronicle.features.player.ProgressUpdater.Companion.BOOK_FINISHED_END_OFFSET_MILLIS
 import local.oss.chronicle.features.player.ProgressUpdater.Companion.NETWORK_CALL_FREQUENCY
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -96,31 +96,34 @@ class SimpleProgressUpdater
             requireNotNull(mediaController).let { controller ->
                 // Use the absolute track position from extras as baseline
                 val absolutePositionFromExtras = controller.playbackState?.extras?.getLong(MediaPlayerService.EXTRA_ABSOLUTE_TRACK_POSITION) ?: 0L
-                
+
                 // Get auto-calculated chapter-relative position
                 val chapterRelativePosition = controller.playbackState?.currentPlayBackPosition ?: 0L
-                
+
                 // Get chapter info to convert chapter-relative to absolute
                 val chapter = currentlyPlaying.chapter.value
-                
+
                 // Calculate absolute position: use chapter-relative auto-calculated position + chapter start
                 // Fall back to extras if no valid chapter
-                val playerPosition = if (chapter != EMPTY_CHAPTER && chapterRelativePosition >= 0) {
-                    chapter.startTimeOffset + chapterRelativePosition
-                } else {
-                    // No chapter or invalid chapter-relative position: use absolute from extras
-                    absolutePositionFromExtras
-                }
+                val playerPosition =
+                    if (chapter != EMPTY_CHAPTER && chapterRelativePosition >= 0) {
+                        chapter.startTimeOffset + chapterRelativePosition
+                    } else {
+                        // No chapter or invalid chapter-relative position: use absolute from extras
+                        absolutePositionFromExtras
+                    }
                 val isPlaying = controller.playbackState?.isPlaying != false
                 val playbackState = controller.playbackState?.state
-                
+
                 // [ChapterDebug] Log the raw player state before updating progress
-                Timber.d("[ChapterDebug] startRegularProgressUpdates: " +
-                    "playerPosition=$playerPosition, " +
-                    "isPlaying=$isPlaying, " +
-                    "playbackState=$playbackState, " +
-                    "trackId=${controller.metadata?.id}")
-                
+                Timber.d(
+                    "[ChapterDebug] startRegularProgressUpdates: " +
+                        "playerPosition=$playerPosition, " +
+                        "isPlaying=$isPlaying, " +
+                        "playbackState=$playbackState, " +
+                        "trackId=${controller.metadata?.id}",
+                )
+
                 if (isPlaying) {
                     serviceScope.launch(context = serviceScope.coroutineContext + Dispatchers.IO) {
                         updateProgress(
@@ -145,24 +148,25 @@ class SimpleProgressUpdater
                     else -> ""
                 }
             val currentTrack = controller.metadata.id?.toInt() ?: return
-            
+
             // Use the absolute track position from extras as baseline
             val absolutePositionFromExtras = controller.playbackState?.extras?.getLong(MediaPlayerService.EXTRA_ABSOLUTE_TRACK_POSITION) ?: 0L
-            
+
             // Get auto-calculated chapter-relative position
             val chapterRelativePosition = controller.playbackState?.currentPlayBackPosition ?: 0L
-            
+
             // Get chapter info to convert chapter-relative to absolute
             val chapter = currentlyPlaying.chapter.value
-            
+
             // Calculate absolute position: use chapter-relative auto-calculated position + chapter start
             // Fall back to extras if no valid chapter
-            val playerPosition = if (chapter != EMPTY_CHAPTER && chapterRelativePosition >= 0) {
-                chapter.startTimeOffset + chapterRelativePosition
-            } else {
-                // No chapter or invalid chapter-relative position: use absolute from extras
-                absolutePositionFromExtras
-            }
+            val playerPosition =
+                if (chapter != EMPTY_CHAPTER && chapterRelativePosition >= 0) {
+                    chapter.startTimeOffset + chapterRelativePosition
+                } else {
+                    // No chapter or invalid chapter-relative position: use absolute from extras
+                    absolutePositionFromExtras
+                }
             updateProgress(
                 currentTrack,
                 playbackState,
@@ -197,12 +201,14 @@ class SimpleProgressUpdater
                 val bookDuration = tracks.getDuration()
 
                 // [ChapterDebug] Log the difference between player position and DB saved progress
-                Timber.d("[ChapterDebug] ProgressUpdater.updateProgress: " +
-                    "playerPosition=$progress, " +
-                    "dbProgress=${track.progress}, " +
-                    "diff=${progress - track.progress}, " +
-                    "trackId=$trackId, " +
-                    "playbackState=$playbackState")
+                Timber.d(
+                    "[ChapterDebug] ProgressUpdater.updateProgress: " +
+                        "playerPosition=$progress, " +
+                        "dbProgress=${track.progress}, " +
+                        "diff=${progress - track.progress}, " +
+                        "trackId=$trackId, " +
+                        "playbackState=$playbackState",
+                )
 
                 // Find track index in the track list (0-based)
                 val trackIndex = tracks.indexOfFirst { it.id == trackId }
@@ -213,18 +219,20 @@ class SimpleProgressUpdater
 
                 // Use the current progress from the player, not the stale value from DB
                 val trackWithCurrentProgress = track.copy(progress = progress)
-                
+
                 // [ChapterDebug] Calculate expected chapter based on player position vs DB position
                 val chapters = if (book?.chapters?.isNotEmpty() == true) book.chapters else tracks.asChapterList()
                 if (chapters.isNotEmpty()) {
                     val chapterFromPlayerPos = chapters.getChapterAt(trackId.toLong(), progress)
                     val chapterFromDbPos = chapters.getChapterAt(trackId.toLong(), track.progress)
-                    Timber.d("[ChapterDebug] ProgressUpdater BEFORE update: " +
-                        "chapterFromPlayerPos='${chapterFromPlayerPos.title}' (idx=${chapterFromPlayerPos.index}), " +
-                        "chapterFromDbPos='${chapterFromDbPos.title}' (idx=${chapterFromDbPos.index}), " +
-                        "willUsePlayerPos=$progress")
+                    Timber.d(
+                        "[ChapterDebug] ProgressUpdater BEFORE update: " +
+                            "chapterFromPlayerPos='${chapterFromPlayerPos.title}' (idx=${chapterFromPlayerPos.index}), " +
+                            "chapterFromDbPos='${chapterFromDbPos.title}' (idx=${chapterFromDbPos.index}), " +
+                            "willUsePlayerPos=$progress",
+                    )
                 }
-                
+
                 // Keep calling currentlyPlaying.update() for backward compatibility
                 // This will be a no-op once CurrentlyPlayingSingleton fully observes the controller
                 currentlyPlaying.update(
@@ -245,8 +253,10 @@ class SimpleProgressUpdater
                         bookDuration = bookDuration,
                     )
                 } else {
-                    Timber.w("[ProgressSaveRestoreDebug] SKIPPED WRITE: debugOnlyDisableLocalProgressTracking is TRUE - " +
-                        "progress will NOT be saved to database (bookId=$bookId, trackId=$trackId, progress=$progress)")
+                    Timber.w(
+                        "[ProgressSaveRestoreDebug] SKIPPED WRITE: debugOnlyDisableLocalProgressTracking is TRUE - " +
+                            "progress will NOT be saved to database (bookId=$bookId, trackId=$trackId, progress=$progress)",
+                    )
                 }
 
                 // Update server once every [networkCallFrequency] calls, or when manual updates
@@ -305,8 +315,10 @@ class SimpleProgressUpdater
             tickCounter++
             bookRepository.updateProgress(bookId, currentTime, bookProgress)
             trackRepository.updateTrackProgress(trackProgress, trackId, currentTime)
-            Timber.d("[ProgressSaveRestoreDebug] WRITE: bookId=$bookId, trackId=$trackId, " +
-                "trackProgress=$trackProgress, bookProgress=$bookProgress, timestamp=$currentTime")
+            Timber.d(
+                "[ProgressSaveRestoreDebug] WRITE: bookId=$bookId, trackId=$trackId, " +
+                    "trackProgress=$trackProgress, bookProgress=$bookProgress, timestamp=$currentTime",
+            )
             bookRepository.updateTrackData(
                 bookId,
                 bookProgress,

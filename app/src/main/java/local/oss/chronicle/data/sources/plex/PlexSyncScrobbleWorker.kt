@@ -3,6 +3,10 @@ package local.oss.chronicle.data.sources.plex
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import androidx.work.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.data.local.ITrackRepository.Companion.TRACK_NOT_FOUND
 import local.oss.chronicle.data.model.MediaItemTrack
@@ -11,10 +15,6 @@ import local.oss.chronicle.data.sources.plex.model.getDuration
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.PLEX_STATE_PAUSED
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.PLEX_STATE_STOPPED
 import local.oss.chronicle.features.player.ProgressUpdater.Companion.BOOK_FINISHED_END_OFFSET_MILLIS
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class PlexSyncScrobbleWorker(

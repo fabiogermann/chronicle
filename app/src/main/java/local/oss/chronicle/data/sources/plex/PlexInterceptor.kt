@@ -28,7 +28,7 @@ class PlexInterceptor(
         const val PLATFORM = "Android"
         const val PRODUCT = APP_NAME
         const val DEVICE = "$APP_NAME $PLATFORM"
-        
+
         /**
          * Client profile that tells Plex what audio formats this app can directly play.
          * Based on Plex API documentation for Profile Augmentations.

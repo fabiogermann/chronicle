@@ -15,13 +15,13 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.work.*
 import androidx.work.NetworkType
 import com.tonyodev.fetch2.*
+import kotlinx.coroutines.*
 import local.oss.chronicle.R
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.application.MainActivity.Companion.FLAG_OPEN_ACTIVITY_TO_AUDIOBOOK_WITH_ID
 import local.oss.chronicle.application.MainActivity.Companion.REQUEST_CODE_PREFIX_OPEN_ACTIVITY_TO_AUDIOBOOK_WITH_ID
 import local.oss.chronicle.data.model.Audiobook
 import local.oss.chronicle.data.model.NO_AUDIOBOOK_FOUND_ID
-import kotlinx.coroutines.*
 import timber.log.Timber
 import kotlin.math.max
 import kotlin.math.min

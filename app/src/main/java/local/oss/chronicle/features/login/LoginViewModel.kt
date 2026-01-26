@@ -2,12 +2,12 @@ package local.oss.chronicle.features.login
 
 import android.net.Uri
 import androidx.lifecycle.*
+import kotlinx.coroutines.launch
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo
 import local.oss.chronicle.data.sources.plex.model.OAuthResponse
 import local.oss.chronicle.util.Event
 import local.oss.chronicle.util.postEvent
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class LoginViewModel(private val plexLoginRepo: IPlexLoginRepo) : ViewModel() {

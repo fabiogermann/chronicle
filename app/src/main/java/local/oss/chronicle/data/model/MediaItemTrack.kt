@@ -53,7 +53,7 @@ data class MediaItemTrack(
          */
         @JvmStatic
         val streamingUrlCache = ConcurrentHashMap<Int, String>()
-        
+
         fun from(metadata: MediaMetadataCompat): MediaItemTrack {
             return MediaItemTrack(
                 id = metadata.id?.toInt() ?: -1,
@@ -163,7 +163,7 @@ data class MediaItemTrack(
                 Timber.d("Using pre-resolved streaming URL for track $id")
                 return resolvedUrl
             }
-            
+
             // Fall back to direct file URL
             // Note: This may trigger bandwidth errors if server has limits
             Timber.d("No pre-resolved URL for track $id, using direct file path")

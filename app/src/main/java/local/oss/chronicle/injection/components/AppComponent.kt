@@ -7,6 +7,7 @@ import com.facebook.imagepipeline.core.ImagePipelineConfig
 import com.squareup.moshi.Moshi
 import com.tonyodev.fetch2.Fetch
 import dagger.Component
+import kotlinx.coroutines.CoroutineExceptionHandler
 import local.oss.chronicle.application.ChronicleApplication
 import local.oss.chronicle.application.ChronicleBillingManager
 import local.oss.chronicle.data.local.*
@@ -18,7 +19,6 @@ import local.oss.chronicle.features.login.ChooseUserFragment
 import local.oss.chronicle.features.login.LoginFragment
 import local.oss.chronicle.features.login.PlexOAuthDialogFragment
 import local.oss.chronicle.injection.modules.AppModule
-import kotlinx.coroutines.CoroutineExceptionHandler
 import java.io.File
 import javax.inject.Singleton
 
@@ -70,7 +70,7 @@ interface AppComponent {
     fun cachedFileManager(): ICachedFileManager
 
     fun currentlyPlaying(): CurrentlyPlaying
-    
+
     fun playbackStateController(): local.oss.chronicle.features.player.PlaybackStateController
 
     fun fetch(): Fetch

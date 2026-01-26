@@ -21,6 +21,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.media.app.NotificationCompat.MediaStyle
 import androidx.media.session.MediaButtonReceiver
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import local.oss.chronicle.BuildConfig
 import local.oss.chronicle.R
 import local.oss.chronicle.application.MainActivity.Companion.FLAG_OPEN_ACTIVITY_TO_CURRENTLY_PLAYING
@@ -32,7 +33,6 @@ import local.oss.chronicle.data.model.NO_AUDIOBOOK_FOUND_ID
 import local.oss.chronicle.data.sources.plex.PlexConfig
 import local.oss.chronicle.features.currentlyplaying.CurrentlyPlaying
 import local.oss.chronicle.injection.scopes.ServiceScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import timber.log.Timber
 import javax.inject.Inject
 

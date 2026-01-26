@@ -11,6 +11,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.work.*
 import com.tonyodev.fetch2.*
 import com.tonyodev.fetch2core.DownloadBlock
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import local.oss.chronicle.BuildConfig
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.data.local.IBookRepository
@@ -21,9 +23,6 @@ import local.oss.chronicle.data.model.MediaItemTrack
 import local.oss.chronicle.data.model.NO_AUDIOBOOK_FOUND_ID
 import local.oss.chronicle.features.download.DownloadNotificationWorker
 import local.oss.chronicle.features.download.FetchGroupStartFinishListener
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import local.oss.chronicle.util.ScopedCoroutineManager
 import timber.log.Timber
 import java.io.File
@@ -74,7 +73,7 @@ class CachedFileManager
         private val applicationContext: Context,
     ) : ICachedFileManager {
         private val externalFileDirs = Injector.get().externalDeviceDirs()
-        
+
         private val scopeManager = ScopedCoroutineManager()
 
         private val downloadListener =
@@ -125,7 +124,7 @@ class CachedFileManager
                 tag = "download-book-$bookId",
                 onError = { error ->
                     Timber.e("Failed to download book $bookId: ${error.message}")
-                }
+                },
             ) {
                 fetch.enqueue(makeRequests(bookId, bookTitle)) {
                     val errors =
@@ -246,7 +245,7 @@ class CachedFileManager
                 tag = "delete-cache-$bookId",
                 onError = { error ->
                     Timber.e("Failed to delete cached book $bookId: ${error.message}")
-                }
+                },
             ) {
                 withContext(Dispatchers.IO) {
                     val tracks = trackRepository.getTracksForAudiobookAsync(bookId)
@@ -338,7 +337,7 @@ class CachedFileManager
                                 tag = "update-cache-status-$groupId",
                                 onError = { error ->
                                     Timber.e("Failed to update cache status for book $groupId: ${error.message}")
-                                }
+                                },
                             ) {
                                 withContext(Dispatchers.IO) {
                                     Timber.i("Book download success for ($groupId)")

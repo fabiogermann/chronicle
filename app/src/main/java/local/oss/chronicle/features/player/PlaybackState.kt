@@ -32,7 +32,7 @@ data class PlaybackState(
     val currentTrackPositionMs: Long = 0L,
     val isPlaying: Boolean = false,
     val playbackSpeed: Float = 1.0f,
-    val lastUpdatedAtMs: Long = System.currentTimeMillis()
+    val lastUpdatedAtMs: Long = System.currentTimeMillis(),
 ) {
     companion object {
         /**
@@ -49,16 +49,17 @@ data class PlaybackState(
             tracks: List<MediaItemTrack>,
             chapters: List<Chapter>,
             startTrackIndex: Int = 0,
-            startPositionMs: Long = 0L
-        ): PlaybackState = PlaybackState(
-            audiobook = audiobook,
-            tracks = tracks,
-            chapters = chapters,
-            currentTrackIndex = startTrackIndex.coerceIn(0, tracks.lastIndex.coerceAtLeast(0)),
-            currentTrackPositionMs = startPositionMs.coerceAtLeast(0L),
-            isPlaying = false,
-            playbackSpeed = 1.0f
-        )
+            startPositionMs: Long = 0L,
+        ): PlaybackState =
+            PlaybackState(
+                audiobook = audiobook,
+                tracks = tracks,
+                chapters = chapters,
+                currentTrackIndex = startTrackIndex.coerceIn(0, tracks.lastIndex.coerceAtLeast(0)),
+                currentTrackPositionMs = startPositionMs.coerceAtLeast(0L),
+                isPlaying = false,
+                playbackSpeed = 1.0f,
+            )
     }
 
     // =====================
@@ -132,8 +133,9 @@ data class PlaybackState(
         get() {
             val chapter = currentChapter ?: return 0L
             val chapterIdx = currentChapterIndex
-            val nextChapterStart = chapters.getOrNull(chapterIdx + 1)?.startTimeOffset
-                ?: bookDurationMs
+            val nextChapterStart =
+                chapters.getOrNull(chapterIdx + 1)?.startTimeOffset
+                    ?: bookDurationMs
             return nextChapterStart - chapter.startTimeOffset
         }
 
@@ -154,7 +156,9 @@ data class PlaybackState(
             val duration = bookDurationMs
             return if (duration > 0) {
                 (bookPositionMs.toFloat() / duration).coerceIn(0f, 1f)
-            } else 0f
+            } else {
+                0f
+            }
         }
 
     /**
@@ -165,7 +169,9 @@ data class PlaybackState(
             val duration = currentTrackDurationMs
             return if (duration > 0) {
                 (currentTrackPositionMs.toFloat() / duration).coerceIn(0f, 1f)
-            } else 0f
+            } else {
+                0f
+            }
         }
 
     /**
@@ -176,7 +182,9 @@ data class PlaybackState(
             val duration = currentChapterDurationMs
             return if (duration > 0) {
                 (currentChapterPositionMs.toFloat() / duration).coerceIn(0f, 1f)
-            } else 0f
+            } else {
+                0f
+            }
         }
 
     // =====================
@@ -186,27 +194,33 @@ data class PlaybackState(
     /**
      * Creates a copy with updated position.
      */
-    fun withPosition(trackIndex: Int, positionMs: Long): PlaybackState = copy(
-        currentTrackIndex = trackIndex.coerceIn(0, tracks.lastIndex.coerceAtLeast(0)),
-        currentTrackPositionMs = positionMs.coerceAtLeast(0L),
-        lastUpdatedAtMs = System.currentTimeMillis()
-    )
+    fun withPosition(
+        trackIndex: Int,
+        positionMs: Long,
+    ): PlaybackState =
+        copy(
+            currentTrackIndex = trackIndex.coerceIn(0, tracks.lastIndex.coerceAtLeast(0)),
+            currentTrackPositionMs = positionMs.coerceAtLeast(0L),
+            lastUpdatedAtMs = System.currentTimeMillis(),
+        )
 
     /**
      * Creates a copy with updated playback state.
      */
-    fun withPlayingState(isPlaying: Boolean): PlaybackState = copy(
-        isPlaying = isPlaying,
-        lastUpdatedAtMs = System.currentTimeMillis()
-    )
+    fun withPlayingState(isPlaying: Boolean): PlaybackState =
+        copy(
+            isPlaying = isPlaying,
+            lastUpdatedAtMs = System.currentTimeMillis(),
+        )
 
     /**
      * Creates a copy with updated playback speed.
      */
-    fun withPlaybackSpeed(speed: Float): PlaybackState = copy(
-        playbackSpeed = speed.coerceIn(0.5f, 3.0f),
-        lastUpdatedAtMs = System.currentTimeMillis()
-    )
+    fun withPlaybackSpeed(speed: Float): PlaybackState =
+        copy(
+            playbackSpeed = speed.coerceIn(0.5f, 3.0f),
+            lastUpdatedAtMs = System.currentTimeMillis(),
+        )
 
     // =====================
     // Utility Methods
@@ -219,7 +233,10 @@ data class PlaybackState(
      * @param other The previous state to compare against
      * @param thresholdMs Minimum position change to be considered significant
      */
-    fun hasSignificantPositionChange(other: PlaybackState, thresholdMs: Long = 1000L): Boolean {
+    fun hasSignificantPositionChange(
+        other: PlaybackState,
+        thresholdMs: Long = 1000L,
+    ): Boolean {
         if (audiobook?.key != other.audiobook?.key) return true
         if (currentTrackIndex != other.currentTrackIndex) return true
         return kotlin.math.abs(currentTrackPositionMs - other.currentTrackPositionMs) >= thresholdMs

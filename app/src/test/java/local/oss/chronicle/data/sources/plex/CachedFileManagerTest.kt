@@ -20,8 +20,6 @@ import org.junit.Test
  * - Added proper error handling with ChronicleError types
  */
 class CachedFileManagerTest {
-
-
     @Test
     fun `GlobalScope replaced with ScopedCoroutineManager`() {
         // BEFORE: GlobalScope.launch { ... }
@@ -33,7 +31,7 @@ class CachedFileManagerTest {
         // - Download status can be checked via isDownloading(bookId)
         // - Prevents memory leaks from uncancelled coroutines
         // - Proper error handling with ChronicleError types
-        
+
         assertTrue("GlobalScope replaced with ScopedCoroutineManager", true)
     }
 
@@ -43,7 +41,7 @@ class CachedFileManagerTest {
         // 1. downloadTracks() - line 122 -> scopeManager.launchSafe("download-book-$bookId")
         // 2. deleteCachedBook() - line 238 -> scopeManager.launchSafe("delete-cache-$bookId")
         // 3. onFinished() callback - line 325 -> scopeManager.launchSafe("update-cache-status-$groupId")
-        
+
         assertTrue("All three GlobalScope.launch calls replaced", true)
     }
 
@@ -55,7 +53,7 @@ class CachedFileManagerTest {
         // - isDownloading(bookId: Int): Boolean: Returns true if download is in progress
         //
         // These methods provide proper lifecycle management to prevent memory leaks
-        
+
         assertTrue("Lifecycle management methods added", true)
     }
 
@@ -68,7 +66,7 @@ class CachedFileManagerTest {
         // ) { ... }
         //
         // Errors are caught, converted to ChronicleError, and logged properly
-        
+
         assertTrue("Error handling uses ChronicleError types", true)
     }
 
@@ -80,7 +78,7 @@ class CachedFileManagerTest {
         // - "update-cache-status-{bookId}" - Status updates
         //
         // Consistent naming enables targeted cancellation and status tracking
-        
+
         assertTrue("Consistent tag naming convention used", true)
     }
 }

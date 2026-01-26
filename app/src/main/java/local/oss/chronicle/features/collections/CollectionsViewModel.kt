@@ -2,6 +2,7 @@ package local.oss.chronicle.features.collections
 
 import android.content.SharedPreferences
 import androidx.lifecycle.*
+import kotlinx.coroutines.launch
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.data.local.BookRepository
 import local.oss.chronicle.data.local.CollectionsRepository
@@ -17,7 +18,6 @@ import local.oss.chronicle.data.model.Collection
 import local.oss.chronicle.util.*
 import local.oss.chronicle.views.BottomSheetChooser
 import local.oss.chronicle.views.BottomSheetChooser.BottomChooserState.Companion.EMPTY_BOTTOM_CHOOSER
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 

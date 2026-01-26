@@ -15,7 +15,6 @@ import local.oss.chronicle.data.sources.plex.model.UsersResponse
 import local.oss.chronicle.util.Event
 import local.oss.chronicle.util.postEvent
 import timber.log.Timber
-import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -150,7 +149,9 @@ class PlexLoginRepo
 
         override fun chooseServer(serverModel: ServerModel) {
             Timber.i("User chose server: $serverModel")
-            Timber.d("URL_DEBUG: User selected server '${serverModel.name}' with ${serverModel.connections.size} connections: ${serverModel.connections.map { "${it.uri} (local=${it.local})" }}")
+            Timber.d(
+                "URL_DEBUG: User selected server '${serverModel.name}' with ${serverModel.connections.size} connections: ${serverModel.connections.map { "${it.uri} (local=${it.local})" }}",
+            )
             plexConfig.setPotentialConnections(serverModel.connections)
             plexPrefsRepo.server = serverModel
             _loginState.postEvent(LOGGED_IN_NO_LIBRARY_CHOSEN)

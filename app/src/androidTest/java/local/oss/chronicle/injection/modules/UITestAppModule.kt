@@ -18,6 +18,9 @@ import com.tonyodev.fetch2.Fetch
 import com.tonyodev.fetch2.FetchConfiguration
 import dagger.Module
 import dagger.Provides
+import io.mockk.mockk
+import io.mockk.spyk
+import kotlinx.coroutines.CoroutineExceptionHandler
 import local.oss.chronicle.BuildConfig
 import local.oss.chronicle.application.LOG_NETWORK_REQUESTS
 import local.oss.chronicle.data.local.*
@@ -27,9 +30,6 @@ import local.oss.chronicle.features.currentlyplaying.CurrentlyPlayingSingleton
 import local.oss.chronicle.features.player.MediaPlayerService
 import local.oss.chronicle.features.player.MediaServiceConnection
 import local.oss.chronicle.views.UrlQueryCacheKey
-import io.mockk.mockk
-import io.mockk.spyk
-import kotlinx.coroutines.CoroutineExceptionHandler
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.logging.HttpLoggingInterceptor

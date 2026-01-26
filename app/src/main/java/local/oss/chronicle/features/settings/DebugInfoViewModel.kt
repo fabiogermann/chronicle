@@ -22,7 +22,6 @@ class DebugInfoViewModel(
     private val plexPrefsRepo: PlexPrefsRepo,
     private val plexMediaService: PlexMediaService,
 ) : ViewModel() {
-
     @Suppress("UNCHECKED_CAST")
     class Factory
         @Inject
@@ -62,7 +61,7 @@ class DebugInfoViewModel(
     private fun loadDebugInfo() {
         val server = plexPrefsRepo.server
         val activeUrl = plexConfig.url.takeIf { it != PlexConfig.PLACEHOLDER_URL }
-        
+
         val connections =
             server?.connections?.map { conn ->
                 ConnectionTestResult(
@@ -125,11 +124,12 @@ class DebugInfoViewModel(
             } else {
                 // Check if this is a WAF/ban/block response by inspecting the body
                 val responseBody = response.errorBody()?.string()
-                val isBlocked = responseBody?.let { body ->
-                    body.contains("banned", ignoreCase = true) ||
-                        body.contains("blocked", ignoreCase = true) ||
-                        body.contains("You got banned permanently from this server", ignoreCase = true)
-                } ?: false
+                val isBlocked =
+                    responseBody?.let { body ->
+                        body.contains("banned", ignoreCase = true) ||
+                            body.contains("blocked", ignoreCase = true) ||
+                            body.contains("You got banned permanently from this server", ignoreCase = true)
+                    } ?: false
 
                 if (isBlocked) {
                     Timber.w("Connection potentially blocked by WAF: $uri - ${response.message()}")
@@ -171,10 +171,10 @@ data class ConnectionTestResult(
  * Status of a connection test
  */
 enum class ConnectionStatus {
-    UNTESTED,   // Gray - not yet tested
-    CONNECTED,  // Green - this is the active connection
+    UNTESTED, // Gray - not yet tested
+    CONNECTED, // Green - this is the active connection
     SUCCESSFUL, // Green check - test passed but not active
-    FAILED,     // Red X - test failed
-    BLOCKED,    // Yellow warning - potentially blocked by WAF or protection software
-    TESTING,    // Spinner - currently testing
+    FAILED, // Red X - test failed
+    BLOCKED, // Yellow warning - potentially blocked by WAF or protection software
+    TESTING, // Spinner - currently testing
 }

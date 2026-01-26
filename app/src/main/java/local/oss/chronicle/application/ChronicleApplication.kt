@@ -13,6 +13,7 @@ import android.os.StrictMode.VmPolicy
 import com.bumptech.glide.Glide
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipelineConfig
+import kotlinx.coroutines.*
 import local.oss.chronicle.BuildConfig
 import local.oss.chronicle.data.local.PrefsRepo
 import local.oss.chronicle.data.model.asServer
@@ -21,7 +22,6 @@ import local.oss.chronicle.data.sources.plex.model.Connection
 import local.oss.chronicle.injection.components.AppComponent
 import local.oss.chronicle.injection.components.DaggerAppComponent
 import local.oss.chronicle.injection.modules.AppModule
-import kotlinx.coroutines.*
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -140,7 +140,7 @@ open class ChronicleApplication : Application() {
     private fun shouldRefreshServerList(lastRefreshed: Long): Boolean {
         // Debug builds: always refresh
         if (BuildConfig.DEBUG) return true
-        
+
         // Release builds: refresh if > 24 hours old
         val twentyFourHoursMs = 24 * 60 * 60 * 1000L
         return (System.currentTimeMillis() - lastRefreshed) > twentyFourHoursMs
@@ -183,13 +183,15 @@ open class ChronicleApplication : Application() {
         }
         val server = plexPrefs.server
         if (server != null) {
-            Timber.d("URL_DEBUG: App startup - stored server '${server.name}' has ${server.connections.size} connections: ${server.connections.map { "${it.uri} (local=${it.local})" }}")
+            Timber.d(
+                "URL_DEBUG: App startup - stored server '${server.name}' has ${server.connections.size} connections: ${server.connections.map { "${it.uri} (local=${it.local})" }}",
+            )
             plexConfig.setPotentialConnections(server.connections)
-            
+
             // Check if we should refresh the server list
             val shouldRefresh = shouldRefreshServerList(plexPrefs.serverListLastRefreshed)
             Timber.d("Server list refresh check: shouldRefresh=$shouldRefresh, lastRefreshed=${plexPrefs.serverListLastRefreshed}")
-            
+
             if (shouldRefresh) {
                 applicationScope.launch(unhandledExceptionHandler) {
                     val retrievedConnections: List<Connection> =
@@ -205,17 +207,19 @@ open class ChronicleApplication : Application() {
                                 emptyList()
                             }
                         } ?: emptyList()
-                    
+
                     if (retrievedConnections.isNotEmpty()) {
                         // Fresh data retrieved - REPLACE connections (don't merge)
-                        Timber.d("URL_DEBUG: App startup - retrieved ${retrievedConnections.size} fresh connections from plex.tv: ${retrievedConnections.map { "${it.uri} (local=${it.local})" }}")
+                        Timber.d(
+                            "URL_DEBUG: App startup - retrieved ${retrievedConnections.size} fresh connections from plex.tv: ${retrievedConnections.map { "${it.uri} (local=${it.local})" }}",
+                        )
                         Timber.i("Retrieved fresh connections (replacing cached): $retrievedConnections")
-                        
+
                         plexPrefs.server =
                             server.copy(
                                 connections = retrievedConnections,
                             )
-                        
+
                         // Update timestamp after successful refresh
                         plexPrefs.serverListLastRefreshed = System.currentTimeMillis()
                         Timber.d("Server list refreshed successfully, timestamp updated")
@@ -223,7 +227,7 @@ open class ChronicleApplication : Application() {
                         // Network fetch failed or timed out - continue with cached connections
                         Timber.w("Failed to retrieve fresh connections, continuing with ${server.connections.size} cached connections")
                     }
-                    
+
                     try {
                         Timber.i("Connection to server!")
                         plexConfig.connectToServer(plexMediaService)

@@ -17,7 +17,6 @@ import local.oss.chronicle.databinding.DialogDebugInfoBinding
 import javax.inject.Inject
 
 class DebugInfoDialogFragment : DialogFragment() {
-
     companion object {
         const val TAG = "DebugInfoDialogFragment"
 
@@ -117,7 +116,6 @@ class DebugInfoDialogFragment : DialogFragment() {
      * Adapter for displaying connection test results
      */
     private class ConnectionsAdapter : RecyclerView.Adapter<ConnectionsAdapter.ViewHolder>() {
-
         private var connections: List<ConnectionTestResult> = emptyList()
 
         fun submitList(newConnections: List<ConnectionTestResult>) {
@@ -150,10 +148,11 @@ class DebugInfoDialogFragment : DialogFragment() {
             private val connectionType: TextView = itemView.findViewById(R.id.connectionType)
 
             fun bind(connection: ConnectionTestResult) {
-                val displayUrl = when (connection.status) {
-                    ConnectionStatus.BLOCKED -> "${connection.uri} (potentially blocked by WAF or protection software)"
-                    else -> connection.uri
-                }
+                val displayUrl =
+                    when (connection.status) {
+                        ConnectionStatus.BLOCKED -> "${connection.uri} (potentially blocked by WAF or protection software)"
+                        else -> connection.uri
+                    }
                 connectionUrl.text = displayUrl
                 connectionType.text = if (connection.isLocal) "L" else "R"
 

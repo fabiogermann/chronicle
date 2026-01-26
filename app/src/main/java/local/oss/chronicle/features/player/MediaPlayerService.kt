@@ -31,6 +31,7 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.ExoPlayer
+import kotlinx.coroutines.*
 import local.oss.chronicle.BuildConfig
 import local.oss.chronicle.R
 import local.oss.chronicle.application.ChronicleApplication
@@ -54,7 +55,6 @@ import local.oss.chronicle.injection.components.DaggerServiceComponent
 import local.oss.chronicle.injection.modules.ServiceModule
 import local.oss.chronicle.util.PackageValidator
 import local.oss.chronicle.util.ServiceUtils
-import kotlinx.coroutines.*
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
@@ -242,13 +242,15 @@ class MediaPlayerService :
 
         // Register chapter change listener to update metadata when chapter changes
         currentlyPlaying.setOnChapterChangeListener(this)
-        
+
         // Observe PlaybackStateController to keep MediaSession in sync
         // This ensures Android Auto and other media clients always have current state
         serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
             playbackStateController.state.collect { state ->
-                Timber.d("[AndroidAuto] PlaybackStateController state changed: hasMedia=${state.hasMedia}, " +
-                    "isPlaying=${state.isPlaying}, trackIndex=${state.currentTrackIndex}")
+                Timber.d(
+                    "[AndroidAuto] PlaybackStateController state changed: hasMedia=${state.hasMedia}, " +
+                        "isPlaying=${state.isPlaying}, trackIndex=${state.currentTrackIndex}",
+                )
                 // Trigger MediaSession update when controller state changes
                 updateSessionPlaybackState()
             }
@@ -411,31 +413,34 @@ class MediaPlayerService :
     private fun buildPlaybackState(player: Player): PlaybackStateCompat {
         val playbackState = mapPlayerState(player)
         val playbackSpeed = player.playbackParameters.speed
-        
+
         // Calculate chapter-relative position for the progress bar
         val trackPosition = if (player.playbackState == Player.STATE_IDLE) 0L else player.currentPosition
         val chapter = currentlyPlaying.chapter.value
-        val position = if (chapter != local.oss.chronicle.data.model.EMPTY_CHAPTER) {
-            // Chapter-scoped position: current position minus chapter start
-            kotlin.math.max(0L, trackPosition - chapter.startTimeOffset)
-        } else {
-            // Fallback to track position when no chapter data
-            trackPosition
-        }
-        
+        val position =
+            if (chapter != local.oss.chronicle.data.model.EMPTY_CHAPTER) {
+                // Chapter-scoped position: current position minus chapter start
+                kotlin.math.max(0L, trackPosition - chapter.startTimeOffset)
+            } else {
+                // Fallback to track position when no chapter data
+                trackPosition
+            }
+
         // Calculate chapter-relative buffered position
         val trackBufferedPosition = player.bufferedPosition
-        val bufferedPosition = if (chapter != local.oss.chronicle.data.model.EMPTY_CHAPTER) {
-            kotlin.math.max(0L, trackBufferedPosition - chapter.startTimeOffset)
-        } else {
-            trackBufferedPosition
-        }
-        
+        val bufferedPosition =
+            if (chapter != local.oss.chronicle.data.model.EMPTY_CHAPTER) {
+                kotlin.math.max(0L, trackBufferedPosition - chapter.startTimeOffset)
+            } else {
+                trackBufferedPosition
+            }
+
         // Store absolute track position in extras to avoid confusion with chapter-relative position
-        val extras = Bundle().apply {
-            putLong(EXTRA_ABSOLUTE_TRACK_POSITION, trackPosition)
-        }
-        
+        val extras =
+            Bundle().apply {
+                putLong(EXTRA_ABSOLUTE_TRACK_POSITION, trackPosition)
+            }
+
         val builder =
             PlaybackStateCompat.Builder()
                 .setActions(basePlaybackActions())
@@ -496,40 +501,42 @@ class MediaPlayerService :
         val description =
             player.currentMediaItem?.localConfiguration?.tag as? MediaDescriptionCompat
                 ?: extractDescriptionFromTimeline(player)
-        
+
         if (description != null) {
             // Get current chapter information
             val chapter = currentlyPlaying.chapter.value
             val book = currentlyPlaying.book.value
             val track = currentlyPlaying.track.value
-            
+
             // Build metadata with chapter-scoped information
-            val metadata = if (chapter != local.oss.chronicle.data.model.EMPTY_CHAPTER) {
-                // Chapter exists: use chapter title and duration
-                val metadataBuilder = MediaMetadataCompat.Builder()
-                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, description.mediaId)
-                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, "${chapter.title} - ${book.title}")
-                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, chapter.title)
-                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, book.title)
-                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, book.author)
-                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, book.title)
-                    .putLong(
-                        MediaMetadataCompat.METADATA_KEY_DURATION,
-                        chapter.endTimeOffset - chapter.startTimeOffset
-                    )
-                
-                // Copy album art if available
-                description.iconUri?.toString()?.let {
-                    metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, it)
-                    metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, it)
+            val metadata =
+                if (chapter != local.oss.chronicle.data.model.EMPTY_CHAPTER) {
+                    // Chapter exists: use chapter title and duration
+                    val metadataBuilder =
+                        MediaMetadataCompat.Builder()
+                            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, description.mediaId)
+                            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, "${chapter.title} - ${book.title}")
+                            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, chapter.title)
+                            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, book.title)
+                            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, book.author)
+                            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, book.title)
+                            .putLong(
+                                MediaMetadataCompat.METADATA_KEY_DURATION,
+                                chapter.endTimeOffset - chapter.startTimeOffset,
+                            )
+
+                    // Copy album art if available
+                    description.iconUri?.toString()?.let {
+                        metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, it)
+                        metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, it)
+                    }
+
+                    metadataBuilder.build()
+                } else {
+                    // No chapter data: fallback to standard track-based metadata
+                    description.toMediaMetadataCompat()
                 }
-                
-                metadataBuilder.build()
-            } else {
-                // No chapter data: fallback to standard track-based metadata
-                description.toMediaMetadataCompat()
-            }
-            
+
             mediaSession.setMetadata(metadata)
         }
     }
@@ -569,12 +576,12 @@ class MediaPlayerService :
         } else {
             Timber.d("onDestroy: Skipping progress update - no valid track metadata available")
         }
-        
+
         // Clear playback state in controller
         serviceScope.launch {
             playbackStateController.clear()
         }
-        
+
         progressUpdater.cancel()
         serviceJob.cancel()
 
@@ -657,7 +664,7 @@ class MediaPlayerService :
         result: Result<MutableList<MediaBrowserCompat.MediaItem>>,
     ) {
         Timber.d("[AndroidAuto] onLoadChildren: parentId=$parentId")
-        
+
         if (parentId == CHRONICLE_MEDIA_EMPTY_ROOT || !prefsRepo.allowAuto) {
             Timber.d("[AndroidAuto] Returning empty result (empty root or auto disabled)")
             result.sendResult(mutableListOf())
@@ -703,40 +710,44 @@ class MediaPlayerService :
                         getString(R.string.auto_category_recently_listened) -> {
                             Timber.d("[AndroidAuto] Loading recently listened")
                             val recentlyListened = bookRepository.getRecentlyListenedAsync()
-                            val items = recentlyListened
-                                .filterNotNull()
-                                .map { it.toMediaItem(plexConfig) }
-                                .toMutableList()
+                            val items =
+                                recentlyListened
+                                    .filterNotNull()
+                                    .map { it.toMediaItem(plexConfig) }
+                                    .toMutableList()
                             Timber.d("[AndroidAuto] Loaded ${items.size} recently listened items")
                             result.sendResult(items)
                         }
                         getString(R.string.auto_category_recently_added) -> {
                             Timber.d("[AndroidAuto] Loading recently added")
                             val recentlyAdded = bookRepository.getRecentlyAddedAsync()
-                            val items = recentlyAdded
-                                .filterNotNull()
-                                .map { it.toMediaItem(plexConfig) }
-                                .toMutableList()
+                            val items =
+                                recentlyAdded
+                                    .filterNotNull()
+                                    .map { it.toMediaItem(plexConfig) }
+                                    .toMutableList()
                             Timber.d("[AndroidAuto] Loaded ${items.size} recently added items")
                             result.sendResult(items)
                         }
                         getString(R.string.auto_category_library) -> {
                             Timber.d("[AndroidAuto] Loading full library")
                             val books = bookRepository.getAllBooksAsync()
-                            val items = books
-                                .filterNotNull()
-                                .map { it.toMediaItem(plexConfig) }
-                                .toMutableList()
+                            val items =
+                                books
+                                    .filterNotNull()
+                                    .map { it.toMediaItem(plexConfig) }
+                                    .toMutableList()
                             Timber.d("[AndroidAuto] Loaded ${items.size} library items")
                             result.sendResult(items)
                         }
                         getString(R.string.auto_category_offline) -> {
                             Timber.d("[AndroidAuto] Loading offline content")
                             val offline = bookRepository.getCachedAudiobooksAsync()
-                            val items = offline
-                                .filterNotNull()
-                                .map { it.toMediaItem(plexConfig) }
-                                .toMutableList()
+                            val items =
+                                offline
+                                    .filterNotNull()
+                                    .map { it.toMediaItem(plexConfig) }
+                                    .toMutableList()
                             Timber.d("[AndroidAuto] Loaded ${items.size} offline items")
                             result.sendResult(items)
                         }
@@ -759,28 +770,29 @@ class MediaPlayerService :
         result: Result<MutableList<MediaBrowserCompat.MediaItem>>,
     ) {
         Timber.i("[AndroidAuto] onSearch: query='$query'")
-        
+
         if (!prefsRepo.allowAuto) {
             Timber.w("[AndroidAuto] Search rejected - Android Auto is disabled")
             result.sendResult(mutableListOf())
             return
         }
-        
+
         if (query.isBlank()) {
             Timber.w("[AndroidAuto] Empty search query")
             result.sendResult(mutableListOf())
             return
         }
-        
+
         result.detach()
         serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
             try {
                 withContext(Dispatchers.IO) {
                     val books = bookRepository.searchAsync(query)
-                    val items = books
-                        .filterNotNull()
-                        .map { it.toMediaItem(plexConfig) }
-                        .toMutableList()
+                    val items =
+                        books
+                            .filterNotNull()
+                            .map { it.toMediaItem(plexConfig) }
+                            .toMutableList()
                     Timber.d("[AndroidAuto] Search found ${items.size} results for: $query")
                     result.sendResult(items)
                 }
@@ -1039,21 +1051,25 @@ class MediaPlayerService :
                 val playerPosition = player.currentPosition
                 val isPlaying = player.isPlaying
                 val playbackState = player.playbackState
-                
-                Timber.d("[ChapterDebug] MediaPlayerService.onChapterChange: " +
-                    "newChapter='${chapter.title}' (idx=${chapter.index}), " +
-                    "chapterRange=[${chapter.startTimeOffset} - ${chapter.endTimeOffset}], " +
-                    "playerPosition=$playerPosition, " +
-                    "isPlaying=$isPlaying, " +
-                    "playbackState=$playbackState")
-                
+
+                Timber.d(
+                    "[ChapterDebug] MediaPlayerService.onChapterChange: " +
+                        "newChapter='${chapter.title}' (idx=${chapter.index}), " +
+                        "chapterRange=[${chapter.startTimeOffset} - ${chapter.endTimeOffset}], " +
+                        "playerPosition=$playerPosition, " +
+                        "isPlaying=$isPlaying, " +
+                        "playbackState=$playbackState",
+                )
+
                 // [ChapterDebug] Check if player position is actually in the new chapter range
                 val isPositionInChapter = playerPosition in chapter.startTimeOffset..chapter.endTimeOffset
                 if (!isPositionInChapter) {
-                    Timber.w("[ChapterDebug] WARNING: playerPosition=$playerPosition is NOT in chapter range [${chapter.startTimeOffset} - ${chapter.endTimeOffset}]! " +
-                        "This may indicate the chapter was set before seek completed.")
+                    Timber.w(
+                        "[ChapterDebug] WARNING: playerPosition=$playerPosition is NOT in chapter range [${chapter.startTimeOffset} - ${chapter.endTimeOffset}]! " +
+                            "This may indicate the chapter was set before seek completed.",
+                    )
                 }
-                
+
                 updateSessionMetadataFromPlayer(player)
                 updateSessionPlaybackState()
             }

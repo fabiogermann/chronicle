@@ -22,6 +22,9 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDE
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HIDDEN
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import local.oss.chronicle.R
 import local.oss.chronicle.application.MainActivity
 import local.oss.chronicle.data.local.PrefsRepo
@@ -34,9 +37,6 @@ import local.oss.chronicle.data.sources.plex.PlexConfig
 import local.oss.chronicle.databinding.FragmentLibraryBinding
 import local.oss.chronicle.navigation.Navigator
 import local.oss.chronicle.views.checkRadioButtonWithTag
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 

@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.material.slider.Slider
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import local.oss.chronicle.application.MainActivity
 import local.oss.chronicle.application.MainActivityViewModel.BottomSheetState.COLLAPSED
 import local.oss.chronicle.data.model.Chapter
@@ -23,7 +24,6 @@ import local.oss.chronicle.features.bookdetails.TrackClickListener
 import local.oss.chronicle.features.player.SleepTimer
 import local.oss.chronicle.util.observeEvent
 import local.oss.chronicle.views.ModalBottomSheetSpeedChooser
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import timber.log.Timber
 import javax.inject.Inject
 

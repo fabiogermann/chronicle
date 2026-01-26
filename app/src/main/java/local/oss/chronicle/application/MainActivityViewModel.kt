@@ -6,6 +6,8 @@ import android.support.v4.media.session.PlaybackStateCompat.STATE_NONE
 import android.support.v4.media.session.PlaybackStateCompat.STATE_STOPPED
 import androidx.lifecycle.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import local.oss.chronicle.application.MainActivityViewModel.BottomSheetState.*
 import local.oss.chronicle.data.local.CollectionsRepository
 import local.oss.chronicle.data.local.IBookRepository
@@ -21,8 +23,6 @@ import local.oss.chronicle.util.DoubleLiveData
 import local.oss.chronicle.util.Event
 import local.oss.chronicle.util.mapAsync
 import local.oss.chronicle.util.postEvent
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 

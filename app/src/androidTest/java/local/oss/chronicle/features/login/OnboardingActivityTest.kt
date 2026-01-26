@@ -10,13 +10,13 @@ import androidx.test.espresso.matcher.ViewMatchers.isEnabled
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runBlockingTest
 import local.oss.chronicle.R
 import local.oss.chronicle.application.FullAppTest.Companion.VALID_PASSWORD
 import local.oss.chronicle.application.FullAppTest.Companion.VALID_USERNAME
 import local.oss.chronicle.application.TestChronicleApplication
 import local.oss.chronicle.injection.components.UITestAppComponent
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

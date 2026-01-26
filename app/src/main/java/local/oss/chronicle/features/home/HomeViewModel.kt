@@ -2,6 +2,7 @@ package local.oss.chronicle.features.home
 
 import android.content.SharedPreferences
 import androidx.lifecycle.*
+import kotlinx.coroutines.launch
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.application.MainActivityViewModel
 import local.oss.chronicle.data.local.IBookRepository
@@ -13,7 +14,6 @@ import local.oss.chronicle.features.library.LibraryViewModel
 import local.oss.chronicle.util.DoubleLiveData
 import local.oss.chronicle.util.Event
 import local.oss.chronicle.util.observeOnce
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 

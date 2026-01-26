@@ -171,11 +171,13 @@ class SharedPreferencesPlexPrefsRepo
             }
 
         private fun getServerConnections(): List<Connection> {
-            val localServers = getStringSet(PREFS_LOCAL_SERVER_CONNECTIONS_KEY).toList()
-            val remoteServers = getStringSet(PREFS_REMOTE_SERVER_CONNECTIONS_KEY).toList()
-
-            val combinedList = (localServers union remoteServers).toList()
-            return combinedList.map { Connection(it) }
+            val localServers =
+                getStringSet(PREFS_LOCAL_SERVER_CONNECTIONS_KEY)
+                    .map { Connection(uri = it, local = true) }
+            val remoteServers =
+                getStringSet(PREFS_REMOTE_SERVER_CONNECTIONS_KEY)
+                    .map { Connection(uri = it, local = false) }
+            return localServers + remoteServers
         }
 
         // TODO: ensure this is only usable for a certain amount of time
@@ -207,11 +209,11 @@ class SharedPreferencesPlexPrefsRepo
             prefs.edit()
                 .putStringSet(
                     PREFS_LOCAL_SERVER_CONNECTIONS_KEY,
-                    connections.map { connection -> connection.uri }.toSet(),
+                    connections.filter { it.local }.map { it.uri }.toSet(),
                 )
                 .putStringSet(
                     PREFS_REMOTE_SERVER_CONNECTIONS_KEY,
-                    connections.map { connection -> connection.uri }.toSet(),
+                    connections.filter { !it.local }.map { it.uri }.toSet(),
                 ).commit()
         }
 

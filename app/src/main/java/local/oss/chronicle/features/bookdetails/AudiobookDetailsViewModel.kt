@@ -9,6 +9,8 @@ import android.view.Gravity
 import android.widget.Toast
 import androidx.lifecycle.*
 import com.github.michaelbull.result.Ok
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.combine
 import local.oss.chronicle.R
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.data.local.IBookRepository
@@ -35,8 +37,6 @@ import local.oss.chronicle.util.mapAsync
 import local.oss.chronicle.util.postEvent
 import local.oss.chronicle.views.BottomSheetChooser.*
 import local.oss.chronicle.views.BottomSheetChooser.BottomChooserState.Companion.EMPTY_BOTTOM_CHOOSER
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.combine
 import timber.log.Timber
 import javax.inject.Inject
 

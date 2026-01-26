@@ -19,21 +19,21 @@ import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Module
 import dagger.Provides
+import kotlinx.coroutines.CompletableJob
 import local.oss.chronicle.BuildConfig
 import local.oss.chronicle.R
 import local.oss.chronicle.application.MainActivity
 import local.oss.chronicle.data.sources.plex.APP_NAME
+import local.oss.chronicle.data.sources.plex.PlaybackUrlResolver
 import local.oss.chronicle.data.sources.plex.PlexConfig
 import local.oss.chronicle.data.sources.plex.PlexMediaService
 import local.oss.chronicle.data.sources.plex.PlexPrefsRepo
-import local.oss.chronicle.data.sources.plex.PlaybackUrlResolver
 import local.oss.chronicle.features.player.*
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.EXOPLAYER_BACK_BUFFER_DURATION_MILLIS
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.EXOPLAYER_MAX_BUFFER_DURATION_MILLIS
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.EXOPLAYER_MIN_BUFFER_DURATION_MILLIS
 import local.oss.chronicle.injection.scopes.ServiceScope
 import local.oss.chronicle.util.PackageValidator
-import kotlinx.coroutines.CompletableJob
 import kotlin.time.ExperimentalTime
 
 @ExperimentalTime

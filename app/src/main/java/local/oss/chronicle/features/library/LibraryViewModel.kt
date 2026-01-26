@@ -3,6 +3,7 @@ package local.oss.chronicle.features.library
 import android.content.SharedPreferences
 import android.text.format.Formatter
 import androidx.lifecycle.*
+import kotlinx.coroutines.launch
 import local.oss.chronicle.R
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.data.local.IBookRepository
@@ -32,7 +33,6 @@ import local.oss.chronicle.views.BottomSheetChooser.BottomChooserListener
 import local.oss.chronicle.views.BottomSheetChooser.BottomChooserState.Companion.EMPTY_BOTTOM_CHOOSER
 import local.oss.chronicle.views.BottomSheetChooser.FormattableString
 import local.oss.chronicle.views.BottomSheetChooser.FormattableString.ResourceString
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 

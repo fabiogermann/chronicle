@@ -7,24 +7,25 @@ import org.junit.Test
 class ChapterTest {
     @Test
     fun `getChapterAt returns correct chapter at start offset`() {
-        val chapters = listOf(
-            Chapter(
-                title = "Opening Credits",
-                id = 1L,
-                index = 0L,
-                startTimeOffset = 0L,
-                endTimeOffset = 3016290L,
-                trackId = 1L,
-            ),
-            Chapter(
-                title = "Chapter 1",
-                id = 2L,
-                index = 1L,
-                startTimeOffset = 3016290L,
-                endTimeOffset = 7200000L,
-                trackId = 1L,
-            ),
-        )
+        val chapters =
+            listOf(
+                Chapter(
+                    title = "Opening Credits",
+                    id = 1L,
+                    index = 0L,
+                    startTimeOffset = 0L,
+                    endTimeOffset = 3016290L,
+                    trackId = 1L,
+                ),
+                Chapter(
+                    title = "Chapter 1",
+                    id = 2L,
+                    index = 1L,
+                    startTimeOffset = 3016290L,
+                    endTimeOffset = 7200000L,
+                    trackId = 1L,
+                ),
+            )
 
         val chapter = chapters.getChapterAt(trackId = 1L, timeStamp = 3016290L)
         assertThat(chapter.title, `is`("Chapter 1"))
@@ -33,24 +34,25 @@ class ChapterTest {
 
     @Test
     fun `getChapterAt returns correct chapter at middle offset`() {
-        val chapters = listOf(
-            Chapter(
-                title = "Opening Credits",
-                id = 1L,
-                index = 0L,
-                startTimeOffset = 0L,
-                endTimeOffset = 3016290L,
-                trackId = 1L,
-            ),
-            Chapter(
-                title = "Chapter 1",
-                id = 2L,
-                index = 1L,
-                startTimeOffset = 3016290L,
-                endTimeOffset = 7200000L,
-                trackId = 1L,
-            ),
-        )
+        val chapters =
+            listOf(
+                Chapter(
+                    title = "Opening Credits",
+                    id = 1L,
+                    index = 0L,
+                    startTimeOffset = 0L,
+                    endTimeOffset = 3016290L,
+                    trackId = 1L,
+                ),
+                Chapter(
+                    title = "Chapter 1",
+                    id = 2L,
+                    index = 1L,
+                    startTimeOffset = 3016290L,
+                    endTimeOffset = 7200000L,
+                    trackId = 1L,
+                ),
+            )
 
         val chapter = chapters.getChapterAt(trackId = 1L, timeStamp = 5000000L)
         assertThat(chapter.title, `is`("Chapter 1"))
@@ -59,24 +61,25 @@ class ChapterTest {
 
     @Test
     fun `getChapterAt returns EMPTY_CHAPTER at end boundary with no next chapter`() {
-        val chapters = listOf(
-            Chapter(
-                title = "Opening Credits",
-                id = 1L,
-                index = 0L,
-                startTimeOffset = 0L,
-                endTimeOffset = 3016290L,
-                trackId = 1L,
-            ),
-            Chapter(
-                title = "Chapter 1",
-                id = 2L,
-                index = 1L,
-                startTimeOffset = 3016290L,
-                endTimeOffset = 7200000L,
-                trackId = 1L,
-            ),
-        )
+        val chapters =
+            listOf(
+                Chapter(
+                    title = "Opening Credits",
+                    id = 1L,
+                    index = 0L,
+                    startTimeOffset = 0L,
+                    endTimeOffset = 3016290L,
+                    trackId = 1L,
+                ),
+                Chapter(
+                    title = "Chapter 1",
+                    id = 2L,
+                    index = 1L,
+                    startTimeOffset = 3016290L,
+                    endTimeOffset = 7200000L,
+                    trackId = 1L,
+                ),
+            )
 
         // At end boundary with half-open interval, position is NOT in Chapter 1
         val chapter = chapters.getChapterAt(trackId = 1L, timeStamp = 7200000L)
@@ -85,24 +88,25 @@ class ChapterTest {
 
     @Test
     fun `getChapterAt returns first chapter at beginning`() {
-        val chapters = listOf(
-            Chapter(
-                title = "Opening Credits",
-                id = 1L,
-                index = 0L,
-                startTimeOffset = 0L,
-                endTimeOffset = 3016290L,
-                trackId = 1L,
-            ),
-            Chapter(
-                title = "Chapter 1",
-                id = 2L,
-                index = 1L,
-                startTimeOffset = 3016290L,
-                endTimeOffset = 7200000L,
-                trackId = 1L,
-            ),
-        )
+        val chapters =
+            listOf(
+                Chapter(
+                    title = "Opening Credits",
+                    id = 1L,
+                    index = 0L,
+                    startTimeOffset = 0L,
+                    endTimeOffset = 3016290L,
+                    trackId = 1L,
+                ),
+                Chapter(
+                    title = "Chapter 1",
+                    id = 2L,
+                    index = 1L,
+                    startTimeOffset = 3016290L,
+                    endTimeOffset = 7200000L,
+                    trackId = 1L,
+                ),
+            )
 
         val chapter = chapters.getChapterAt(trackId = 1L, timeStamp = 0L)
         assertThat(chapter.title, `is`("Opening Credits"))
@@ -111,24 +115,25 @@ class ChapterTest {
 
     @Test
     fun `getChapterAt returns correct chapter for multiple tracks`() {
-        val chapters = listOf(
-            Chapter(
-                title = "Chapter 1",
-                id = 1L,
-                index = 0L,
-                startTimeOffset = 0L,
-                endTimeOffset = 5000000L,
-                trackId = 1L,
-            ),
-            Chapter(
-                title = "Chapter 2",
-                id = 2L,
-                index = 1L,
-                startTimeOffset = 0L,
-                endTimeOffset = 5000000L,
-                trackId = 2L,
-            ),
-        )
+        val chapters =
+            listOf(
+                Chapter(
+                    title = "Chapter 1",
+                    id = 1L,
+                    index = 0L,
+                    startTimeOffset = 0L,
+                    endTimeOffset = 5000000L,
+                    trackId = 1L,
+                ),
+                Chapter(
+                    title = "Chapter 2",
+                    id = 2L,
+                    index = 1L,
+                    startTimeOffset = 0L,
+                    endTimeOffset = 5000000L,
+                    trackId = 2L,
+                ),
+            )
 
         // Test track 1
         val chapter1 = chapters.getChapterAt(trackId = 1L, timeStamp = 2000000L)
@@ -143,16 +148,17 @@ class ChapterTest {
 
     @Test
     fun `getChapterAt returns EMPTY_CHAPTER when no matching chapter`() {
-        val chapters = listOf(
-            Chapter(
-                title = "Opening Credits",
-                id = 1L,
-                index = 0L,
-                startTimeOffset = 0L,
-                endTimeOffset = 3016290L,
-                trackId = 1L,
-            ),
-        )
+        val chapters =
+            listOf(
+                Chapter(
+                    title = "Opening Credits",
+                    id = 1L,
+                    index = 0L,
+                    startTimeOffset = 0L,
+                    endTimeOffset = 3016290L,
+                    trackId = 1L,
+                ),
+            )
 
         // Time beyond the end of the last chapter
         val chapter = chapters.getChapterAt(trackId = 1L, timeStamp = 10000000L)
@@ -161,16 +167,17 @@ class ChapterTest {
 
     @Test
     fun `getChapterAt returns EMPTY_CHAPTER for wrong track id`() {
-        val chapters = listOf(
-            Chapter(
-                title = "Opening Credits",
-                id = 1L,
-                index = 0L,
-                startTimeOffset = 0L,
-                endTimeOffset = 3016290L,
-                trackId = 1L,
-            ),
-        )
+        val chapters =
+            listOf(
+                Chapter(
+                    title = "Opening Credits",
+                    id = 1L,
+                    index = 0L,
+                    startTimeOffset = 0L,
+                    endTimeOffset = 3016290L,
+                    trackId = 1L,
+                ),
+            )
 
         val chapter = chapters.getChapterAt(trackId = 999L, timeStamp = 1000000L)
         assertThat(chapter, `is`(EMPTY_CHAPTER))
@@ -186,24 +193,25 @@ class ChapterTest {
 
     @Test
     fun `getChapterAt handles boundary between chapters correctly`() {
-        val chapters = listOf(
-            Chapter(
-                title = "Opening Credits",
-                id = 1L,
-                index = 0L,
-                startTimeOffset = 0L,
-                endTimeOffset = 3016290L,
-                trackId = 1L,
-            ),
-            Chapter(
-                title = "Chapter 1",
-                id = 2L,
-                index = 1L,
-                startTimeOffset = 3016290L,
-                endTimeOffset = 7200000L,
-                trackId = 1L,
-            ),
-        )
+        val chapters =
+            listOf(
+                Chapter(
+                    title = "Opening Credits",
+                    id = 1L,
+                    index = 0L,
+                    startTimeOffset = 0L,
+                    endTimeOffset = 3016290L,
+                    trackId = 1L,
+                ),
+                Chapter(
+                    title = "Chapter 1",
+                    id = 2L,
+                    index = 1L,
+                    startTimeOffset = 3016290L,
+                    endTimeOffset = 7200000L,
+                    trackId = 1L,
+                ),
+            )
 
         // Just before boundary (still in Opening Credits)
         val chapterBefore = chapters.getChapterAt(trackId = 1L, timeStamp = 3016289L)

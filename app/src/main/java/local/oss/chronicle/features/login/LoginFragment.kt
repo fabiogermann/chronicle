@@ -9,9 +9,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import local.oss.chronicle.R
 import local.oss.chronicle.application.ChronicleApplication
-import local.oss.chronicle.application.FEATURE_FLAG_IS_AUTO_ENABLED
 import local.oss.chronicle.data.local.PrefsRepo
 import local.oss.chronicle.databinding.OnboardingLoginBinding
 import timber.log.Timber
@@ -79,28 +77,29 @@ class LoginFragment : Fragment() {
                             oAuthPin.clientIdentifier,
                             oAuthPin.code,
                         )
-                    
+
                     // Get the PIN ID for polling
                     val pinId = oAuthPin.id
-                    
+
                     // Show WebView dialog instead of Chrome Custom Tab
-                    val dialog = PlexOAuthDialogFragment.newInstance(
-                        oauthUrl = url.toString(),
-                        pinId = pinId
-                    )
-                    
+                    val dialog =
+                        PlexOAuthDialogFragment.newInstance(
+                            oauthUrl = url.toString(),
+                            pinId = pinId,
+                        )
+
                     dialog.setOnAuthSuccessListener {
                         Timber.i("OAuth success callback received")
                         // The loginEvent observer in MainActivity handles navigation
                     }
-                    
+
                     dialog.setOnAuthCancelledListener {
                         Timber.i("OAuth cancelled by user")
                         // User can retry by pressing login button again
                     }
-                    
+
                     dialog.show(childFragmentManager, PlexOAuthDialogFragment.TAG)
-                    
+
                     loginViewModel.setLaunched(true)
                 }
             },

@@ -27,159 +27,169 @@ class TrackListStateManagerTest {
     }
 
     @Test
-    fun seekToActiveTrack() = runBlocking {
-        manager.seekToActiveTrack()
+    fun seekToActiveTrack() =
+        runBlocking {
+            manager.seekToActiveTrack()
 
-        // assert track index correct
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((1), (25L))),
-        )
-    }
-
-    @Test
-    fun `test seeking forwards within track`() = runBlocking {
-        manager.updatePosition(1, 25)
-
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((1), (25L))),
-        )
-
-        manager.seekByRelative(20)
-
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((1), (45L))),
-        )
-    }
+            // assert track index correct
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((1), (25L))),
+            )
+        }
 
     @Test
-    fun `test seeking forwards into to next track`() = runBlocking {
-        manager.updatePosition(1, 25)
+    fun `test seeking forwards within track`() =
+        runBlocking {
+            manager.updatePosition(1, 25)
 
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((1), (25L))),
-        )
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((1), (25L))),
+            )
 
-        manager.seekByRelative(40)
+            manager.seekByRelative(20)
 
-        assertThat(
-            Pair(manager.currentTrackProgress, manager.currentTrackIndex),
-            `is`(Pair(15L, 2)),
-        )
-    }
-
-    @Test
-    fun `test seeking forwards beyond end of track list`() = runBlocking {
-        manager.updatePosition(1, 25)
-
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((1), (25L))),
-        )
-
-        manager.seekByRelative(1000)
-
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((2), (50L))),
-        )
-    }
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((1), (45L))),
+            )
+        }
 
     @Test
-    fun `test seeking forwards beyond end of track list, starting with finished track`() = runBlocking {
-        manager.updatePosition(2, 50)
+    fun `test seeking forwards into to next track`() =
+        runBlocking {
+            manager.updatePosition(1, 25)
 
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((2), (50L))),
-        )
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((1), (25L))),
+            )
 
-        manager.seekByRelative(1000)
+            manager.seekByRelative(40)
 
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((2), (50L))),
-        )
-    }
-
-    @Test
-    fun `test seeking backwards within track`() = runBlocking {
-        manager.updatePosition(1, 25)
-
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((1), (25L))),
-        )
-
-        manager.seekByRelative(-15)
-
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair(1, 10L)),
-        )
-    }
+            assertThat(
+                Pair(manager.currentTrackProgress, manager.currentTrackIndex),
+                `is`(Pair(15L, 2)),
+            )
+        }
 
     @Test
-    fun `test seeking backwards into previous track`() = runBlocking {
-        manager.updatePosition(1, 25)
+    fun `test seeking forwards beyond end of track list`() =
+        runBlocking {
+            manager.updatePosition(1, 25)
 
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((1), (25L))),
-        )
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((1), (25L))),
+            )
 
-        manager.seekByRelative(-40)
+            manager.seekByRelative(1000)
 
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((0), (35L))),
-        )
-    }
-
-    @Test
-    fun `test seeking backwards starting at index == 0, offset == 0`() = runBlocking {
-        manager.updatePosition(0, 0)
-
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((0), (0L))),
-        )
-
-        manager.seekByRelative(-20)
-
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((0), (0L))),
-        )
-    }
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((2), (50L))),
+            )
+        }
 
     @Test
-    fun `test seeking backwards beyond start of track list`() = runBlocking {
-        manager.updatePosition(1, 25)
+    fun `test seeking forwards beyond end of track list, starting with finished track`() =
+        runBlocking {
+            manager.updatePosition(2, 50)
 
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((1), (25L))),
-        )
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((2), (50L))),
+            )
 
-        manager.seekByRelative(-1000)
+            manager.seekByRelative(1000)
 
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((0), (0L))),
-        )
-    }
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((2), (50L))),
+            )
+        }
 
     @Test
-    fun seekToTrack() = runBlocking {
-        manager.seekToActiveTrack()
+    fun `test seeking backwards within track`() =
+        runBlocking {
+            manager.updatePosition(1, 25)
 
-        assertThat(
-            Pair(manager.currentTrackIndex, manager.currentTrackProgress),
-            `is`(Pair((1), (25L))),
-        )
-    }
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((1), (25L))),
+            )
+
+            manager.seekByRelative(-15)
+
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair(1, 10L)),
+            )
+        }
+
+    @Test
+    fun `test seeking backwards into previous track`() =
+        runBlocking {
+            manager.updatePosition(1, 25)
+
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((1), (25L))),
+            )
+
+            manager.seekByRelative(-40)
+
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((0), (35L))),
+            )
+        }
+
+    @Test
+    fun `test seeking backwards starting at index == 0, offset == 0`() =
+        runBlocking {
+            manager.updatePosition(0, 0)
+
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((0), (0L))),
+            )
+
+            manager.seekByRelative(-20)
+
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((0), (0L))),
+            )
+        }
+
+    @Test
+    fun `test seeking backwards beyond start of track list`() =
+        runBlocking {
+            manager.updatePosition(1, 25)
+
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((1), (25L))),
+            )
+
+            manager.seekByRelative(-1000)
+
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((0), (0L))),
+            )
+        }
+
+    @Test
+    fun seekToTrack() =
+        runBlocking {
+            manager.seekToActiveTrack()
+
+            assertThat(
+                Pair(manager.currentTrackIndex, manager.currentTrackProgress),
+                `is`(Pair((1), (25L))),
+            )
+        }
 }

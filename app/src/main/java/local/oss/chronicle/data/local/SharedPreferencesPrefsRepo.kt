@@ -2,7 +2,6 @@ package local.oss.chronicle.data.local
 
 import android.content.SharedPreferences
 import local.oss.chronicle.BuildConfig
-import timber.log.Timber
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.data.local.PrefsRepo.Companion.KEY_ALLOW_AUTO
 import local.oss.chronicle.data.local.PrefsRepo.Companion.KEY_AUTO_REWIND_ENABLED
@@ -32,6 +31,7 @@ import local.oss.chronicle.data.model.Audiobook
 import local.oss.chronicle.data.sources.plex.model.MediaType
 import local.oss.chronicle.features.currentlyplaying.CurrentlyPlayingViewModel.Companion.PLAYBACK_SPEED_DEFAULT
 import local.oss.chronicle.injection.components.AppComponent
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -330,19 +330,22 @@ class SharedPreferencesPrefsRepo
         private val debugDisableLocalProgressTracking = false
         override var debugOnlyDisableLocalProgressTracking: Boolean
             get() {
-                val currentValue = sharedPreferences.getBoolean(
-                    KEY_DEBUG_DISABLE_PROGRESS,
-                    debugDisableLocalProgressTracking,
-                )
-                
+                val currentValue =
+                    sharedPreferences.getBoolean(
+                        KEY_DEBUG_DISABLE_PROGRESS,
+                        debugDisableLocalProgressTracking,
+                    )
+
                 // Auto-reset to false for non-debug builds to prevent accidental data loss
                 if (!BuildConfig.DEBUG && currentValue) {
-                    Timber.w("[ProgressSaveRestoreDebug] Auto-resetting debugOnlyDisableLocalProgressTracking " +
-                        "from TRUE to FALSE (not a debug build)")
+                    Timber.w(
+                        "[ProgressSaveRestoreDebug] Auto-resetting debugOnlyDisableLocalProgressTracking " +
+                            "from TRUE to FALSE (not a debug build)",
+                    )
                     sharedPreferences.edit().putBoolean(KEY_DEBUG_DISABLE_PROGRESS, false).apply()
                     return false
                 }
-                
+
                 return currentValue
             }
             set(

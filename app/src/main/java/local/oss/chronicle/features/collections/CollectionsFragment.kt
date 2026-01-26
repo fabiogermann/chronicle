@@ -16,6 +16,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import local.oss.chronicle.R
 import local.oss.chronicle.application.MainActivity
 import local.oss.chronicle.data.local.PrefsRepo
@@ -30,9 +33,6 @@ import local.oss.chronicle.databinding.FragmentCollectionsBinding
 import local.oss.chronicle.features.library.AudiobookSearchAdapter
 import local.oss.chronicle.features.library.LibraryFragment
 import local.oss.chronicle.navigation.Navigator
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 

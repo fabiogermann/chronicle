@@ -15,6 +15,7 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import com.github.michaelbull.result.Ok
+import kotlinx.coroutines.*
 import local.oss.chronicle.BuildConfig
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.application.MILLIS_PER_SECOND
@@ -32,7 +33,6 @@ import local.oss.chronicle.features.player.MediaPlayerService.Companion.KEY_SEEK
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.KEY_START_TIME_TRACK_OFFSET
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.USE_SAVED_TRACK_PROGRESS
 import local.oss.chronicle.injection.scopes.ServiceScope
-import kotlinx.coroutines.*
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -79,7 +79,7 @@ class AudiobookMediaSessionCallback
                 Timber.e(e, "[AndroidAuto] Error in onPrepareFromSearch")
             }
         }
-    
+
         override fun onPlayFromSearch(
             query: String?,
             extras: Bundle?,
@@ -91,7 +91,7 @@ class AudiobookMediaSessionCallback
                 Timber.e(e, "[AndroidAuto] Error in onPlayFromSearch")
             }
         }
-    
+
         private fun handleSearch(
             query: String?,
             playWhenReady: Boolean,
@@ -107,12 +107,12 @@ class AudiobookMediaSessionCallback
                             } else {
                                 mostRecentlyPlayed
                             }
-                        
+
                         if (bookToPlay == EMPTY_AUDIOBOOK) {
                             Timber.w("[AndroidAuto] No book available for empty search query")
                             return@launch
                         }
-                        
+
                         if (playWhenReady) {
                             onPlayFromMediaId(bookToPlay.id.toString(), null)
                         } else {
@@ -283,7 +283,7 @@ class AudiobookMediaSessionCallback
                 Timber.e(e, "[AndroidAuto] Error in onPlayFromMediaId for bookId=$bookId")
             }
         }
-    
+
         override fun onPrepareFromMediaId(
             bookId: String?,
             extras: Bundle?,
@@ -345,9 +345,10 @@ class AudiobookMediaSessionCallback
                 // This populates MediaItemTrack.streamingUrlCache which is used by getTrackSource()
                 try {
                     Timber.i("Pre-resolving streaming URLs for ${tracks.size} tracks...")
-                    val resolvedCount = withContext(Dispatchers.IO) {
-                        playbackUrlResolver.preResolveUrls(tracks)
-                    }
+                    val resolvedCount =
+                        withContext(Dispatchers.IO) {
+                            playbackUrlResolver.preResolveUrls(tracks)
+                        }
                     Timber.i("Successfully pre-resolved $resolvedCount/${tracks.size} streaming URLs")
                 } catch (e: Exception) {
                     Timber.w(e, "Failed to pre-resolve streaming URLs, will fall back to direct file URLs")
@@ -387,9 +388,11 @@ class AudiobookMediaSessionCallback
                     } else {
                         startingTrack.progress
                     }
-                Timber.d("[ProgressSaveRestoreDebug] READ: bookId=$bookId, trackId=${startingTrack.id}, " +
-                    "trackProgress=${startingTrack.progress}, lastViewedAt=${startingTrack.lastViewedAt}, " +
-                    "usingSavedProgress=${startTimeOffsetMillis == USE_SAVED_TRACK_PROGRESS}")
+                Timber.d(
+                    "[ProgressSaveRestoreDebug] READ: bookId=$bookId, trackId=${startingTrack.id}, " +
+                        "trackProgress=${startingTrack.progress}, lastViewedAt=${startingTrack.lastViewedAt}, " +
+                        "usingSavedProgress=${startTimeOffsetMillis == USE_SAVED_TRACK_PROGRESS}",
+                )
                 Timber.i(
                     "Starting at index: $startingTrackIndex, offset by $trueStartTimeOffsetMillis",
                 )
@@ -438,10 +441,10 @@ class AudiobookMediaSessionCallback
                         tracks = tracks,
                         chapters = chapters,
                         startTrackIndex = startingTrackIndex,
-                        startPositionMs = trackListStateManager.currentTrackProgress
+                        startPositionMs = trackListStateManager.currentTrackProgress,
                     )
                 }
-                
+
                 // Keep calling currentlyPlaying.update() for backward compatibility
                 currentlyPlaying.update(
                     book = book,
@@ -554,10 +557,10 @@ class AudiobookMediaSessionCallback
             Timber.i("Stopping media playback")
             currentPlayer.stop()
             mediaSession.setPlaybackState(EMPTY_PLAYBACK_STATE)
-            
+
             // Clear streaming URL cache when stopping playback
             playbackUrlResolver.clearCache()
-            
+
             foregroundServiceController.stopForegroundService(true)
             serviceController.stopService()
         }

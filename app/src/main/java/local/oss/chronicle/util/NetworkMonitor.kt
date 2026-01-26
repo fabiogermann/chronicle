@@ -22,19 +22,19 @@ sealed class NetworkState {
     data class Connected(
         val isWifi: Boolean = false,
         val isCellular: Boolean = false,
-        val isMetered: Boolean = true
+        val isMetered: Boolean = true,
     ) : NetworkState()
-    
+
     /** Network is not available */
     data object Disconnected : NetworkState()
-    
+
     /** Network state is unknown (e.g., during initialization) */
     data object Unknown : NetworkState()
 }
 
 /**
  * Monitors network connectivity state and exposes it as a StateFlow.
- * 
+ *
  * Usage:
  * ```
  * networkMonitor.networkState.collect { state ->
@@ -47,102 +47,112 @@ sealed class NetworkState {
  * ```
  */
 @Singleton
-class NetworkMonitor @Inject constructor(
-    private val context: Context
-) {
-    private val connectivityManager = 
-        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    
-    private val _networkState = MutableStateFlow<NetworkState>(NetworkState.Unknown)
-    
-    /** Current network state as a StateFlow for observing changes */
-    val networkState: StateFlow<NetworkState> = _networkState.asStateFlow()
-    
-    /** Current network state (non-reactive, for one-time checks) */
-    val currentState: NetworkState get() = _networkState.value
-    
-    /** Whether the network is currently connected */
-    val isConnected: Boolean
-        get() = _networkState.value is NetworkState.Connected
-    
-    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
-        override fun onAvailable(network: Network) {
-            updateNetworkState()
-        }
-        
-        override fun onLost(network: Network) {
-            _networkState.value = NetworkState.Disconnected
-        }
-        
-        override fun onCapabilitiesChanged(
-            network: Network,
-            networkCapabilities: NetworkCapabilities
-        ) {
-            updateNetworkState()
-        }
-    }
-    
-    init {
-        // Get initial state
-        updateNetworkState()
-        
-        // Register for updates
-        val request = NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .build()
-        connectivityManager.registerNetworkCallback(request, networkCallback)
-    }
-    
-    private fun updateNetworkState() {
-        val activeNetwork = connectivityManager.activeNetwork
-        val capabilities = activeNetwork?.let { 
-            connectivityManager.getNetworkCapabilities(it) 
-        }
-        
-        _networkState.value = if (capabilities != null && 
-            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
-            NetworkState.Connected(
-                isWifi = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI),
-                isCellular = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR),
-                isMetered = !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
-            )
-        } else {
-            NetworkState.Disconnected
-        }
-    }
-    
-    /**
-     * Returns a Flow that emits when network becomes available.
-     * Useful for triggering retry operations when network is restored.
-     */
-    fun awaitNetworkAvailable(): Flow<NetworkState.Connected> = callbackFlow {
-        val callback = object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: Network) {
-                val state = _networkState.value
-                if (state is NetworkState.Connected) {
-                    trySend(state)
+class NetworkMonitor
+    @Inject
+    constructor(
+        private val context: Context,
+    ) {
+        private val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        private val _networkState = MutableStateFlow<NetworkState>(NetworkState.Unknown)
+
+        /** Current network state as a StateFlow for observing changes */
+        val networkState: StateFlow<NetworkState> = _networkState.asStateFlow()
+
+        /** Current network state (non-reactive, for one-time checks) */
+        val currentState: NetworkState get() = _networkState.value
+
+        /** Whether the network is currently connected */
+        val isConnected: Boolean
+            get() = _networkState.value is NetworkState.Connected
+
+        private val networkCallback =
+            object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    updateNetworkState()
+                }
+
+                override fun onLost(network: Network) {
+                    _networkState.value = NetworkState.Disconnected
+                }
+
+                override fun onCapabilitiesChanged(
+                    network: Network,
+                    networkCapabilities: NetworkCapabilities,
+                ) {
+                    updateNetworkState()
                 }
             }
+
+        init {
+            // Get initial state
+            updateNetworkState()
+
+            // Register for updates
+            val request =
+                NetworkRequest.Builder()
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .build()
+            connectivityManager.registerNetworkCallback(request, networkCallback)
         }
-        
-        val request = NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .build()
-        connectivityManager.registerNetworkCallback(request, callback)
-        
-        awaitClose { 
-            connectivityManager.unregisterNetworkCallback(callback)
+
+        private fun updateNetworkState() {
+            val activeNetwork = connectivityManager.activeNetwork
+            val capabilities =
+                activeNetwork?.let {
+                    connectivityManager.getNetworkCapabilities(it)
+                }
+
+            _networkState.value =
+                if (capabilities != null &&
+                    capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                ) {
+                    NetworkState.Connected(
+                        isWifi = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI),
+                        isCellular = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR),
+                        isMetered = !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED),
+                    )
+                } else {
+                    NetworkState.Disconnected
+                }
+        }
+
+        /**
+         * Returns a Flow that emits when network becomes available.
+         * Useful for triggering retry operations when network is restored.
+         */
+        fun awaitNetworkAvailable(): Flow<NetworkState.Connected> =
+            callbackFlow {
+                val callback =
+                    object : ConnectivityManager.NetworkCallback() {
+                        override fun onAvailable(network: Network) {
+                            val state = _networkState.value
+                            if (state is NetworkState.Connected) {
+                                trySend(state)
+                            }
+                        }
+                    }
+
+                val request =
+                    NetworkRequest.Builder()
+                        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                        .build()
+                connectivityManager.registerNetworkCallback(request, callback)
+
+                awaitClose {
+                    connectivityManager.unregisterNetworkCallback(callback)
+                }
+            }
+
+        /**
+         * Clean up resources. Call when the monitor is no longer needed.
+         */
+        fun cleanup() {
+            try {
+                connectivityManager.unregisterNetworkCallback(networkCallback)
+            } catch (e: IllegalArgumentException) {
+                // Callback was not registered, ignore
+            }
         }
     }
-    
-    /**
-     * Clean up resources. Call when the monitor is no longer needed.
-     */
-    fun cleanup() {
-        try {
-            connectivityManager.unregisterNetworkCallback(networkCallback)
-        } catch (e: IllegalArgumentException) {
-            // Callback was not registered, ignore
-        }
-    }
-}

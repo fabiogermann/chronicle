@@ -294,7 +294,7 @@ fun MediaDescriptionCompat.toMediaMetadataCompat(): MediaMetadataCompat {
     this.title?.toString()?.let { builder.displayTitle = it }
     this.subtitle?.toString()?.let { builder.displaySubtitle = it }
     this.iconUri?.toString()?.let { builder.displayIconUri = it }
-    this.mediaId?.let { builder.id = it }  // Only set if not null, don't convert to string
+    this.mediaId?.let { builder.id = it } // Only set if not null, don't convert to string
     // Extract duration from extras (stored by fullDescription)
     this.extras?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION, 0L)?.takeIf { it > 0 }?.let {
         builder.duration = it

@@ -6,15 +6,13 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v4.media.session.PlaybackStateCompat.*
 import androidx.core.app.NotificationManagerCompat
+import kotlinx.coroutines.*
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.data.local.IBookRepository
 import local.oss.chronicle.data.local.ITrackRepository
-import local.oss.chronicle.data.local.ITrackRepository.Companion.TRACK_NOT_FOUND
 import local.oss.chronicle.data.model.Chapter
-import local.oss.chronicle.data.model.NO_AUDIOBOOK_FOUND_ID
 import local.oss.chronicle.features.currentlyplaying.CurrentlyPlaying
 import local.oss.chronicle.features.currentlyplaying.OnChapterChangeListener
-import kotlinx.coroutines.*
 import timber.log.Timber
 import javax.inject.Inject
 

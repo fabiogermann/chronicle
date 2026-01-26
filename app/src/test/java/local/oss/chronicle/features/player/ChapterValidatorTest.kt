@@ -6,15 +6,15 @@ import org.junit.Before
 import org.junit.Test
 
 class ChapterValidatorTest {
-
     private lateinit var validator: ChapterValidator
-    
+
     // Test data: 3 chapters - Chapter 1: 0-60s, Chapter 2: 60-120s, Chapter 3: 120-180s
-    private val testChapters = listOf(
-        Chapter(id = 1, title = "Chapter 1", startTimeOffset = 0L, endTimeOffset = 60_000L, bookId = 1),
-        Chapter(id = 2, title = "Chapter 2", startTimeOffset = 60_000L, endTimeOffset = 120_000L, bookId = 1),
-        Chapter(id = 3, title = "Chapter 3", startTimeOffset = 120_000L, endTimeOffset = 180_000L, bookId = 1)
-    )
+    private val testChapters =
+        listOf(
+            Chapter(id = 1, title = "Chapter 1", startTimeOffset = 0L, endTimeOffset = 60_000L, bookId = 1),
+            Chapter(id = 2, title = "Chapter 2", startTimeOffset = 60_000L, endTimeOffset = 120_000L, bookId = 1),
+            Chapter(id = 3, title = "Chapter 3", startTimeOffset = 120_000L, endTimeOffset = 180_000L, bookId = 1),
+        )
     private val bookDurationMs = 180_000L // 3 minutes
 
     @Before
@@ -23,7 +23,7 @@ class ChapterValidatorTest {
     }
 
     // validatePosition tests
-    
+
     @Test
     fun `validatePosition returns NoChapters for empty chapter list`() {
         val result = validator.validatePosition(30_000L, emptyList(), bookDurationMs)

@@ -1,6 +1,7 @@
 package local.oss.chronicle.features.login
 
 import androidx.lifecycle.*
+import kotlinx.coroutines.launch
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.data.model.LoadingStatus
 import local.oss.chronicle.data.model.ServerModel
@@ -9,7 +10,6 @@ import local.oss.chronicle.data.sources.plex.PlexLoginRepo
 import local.oss.chronicle.data.sources.plex.PlexLoginService
 import local.oss.chronicle.util.Event
 import local.oss.chronicle.util.postEvent
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -57,15 +57,18 @@ class ChooseServerViewModel
                     val serverContainer = plexLoginService.resources()
                     Timber.i("Server: $serverContainer")
                     _loadingStatus.value = LoadingStatus.DONE
-                    val servers = serverContainer
-                        .filter { it.provides.contains("server") }
-                        .map { it.asServer() }
-                    
+                    val servers =
+                        serverContainer
+                            .filter { it.provides.contains("server") }
+                            .map { it.asServer() }
+
                     Timber.d("URL_DEBUG: Discovered ${servers.size} servers from plex.tv:")
                     servers.forEach { server ->
-                        Timber.d("URL_DEBUG:   Server '${server.name}' has ${server.connections.size} connections: ${server.connections.map { "${it.uri} (local=${it.local})" }}")
+                        Timber.d(
+                            "URL_DEBUG:   Server '${server.name}' has ${server.connections.size} connections: ${server.connections.map { "${it.uri} (local=${it.local})" }}",
+                        )
                     }
-                    
+
                     _servers.postValue(servers)
                 } catch (e: Throwable) {
                     Timber.e(e, "Failed to get servers")

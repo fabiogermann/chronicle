@@ -68,14 +68,18 @@ private fun hideConstraint(constraintSet: ConstraintSet) {
  * This adapter ensures a minimum value of 1 is used when the duration is 0 or negative.
  */
 @BindingAdapter("safeValueTo")
-fun setSafeValueTo(slider: Slider, valueTo: Int) {
+fun setSafeValueTo(
+    slider: Slider,
+    valueTo: Int,
+) {
     // Ensure valueTo is always greater than valueFrom (which defaults to 0)
     // Use 1 as the minimum to prevent the IllegalStateException
-    val safeValueTo = if (valueTo <= slider.valueFrom) {
-        1f
-    } else {
-        valueTo.toFloat()
-    }
+    val safeValueTo =
+        if (valueTo <= slider.valueFrom) {
+            1f
+        } else {
+            valueTo.toFloat()
+        }
 
     // Only update if the value has changed to avoid unnecessary updates
     if (slider.valueTo != safeValueTo) {

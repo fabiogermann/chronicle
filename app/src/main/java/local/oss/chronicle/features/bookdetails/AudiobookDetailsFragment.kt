@@ -12,6 +12,7 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import local.oss.chronicle.R
 import local.oss.chronicle.application.MainActivity
 import local.oss.chronicle.data.local.IBookRepository
@@ -25,7 +26,6 @@ import local.oss.chronicle.databinding.FragmentAudiobookDetailsBinding
 import local.oss.chronicle.features.player.MediaServiceConnection
 import local.oss.chronicle.navigation.Navigator
 import local.oss.chronicle.util.observeEvent
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import timber.log.Timber
 import javax.inject.Inject
 

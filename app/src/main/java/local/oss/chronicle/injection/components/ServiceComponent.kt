@@ -8,13 +8,13 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Component
+import kotlinx.coroutines.CoroutineScope
 import local.oss.chronicle.data.sources.plex.PlexMediaRepository
 import local.oss.chronicle.data.sources.plex.PlexMediaSource
 import local.oss.chronicle.features.player.*
 import local.oss.chronicle.injection.modules.ServiceModule
 import local.oss.chronicle.injection.scopes.ServiceScope
 import local.oss.chronicle.util.PackageValidator
-import kotlinx.coroutines.CoroutineScope
 
 @OptIn(kotlin.time.ExperimentalTime::class)
 @ServiceScope

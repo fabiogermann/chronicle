@@ -10,10 +10,10 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.slider.Slider
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import local.oss.chronicle.application.MainActivity
 import local.oss.chronicle.data.local.PrefsRepo
 import local.oss.chronicle.databinding.ModalBottomSheetSpeedChooserBinding
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import timber.log.Timber
 import javax.inject.Inject
 

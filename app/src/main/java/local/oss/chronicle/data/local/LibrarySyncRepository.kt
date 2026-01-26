@@ -4,13 +4,13 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import local.oss.chronicle.application.Injector
-import local.oss.chronicle.data.model.getProgress
-import local.oss.chronicle.data.sources.plex.model.getDuration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import local.oss.chronicle.application.Injector
+import local.oss.chronicle.data.model.getProgress
+import local.oss.chronicle.data.sources.plex.model.getDuration
 import javax.inject.Inject
 import javax.inject.Singleton
 

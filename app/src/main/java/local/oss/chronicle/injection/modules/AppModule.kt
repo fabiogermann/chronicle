@@ -18,6 +18,7 @@ import com.tonyodev.fetch2.Fetch
 import com.tonyodev.fetch2.FetchConfiguration
 import dagger.Module
 import dagger.Provides
+import kotlinx.coroutines.CoroutineExceptionHandler
 import local.oss.chronicle.application.LOG_NETWORK_REQUESTS
 import local.oss.chronicle.data.local.*
 import local.oss.chronicle.data.sources.plex.*
@@ -25,7 +26,6 @@ import local.oss.chronicle.features.currentlyplaying.CurrentlyPlaying
 import local.oss.chronicle.features.currentlyplaying.CurrentlyPlayingSingleton
 import local.oss.chronicle.features.player.PlaybackStateController
 import local.oss.chronicle.views.UrlQueryCacheKey
-import kotlinx.coroutines.CoroutineExceptionHandler
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.logging.HttpLoggingInterceptor
@@ -225,9 +225,8 @@ class AppModule(private val app: Application) {
 
     @Provides
     @Singleton
-    fun provideCurrentlyPlaying(
-        playbackStateController: PlaybackStateController
-    ): CurrentlyPlaying = CurrentlyPlayingSingleton(playbackStateController)
+    fun provideCurrentlyPlaying(playbackStateController: PlaybackStateController): CurrentlyPlaying =
+        CurrentlyPlayingSingleton(playbackStateController)
 
     @Provides
     @Singleton
