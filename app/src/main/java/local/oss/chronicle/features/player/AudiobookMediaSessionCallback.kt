@@ -234,9 +234,19 @@ class AudiobookMediaSessionCallback
         }
 
         override fun onSeekTo(pos: Long) {
-            Timber.i("Seeking to absolute track position: ${DateUtils.formatElapsedTime(pos / 1000)}")
-            // pos is already an absolute track position, no conversion needed
-            currentPlayer.seekTo(pos)
+            // pos is chapter-relative from MediaSession seekbar (published by buildPlaybackState())
+            val chapter = currentlyPlaying.chapter.value
+            val absolutePosition =
+                if (chapter != null && chapter != EMPTY_CHAPTER) {
+                    // Convert chapter-relative to absolute track position
+                    chapter.startTimeOffset + pos
+                } else {
+                    // Fallback when no chapter data
+                    pos
+                }
+    
+            Timber.i("Seeking: chapter-relative=${pos}ms → absolute=${absolutePosition}ms (chapter=${chapter?.title ?: "none"})")
+            currentPlayer.seekTo(absolutePosition)
         }
 
         override fun onCustomAction(
