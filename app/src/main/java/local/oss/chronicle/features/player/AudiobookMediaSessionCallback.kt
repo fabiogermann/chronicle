@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
-import android.text.format.DateUtils
 import android.view.KeyEvent
 import android.view.KeyEvent.*
 import androidx.core.content.IntentCompat
@@ -244,7 +243,7 @@ class AudiobookMediaSessionCallback
                     // Fallback when no chapter data
                     pos
                 }
-    
+
             Timber.i("Seeking: chapter-relative=${pos}ms → absolute=${absolutePosition}ms (chapter=${chapter?.title ?: "none"})")
             currentPlayer.seekTo(absolutePosition)
         }

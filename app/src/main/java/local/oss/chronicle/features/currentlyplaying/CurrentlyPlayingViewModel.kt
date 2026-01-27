@@ -812,10 +812,10 @@ class CurrentlyPlayingViewModel(
         } else {
             // Seeking by chapter length
             currentChapter.value?.let { chapter ->
-                // seek relative to start of current track
+                // Send chapter-relative position (onSeekTo will add the offset)
                 val chapterDuration = chapter.endTimeOffset - chapter.startTimeOffset
-                val offset = chapter.startTimeOffset + (percentProgress * chapterDuration).toLong()
-                mediaServiceConnection.transportControls?.seekTo(offset)
+                val chapterRelativePosition = (percentProgress * chapterDuration).toLong()
+                mediaServiceConnection.transportControls?.seekTo(chapterRelativePosition)
             }
         }
     }

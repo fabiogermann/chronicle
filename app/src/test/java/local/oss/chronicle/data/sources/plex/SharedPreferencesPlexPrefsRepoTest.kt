@@ -12,7 +12,7 @@ import org.junit.Test
 
 /**
  * Unit tests for [SharedPreferencesPlexPrefsRepo].
- * 
+ *
  * Regression test for bug where local flag on server connections was lost during persistence,
  * causing all connections to appear as remote after app restart.
  */
@@ -48,7 +48,7 @@ class SharedPreferencesPlexPrefsRepoTest {
 
     /**
      * Regression test: Verify local connections are saved to local key
-     * 
+     *
      * Bug: Previously all connections were saved to BOTH local and remote keys
      * Fix: Filter connections by local flag before saving
      */
@@ -60,13 +60,14 @@ class SharedPreferencesPlexPrefsRepoTest {
         val remoteConnection1 = Connection(uri = "https://external.plex.direct:32400", local = false)
         val remoteConnection2 = Connection(uri = "https://relay.plex.tv:32400", local = false)
 
-        val serverModel = ServerModel(
-            name = "Test Server",
-            connections = listOf(localConnection1, localConnection2, remoteConnection1, remoteConnection2),
-            serverId = "test-server-id",
-            accessToken = "test-token",
-            owned = true,
-        )
+        val serverModel =
+            ServerModel(
+                name = "Test Server",
+                connections = listOf(localConnection1, localConnection2, remoteConnection1, remoteConnection2),
+                serverId = "test-server-id",
+                accessToken = "test-token",
+                owned = true,
+            )
 
         // Act
         repo.server = serverModel
@@ -98,7 +99,7 @@ class SharedPreferencesPlexPrefsRepoTest {
 
     /**
      * Regression test: Verify connections are restored with correct local flag
-     * 
+     *
      * Bug: Previously all connections were restored with local = false (default)
      * Fix: Explicitly set local = true/false when reconstructing connections
      */
@@ -150,13 +151,14 @@ class SharedPreferencesPlexPrefsRepoTest {
     fun `server setter handles server with only local connections`() {
         // Arrange
         val localConnection = Connection(uri = "http://192.168.1.100:32400", local = true)
-        val serverModel = ServerModel(
-            name = "Local Server",
-            connections = listOf(localConnection),
-            serverId = "local-id",
-            accessToken = "local-token",
-            owned = true,
-        )
+        val serverModel =
+            ServerModel(
+                name = "Local Server",
+                connections = listOf(localConnection),
+                serverId = "local-id",
+                accessToken = "local-token",
+                owned = true,
+            )
 
         // Act
         repo.server = serverModel
@@ -185,13 +187,14 @@ class SharedPreferencesPlexPrefsRepoTest {
     fun `server setter handles server with only remote connections`() {
         // Arrange
         val remoteConnection = Connection(uri = "https://external.plex.direct:32400", local = false)
-        val serverModel = ServerModel(
-            name = "Remote Server",
-            connections = listOf(remoteConnection),
-            serverId = "remote-id",
-            accessToken = "remote-token",
-            owned = false,
-        )
+        val serverModel =
+            ServerModel(
+                name = "Remote Server",
+                connections = listOf(remoteConnection),
+                serverId = "remote-id",
+                accessToken = "remote-token",
+                owned = false,
+            )
 
         // Act
         repo.server = serverModel
@@ -258,7 +261,7 @@ class SharedPreferencesPlexPrefsRepoTest {
     fun `server round-trip preserves connection local flags`() {
         // Arrange - Setup in-memory storage simulation
         val storedPrefs = mutableMapOf<String, Any>()
-        
+
         every { mockEditor.putString(any(), any()) } answers {
             storedPrefs[firstArg()] = secondArg<String>()
             mockEditor
@@ -282,16 +285,18 @@ class SharedPreferencesPlexPrefsRepoTest {
             storedPrefs[firstArg()] as? Boolean ?: secondArg()
         }
 
-        val originalServer = ServerModel(
-            name = "Test Server",
-            connections = listOf(
-                Connection(uri = "http://192.168.1.100:32400", local = true),
-                Connection(uri = "https://external.plex.direct:32400", local = false),
-            ),
-            serverId = "test-id",
-            accessToken = "test-token",
-            owned = true,
-        )
+        val originalServer =
+            ServerModel(
+                name = "Test Server",
+                connections =
+                    listOf(
+                        Connection(uri = "http://192.168.1.100:32400", local = true),
+                        Connection(uri = "https://external.plex.direct:32400", local = false),
+                    ),
+                serverId = "test-id",
+                accessToken = "test-token",
+                owned = true,
+            )
 
         // Act - Save
         repo.server = originalServer
