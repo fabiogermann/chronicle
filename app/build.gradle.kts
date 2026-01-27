@@ -25,8 +25,8 @@ android {
         applicationId = "local.oss.chronicle"
         minSdk = 33
         targetSdk = 36
-        versionCode = 40
-        versionName = "0.60.15"
+        versionCode = 41
+        versionName = "0.60.16"
 
         testInstrumentationRunner = "local.oss.chronicle.application.ChronicleTestRunner"
     }
