@@ -83,6 +83,20 @@ val MIGRATION_5_6 =
 val MIGRATION_6_7 =
     object : Migration(6, 7) {
         override fun migrate(db: SupportSQLiteDatabase) {
+            // Ensure parentServerId column exists (may be missing from older databases)
+            try {
+                db.execSQL("ALTER TABLE MediaItemTrack ADD COLUMN parentServerId INTEGER NOT NULL DEFAULT 0")
+            } catch (e: Exception) {
+                // Column already exists, continue
+            }
+            
+            // Ensure source column exists (may be missing from databases migrated from v1-v5)
+            try {
+                db.execSQL("ALTER TABLE MediaItemTrack ADD COLUMN source INTEGER NOT NULL DEFAULT 0")
+            } catch (e: Exception) {
+                // Column already exists, continue
+            }
+            
             // Create new table with updated schema
             db.execSQL("""
                 CREATE TABLE MediaItemTrack_new (
@@ -113,7 +127,7 @@ val MIGRATION_6_7 =
             // Copy data with ID transformation: convert Int to "plex:{id}"
             db.execSQL("""
                 INSERT INTO MediaItemTrack_new (id, parentKey, libraryId, title, playQueueItemID, thumb, `index`, discNumber, duration, media, album, artist, genre, cached, artwork, viewCount, progress, lastViewedAt, updatedAt, size, source)
-                SELECT 'plex:' || id, 'plex:' || parentKey, '', title, playQueueItemID, thumb, `index`, discNumber, duration, media, album, artist, genre, cached, artwork, viewCount, progress, lastViewedAt, updatedAt, size, source
+                SELECT 'plex:' || id, 'plex:' || parentServerId, '', title, playQueueItemID, thumb, `index`, discNumber, duration, media, album, artist, genre, cached, artwork, viewCount, progress, lastViewedAt, updatedAt, size, source
                 FROM MediaItemTrack
             """)
             
