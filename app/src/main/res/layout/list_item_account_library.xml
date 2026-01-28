@@ -40,12 +40,12 @@
         <!-- Library name -->
         <TextView
             android:id="@+id/library_name"
-            style="@style/TextAppearance.Body1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@{library.name}"
+            android:textAppearance="@style/TextAppearance.Body1"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toLeftOf="@id/item_count"
             app:layout_constraintTop_toTopOf="parent"
@@ -54,14 +54,13 @@
         <!-- Server name subtitle -->
         <TextView
             android:id="@+id/server_name"
-            style="@style/TextAppearance.Body2"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@{library.serverName}"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textAppearance="@style/TextAppearance.Body2"
             app:layout_constraintLeft_toLeftOf="@id/library_name"
             app:layout_constraintRight_toRightOf="@id/library_name"
             app:layout_constraintTop_toBottomOf="@id/library_name"
@@ -70,7 +69,6 @@
         <!-- Item count badge -->
         <TextView
             android:id="@+id/item_count"
-            style="@style/TextAppearance.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="8dp"
@@ -80,6 +78,7 @@
             android:paddingRight="6dp"
             android:paddingBottom="2dp"
             android:text="@{String.valueOf(library.itemCount)}"
+            android:textAppearance="@style/TextAppearance.Body2"
             android:textColor="@color/icon"
             app:layout_constraintBottom_toBottomOf="@id/library_name"
             app:layout_constraintRight_toRightOf="parent"
