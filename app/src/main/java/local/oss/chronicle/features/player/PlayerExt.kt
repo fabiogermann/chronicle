@@ -57,7 +57,7 @@ fun Player.skipToNext(
         val containingTrack =
             trackListStateManager.trackList
                 .firstOrNull {
-                    it.id.toLong() == nextChapter.trackId
+                    it.id == nextChapter.trackId
                 }
         val containingTrackIndex = trackListStateManager.trackList.indexOf(containingTrack)
         seekTo(containingTrackIndex, nextChapter.startTimeOffset + 300)
@@ -101,7 +101,7 @@ fun Player.skipToPrevious(
     val containingTrack =
         trackListStateManager.trackList
             .firstOrNull {
-                it.id.toLong() == previousChapter.trackId
+                it.id == previousChapter.trackId
             }
     val containingTrackIndex = trackListStateManager.trackList.indexOf(containingTrack)
     seekTo(containingTrackIndex, previousChapter.startTimeOffset)

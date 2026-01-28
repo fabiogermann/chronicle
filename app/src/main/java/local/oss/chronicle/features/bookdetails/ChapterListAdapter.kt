@@ -34,7 +34,7 @@ class ChapterListAdapter(val clickListener: TrackClickListener) :
 
     class SectionHeaderModel(val text: BottomSheetChooser.FormattableString)
 
-    private var activeChapter = Triple(-1L, -1, -1L)
+    private var activeChapter = Triple("", -1, -1L)
     private var chapters = emptyList<Chapter>()
 
     fun submitChapters(chapters: List<Chapter>?) {
@@ -95,7 +95,7 @@ class ChapterListAdapter(val clickListener: TrackClickListener) :
             chapter.index == activeChapter.third
 
     fun updateCurrentChapter(
-        trackId: Long,
+        trackId: String,
         discNumber: Int,
         chapterIndex: Long,
     ) {

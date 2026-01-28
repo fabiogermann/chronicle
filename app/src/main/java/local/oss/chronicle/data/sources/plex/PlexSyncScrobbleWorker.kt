@@ -44,7 +44,7 @@ class PlexSyncScrobbleWorker(
         if (authToken.isEmpty()) {
             return Result.failure()
         }
-        val trackId = inputData.requireInt(TRACK_ID_ARG)
+        val trackId = inputData.requireString(TRACK_ID_ARG)
         val playbackState = inputData.requireString(TRACK_STATE_ARG)
         val trackProgress = inputData.requireLong(TRACK_POSITION_ARG)
         val bookProgress = inputData.requireLong(BOOK_PROGRESS)
@@ -57,14 +57,20 @@ class PlexSyncScrobbleWorker(
 
                 check(bookId != NO_AUDIOBOOK_FOUND_ID)
                 check(trackId != TRACK_NOT_FOUND && track != null)
+                
+                // Extract numeric IDs for Plex API calls
+                val numericTrackId = trackId.removePrefix("plex:").toIntOrNull()
+                    ?: return@launch
+                val numericBookId = bookId.removePrefix("plex:").toIntOrNull()
+                    ?: return@launch
 
                 try {
                     Injector.get().plexMediaService().progress(
-                        ratingKey = trackId.toString(),
+                        ratingKey = numericTrackId.toString(),
                         offset = trackProgress.toString(),
                         playbackTime = trackProgress,
                         playQueueItemId = track.playQueueItemID,
-                        key = "${MediaItemTrack.PARENT_KEY_PREFIX}$trackId",
+                        key = "${MediaItemTrack.PARENT_KEY_PREFIX}$numericTrackId",
                         // IMPORTANT: Plex normally marks as finished at 90% progress, but it
                         // calculates progress with respect to duration provided if a duration is
                         // provided, so passing duration = actualDuration * 2 causes Plex to never
@@ -82,7 +88,7 @@ class PlexSyncScrobbleWorker(
                 val isTrackFinished = trackProgress > track.duration - 1
                 if (isTrackFinished) {
                     try {
-                        plexMediaService.watched(trackId.toString())
+                        plexMediaService.watched(numericTrackId.toString())
                         Timber.i("Updated watch status for: ${track.title}")
                     } catch (t: Throwable) {
                         Timber.e("Failed to update track watched status: ${t.message}")
@@ -99,7 +105,7 @@ class PlexSyncScrobbleWorker(
 
                 if (isBookFinished) {
                     try {
-                        plexMediaService.watched(bookId.toString())
+                        plexMediaService.watched(numericBookId.toString())
                         Timber.i("Updated watch status for: ${book?.title}")
                     } catch (t: Throwable) {
                         Timber.e("Failed to update book watched status: ${t.message}")
@@ -126,7 +132,7 @@ class PlexSyncScrobbleWorker(
         const val BOOK_PROGRESS = "Book progress"
 
         fun makeWorkerData(
-            trackId: Int,
+            trackId: String,
             playbackState: String,
             trackProgress: Long,
             bookProgress: Long,

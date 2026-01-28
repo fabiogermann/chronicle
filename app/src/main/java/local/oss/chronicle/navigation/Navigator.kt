@@ -142,7 +142,7 @@ class Navigator
         }
 
         fun showDetails(
-            audiobookId: Int,
+            audiobookId: String,
             audiobookTitle: String,
             isAudiobookCached: Boolean,
         ) {
@@ -151,7 +151,7 @@ class Navigator
                     if (arguments == null) {
                         arguments = Bundle()
                     }
-                    requireArguments().putInt(ARG_AUDIOBOOK_ID, audiobookId)
+                    requireArguments().putString(ARG_AUDIOBOOK_ID, audiobookId)
                     requireArguments().putString(ARG_AUDIOBOOK_TITLE, audiobookTitle)
                     requireArguments().putBoolean(ARG_IS_AUDIOBOOK_CACHED, isAudiobookCached)
                 }

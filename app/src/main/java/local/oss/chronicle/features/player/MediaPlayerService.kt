@@ -149,7 +149,7 @@ class MediaPlayerService :
         const val KEY_SEEK_TO_TRACK_WITH_ID = "MediaPlayerService.key_seek_to_track_with_id"
 
         // Value indicating to begin playback at the most recently listened position
-        const val ACTIVE_TRACK = Long.MIN_VALUE + 22233L
+        const val ACTIVE_TRACK = "__ACTIVE_TRACK__"
         const val USE_SAVED_TRACK_PROGRESS = Long.MIN_VALUE + 22250L
 
         private const val CHRONICLE_MEDIA_ROOT_ID = "chronicle_media_root_id"
@@ -371,7 +371,7 @@ class MediaPlayerService :
                 mediaSessionCallback.onPlayFromMediaId(
                     trackListManager.trackList.map { it.id }.firstOrNull { true }.toString(),
                     Bundle().apply {
-                        putLong(KEY_SEEK_TO_TRACK_WITH_ID, ACTIVE_TRACK)
+                        putString(KEY_SEEK_TO_TRACK_WITH_ID, ACTIVE_TRACK)
                         putLong(KEY_START_TIME_TRACK_OFFSET, USE_SAVED_TRACK_PROGRESS)
                     },
                 )
@@ -380,7 +380,7 @@ class MediaPlayerService :
                 mediaSessionCallback.onPrepareFromMediaId(
                     trackListManager.trackList.map { it.id }.firstOrNull { true }.toString(),
                     Bundle().apply {
-                        putLong(KEY_SEEK_TO_TRACK_WITH_ID, ACTIVE_TRACK)
+                        putString(KEY_SEEK_TO_TRACK_WITH_ID, ACTIVE_TRACK)
                         putLong(KEY_START_TIME_TRACK_OFFSET, USE_SAVED_TRACK_PROGRESS)
                     },
                 )
@@ -564,11 +564,11 @@ class MediaPlayerService :
         val metadata = mediaController.metadata
         val trackId = metadata?.id
         Timber.d("onDestroy: metadata=${if (metadata != null) "present" else "null"}, trackId=$trackId")
-        if (trackId != null && trackId.toInt() != TRACK_NOT_FOUND) {
+        if (trackId != null && trackId != TRACK_NOT_FOUND) {
             val finalPosition = currentPlayer?.currentPosition ?: 0L
             Timber.d("onDestroy: Sending final progress update for trackId=$trackId, position=$finalPosition")
             progressUpdater.updateProgress(
-                trackId.toInt(),
+                trackId,
                 PLEX_STATE_STOPPED,
                 finalPosition,
                 true,
@@ -959,18 +959,18 @@ class MediaPlayerService :
                         Timber.i("Playing next track")
                         // Update track progress
                         val trackId = mediaController.metadata.id
-                        if (trackId != null && trackId != TRACK_NOT_FOUND.toString()) {
+                        if (trackId != null && trackId != TRACK_NOT_FOUND) {
                             val plexState = PLEX_STATE_PLAYING
                             withContext(Dispatchers.IO) {
-                                val bookId = trackRepository.getBookIdForTrack(trackId.toInt())
-                                val track = trackRepository.getTrackAsync(trackId.toInt())
+                                val bookId = trackRepository.getBookIdForTrack(trackId)
+                                val track = trackRepository.getTrackAsync(trackId)
                                 val tracks = trackRepository.getTracksForAudiobookAsync(bookId)
 
                                 if (tracks.getDuration() == tracks.getProgress()) {
                                     mediaController.transportControls.stop()
                                 }
                                 progressUpdater.updateProgress(
-                                    trackId.toInt(),
+                                    trackId,
                                     plexState,
                                     track?.duration ?: 0L,
                                     true,

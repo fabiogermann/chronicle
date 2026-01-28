@@ -48,8 +48,11 @@ class ChapterRepository
             val chapters: List<Chapter> =
                 try {
                     tracks.flatMap { track ->
+                        // Extract numeric ID for Plex API call
+                        val numericTrackId = track.id.removePrefix("plex:").toIntOrNull()
+                            ?: return@flatMap emptyList()
                         val networkChapters =
-                            plexMediaService.retrieveChapterInfo(track.id)
+                            plexMediaService.retrieveChapterInfo(numericTrackId)
                                 .plexMediaContainer.metadata.firstOrNull()?.plexChapters
                         if (BuildConfig.DEBUG) {
                             // prevent networkChapters from toString()ing and being slow even if timber
@@ -59,7 +62,7 @@ class ChapterRepository
                         // If no chapters for this track, make a chapter from the current track
                         networkChapters?.map { plexChapter ->
                             plexChapter.toChapter(
-                                track.id.toLong(),
+                                track.id,
                                 track.discNumber,
                                 isAudiobookCached,
                             )

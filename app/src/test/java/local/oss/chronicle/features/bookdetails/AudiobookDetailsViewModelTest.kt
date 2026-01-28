@@ -170,7 +170,7 @@ class AudiobookDetailsViewModelTest {
     }
 
     //    private val defaultAudiobook = Audiobook(id = 22)
-    private val defaultTrackList = listOf(MediaItemTrack(parentKey = 22))
+    private val defaultTrackList = listOf(MediaItemTrack(id = "plex:1", parentKey = "plex:22", libraryId = "plex:library:1"))
 
     // Create a ViewModel with optional audiobook and track list info, where the repos only emit
     // the provided tracks and audiobooks

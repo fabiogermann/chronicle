@@ -15,7 +15,7 @@ data class PlexChapter(
 )
 
 fun PlexChapter.toChapter(
-    trackId: Long,
+    trackId: String,
     trackDiscNumber: Int,
     downloaded: Boolean,
 ): Chapter {

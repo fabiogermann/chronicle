@@ -37,7 +37,7 @@ class LibraryScopedBookDaoTest {
         database = Room.inMemoryDatabaseBuilder(context, BookDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        bookDao = database.bookDao()
+        bookDao = database.bookDao
     }
 
     @After
@@ -49,22 +49,20 @@ class LibraryScopedBookDaoTest {
 
     @Test
     fun `books with same plex id but different libraries are separate`() = runTest {
-        // Same Plex ID (12345) but different libraries
+        // Use library-scoped IDs to ensure books are unique
         val book1 = createTestAudiobook(
-            id = "plex:12345",
+            id = "plex:library:1:12345",
             libraryId = "plex:library:1",
             title = "Book from Library 1"
         )
         val book2 = createTestAudiobook(
-            id = "plex:12345", // Same Plex ID
+            id = "plex:library:2:12345", // Different compound ID
             libraryId = "plex:library:2",
             title = "Book from Library 2"
         )
         
-        // Note: These would have different compound keys in real implementation
-        // For now, test the concept
-        bookDao.insertOrUpdate(book1)
-        bookDao.insertOrUpdate(book2)
+        bookDao.update(book1)
+        bookDao.update(book2)
         
         val booksInLib1 = bookDao.getBooksForLibrary("plex:library:1").first()
         val booksInLib2 = bookDao.getBooksForLibrary("plex:library:2").first()
@@ -82,9 +80,9 @@ class LibraryScopedBookDaoTest {
         val lib1Book2 = createTestAudiobook(id = "plex:2", libraryId = "lib1", title = "L1 Book 2")
         val lib2Book1 = createTestAudiobook(id = "plex:3", libraryId = "lib2", title = "L2 Book 1")
         
-        bookDao.insertOrUpdate(lib1Book1)
-        bookDao.insertOrUpdate(lib1Book2)
-        bookDao.insertOrUpdate(lib2Book1)
+        bookDao.update(lib1Book1)
+        bookDao.update(lib1Book2)
+        bookDao.update(lib2Book1)
         
         val lib1Books = bookDao.getBooksForLibrary("lib1").first()
         assertThat(lib1Books).hasSize(2)
@@ -104,8 +102,8 @@ class LibraryScopedBookDaoTest {
             title = "Harry Potter" // Same title, different library
         )
         
-        bookDao.insertOrUpdate(lib1Book)
-        bookDao.insertOrUpdate(lib2Book)
+        bookDao.update(lib1Book)
+        bookDao.update(lib2Book)
         
         val lib1Results = bookDao.searchBooksInLibrary("lib1", "%Harry%").first()
         assertThat(lib1Results).hasSize(1)
@@ -118,17 +116,17 @@ class LibraryScopedBookDaoTest {
             id = "plex:1",
             libraryId = "lib1",
             title = "Book 1",
-            favorite = true
+            favorited = true
         )
         val lib2Book = createTestAudiobook(
             id = "plex:2",
             libraryId = "lib2",
             title = "Book 2",
-            favorite = true
+            favorited = true
         )
         
-        bookDao.insertOrUpdate(lib1Book)
-        bookDao.insertOrUpdate(lib2Book)
+        bookDao.update(lib1Book)
+        bookDao.update(lib2Book)
         
         val lib1Favorites = bookDao.getFavoritesForLibrary("lib1").first()
         assertThat(lib1Favorites).hasSize(1)
@@ -140,16 +138,16 @@ class LibraryScopedBookDaoTest {
         val lib1Book = createTestAudiobook(
             id = "plex:1",
             libraryId = "lib1",
-            lastListenedAt = 1000L
+            lastViewedAt = 1000L
         )
         val lib2Book = createTestAudiobook(
             id = "plex:2",
             libraryId = "lib2",
-            lastListenedAt = 2000L // More recent
+            lastViewedAt = 2000L // More recent
         )
         
-        bookDao.insertOrUpdate(lib1Book)
-        bookDao.insertOrUpdate(lib2Book)
+        bookDao.update(lib1Book)
+        bookDao.update(lib2Book)
         
         val lib1Recent = bookDao.getRecentlyListenedForLibrary("lib1", limit = 10).first()
         assertThat(lib1Recent).hasSize(1)
@@ -161,8 +159,8 @@ class LibraryScopedBookDaoTest {
         val lib1Book = createTestAudiobook(id = "plex:1", libraryId = "lib1")
         val lib2Book = createTestAudiobook(id = "plex:2", libraryId = "lib2")
         
-        bookDao.insertOrUpdate(lib1Book)
-        bookDao.insertOrUpdate(lib2Book)
+        bookDao.update(lib1Book)
+        bookDao.update(lib2Book)
         
         bookDao.deleteByLibraryId("lib1")
         
@@ -180,24 +178,32 @@ class LibraryScopedBookDaoTest {
         libraryId: String,
         title: String = "Test Book",
         author: String = "Test Author",
-        favorite: Boolean = false,
-        lastListenedAt: Long? = null
+        favorited: Boolean = false,
+        lastViewedAt: Long? = null
     ): Audiobook {
         return Audiobook(
             id = id,
             libraryId = libraryId,
+            source = 1L,
             title = title,
+            titleSort = title,
             author = author,
-            thumb = null,
-            duration = 3600000L,
+            thumb = "",
+            parentId = 0,
+            genre = "",
+            summary = "",
+            year = 0,
             addedAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis(),
-            lastListenedAt = lastListenedAt,
-            playbackProgress = 0L,
-            lastListenedTrackKey = null,
-            cachedState = 0,
-            favorite = favorite,
-            playlistTrackKey = null
+            lastViewedAt = lastViewedAt ?: 0L,
+            duration = 3600000L,
+            isCached = false,
+            progress = 0L,
+            favorited = favorited,
+            viewedLeafCount = 0L,
+            leafCount = 0L,
+            viewCount = 0L,
+            chapters = emptyList()
         )
     }
 }

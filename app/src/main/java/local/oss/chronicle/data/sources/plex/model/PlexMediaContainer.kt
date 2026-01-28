@@ -28,12 +28,12 @@ data class PlexMediaContainer(
 @JsonClass(generateAdapter = true)
 data class PlexGenre(val tag: String = "")
 
-fun PlexMediaContainer.asAudiobooks(): List<Audiobook> {
-    return metadata.map { Audiobook.from(it) }
+fun PlexMediaContainer.asAudiobooks(libraryId: String): List<Audiobook> {
+    return metadata.map { Audiobook.from(it, libraryId) }
 }
 
-fun PlexMediaContainer.asTrackList(): List<MediaItemTrack> {
-    return metadata.asMediaItemTracks()
+fun PlexMediaContainer.asTrackList(libraryId: String): List<MediaItemTrack> {
+    return metadata.asMediaItemTracks(libraryId)
 }
 
 fun PlexMediaContainer.asCollections(): List<Collection> {

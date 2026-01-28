@@ -15,7 +15,7 @@ class ChapterTest {
                     index = 0L,
                     startTimeOffset = 0L,
                     endTimeOffset = 3016290L,
-                    trackId = 1L,
+                    trackId = "plex:1",
                 ),
                 Chapter(
                     title = "Chapter 1",
@@ -23,11 +23,11 @@ class ChapterTest {
                     index = 1L,
                     startTimeOffset = 3016290L,
                     endTimeOffset = 7200000L,
-                    trackId = 1L,
+                    trackId = "plex:1",
                 ),
             )
 
-        val chapter = chapters.getChapterAt(trackId = 1L, timeStamp = 3016290L)
+        val chapter = chapters.getChapterAt(trackId = "plex:1", timeStamp = 3016290L)
         assertThat(chapter.title, `is`("Chapter 1"))
         assertThat(chapter.id, `is`(2L))
     }
@@ -42,7 +42,7 @@ class ChapterTest {
                     index = 0L,
                     startTimeOffset = 0L,
                     endTimeOffset = 3016290L,
-                    trackId = 1L,
+                    trackId = "plex:1",
                 ),
                 Chapter(
                     title = "Chapter 1",
@@ -50,11 +50,11 @@ class ChapterTest {
                     index = 1L,
                     startTimeOffset = 3016290L,
                     endTimeOffset = 7200000L,
-                    trackId = 1L,
+                    trackId = "plex:1",
                 ),
             )
 
-        val chapter = chapters.getChapterAt(trackId = 1L, timeStamp = 5000000L)
+        val chapter = chapters.getChapterAt(trackId = "plex:1", timeStamp = 5000000L)
         assertThat(chapter.title, `is`("Chapter 1"))
         assertThat(chapter.id, `is`(2L))
     }
@@ -69,7 +69,7 @@ class ChapterTest {
                     index = 0L,
                     startTimeOffset = 0L,
                     endTimeOffset = 3016290L,
-                    trackId = 1L,
+                    trackId = "plex:1",
                 ),
                 Chapter(
                     title = "Chapter 1",
@@ -77,12 +77,12 @@ class ChapterTest {
                     index = 1L,
                     startTimeOffset = 3016290L,
                     endTimeOffset = 7200000L,
-                    trackId = 1L,
+                    trackId = "plex:1",
                 ),
             )
 
         // At end boundary with half-open interval, position is NOT in Chapter 1
-        val chapter = chapters.getChapterAt(trackId = 1L, timeStamp = 7200000L)
+        val chapter = chapters.getChapterAt(trackId = "plex:1", timeStamp = 7200000L)
         assertThat(chapter, `is`(EMPTY_CHAPTER))
     }
 
@@ -96,7 +96,7 @@ class ChapterTest {
                     index = 0L,
                     startTimeOffset = 0L,
                     endTimeOffset = 3016290L,
-                    trackId = 1L,
+                    trackId = "plex:1",
                 ),
                 Chapter(
                     title = "Chapter 1",
@@ -104,11 +104,11 @@ class ChapterTest {
                     index = 1L,
                     startTimeOffset = 3016290L,
                     endTimeOffset = 7200000L,
-                    trackId = 1L,
+                    trackId = "plex:1",
                 ),
             )
 
-        val chapter = chapters.getChapterAt(trackId = 1L, timeStamp = 0L)
+        val chapter = chapters.getChapterAt(trackId = "plex:1", timeStamp = 0L)
         assertThat(chapter.title, `is`("Opening Credits"))
         assertThat(chapter.id, `is`(1L))
     }
@@ -123,7 +123,7 @@ class ChapterTest {
                     index = 0L,
                     startTimeOffset = 0L,
                     endTimeOffset = 5000000L,
-                    trackId = 1L,
+                    trackId = "plex:1",
                 ),
                 Chapter(
                     title = "Chapter 2",
@@ -131,19 +131,19 @@ class ChapterTest {
                     index = 1L,
                     startTimeOffset = 0L,
                     endTimeOffset = 5000000L,
-                    trackId = 2L,
+                    trackId = "plex:2",
                 ),
             )
 
         // Test track 1
-        val chapter1 = chapters.getChapterAt(trackId = 1L, timeStamp = 2000000L)
+        val chapter1 = chapters.getChapterAt(trackId = "plex:1", timeStamp = 2000000L)
         assertThat(chapter1.title, `is`("Chapter 1"))
-        assertThat(chapter1.trackId, `is`(1L))
+        assertThat(chapter1.trackId, `is`("plex:1"))
 
         // Test track 2
-        val chapter2 = chapters.getChapterAt(trackId = 2L, timeStamp = 2000000L)
+        val chapter2 = chapters.getChapterAt(trackId = "plex:2", timeStamp = 2000000L)
         assertThat(chapter2.title, `is`("Chapter 2"))
-        assertThat(chapter2.trackId, `is`(2L))
+        assertThat(chapter2.trackId, `is`("plex:2"))
     }
 
     @Test
@@ -156,12 +156,12 @@ class ChapterTest {
                     index = 0L,
                     startTimeOffset = 0L,
                     endTimeOffset = 3016290L,
-                    trackId = 1L,
+                    trackId = "plex:1",
                 ),
             )
 
         // Time beyond the end of the last chapter
-        val chapter = chapters.getChapterAt(trackId = 1L, timeStamp = 10000000L)
+        val chapter = chapters.getChapterAt(trackId = "plex:1", timeStamp = 10000000L)
         assertThat(chapter, `is`(EMPTY_CHAPTER))
     }
 
@@ -175,11 +175,11 @@ class ChapterTest {
                     index = 0L,
                     startTimeOffset = 0L,
                     endTimeOffset = 3016290L,
-                    trackId = 1L,
+                    trackId = "plex:1",
                 ),
             )
 
-        val chapter = chapters.getChapterAt(trackId = 999L, timeStamp = 1000000L)
+        val chapter = chapters.getChapterAt(trackId = "plex:999", timeStamp = 1000000L)
         assertThat(chapter, `is`(EMPTY_CHAPTER))
     }
 
@@ -187,7 +187,7 @@ class ChapterTest {
     fun `getChapterAt returns EMPTY_CHAPTER for empty chapter list`() {
         val chapters = emptyList<Chapter>()
 
-        val chapter = chapters.getChapterAt(trackId = 1L, timeStamp = 1000000L)
+        val chapter = chapters.getChapterAt(trackId = "plex:1", timeStamp = 1000000L)
         assertThat(chapter, `is`(EMPTY_CHAPTER))
     }
 
@@ -201,7 +201,7 @@ class ChapterTest {
                     index = 0L,
                     startTimeOffset = 0L,
                     endTimeOffset = 3016290L,
-                    trackId = 1L,
+                    trackId = "plex:1",
                 ),
                 Chapter(
                     title = "Chapter 1",
@@ -209,20 +209,20 @@ class ChapterTest {
                     index = 1L,
                     startTimeOffset = 3016290L,
                     endTimeOffset = 7200000L,
-                    trackId = 1L,
+                    trackId = "plex:1",
                 ),
             )
 
         // Just before boundary (still in Opening Credits)
-        val chapterBefore = chapters.getChapterAt(trackId = 1L, timeStamp = 3016289L)
+        val chapterBefore = chapters.getChapterAt(trackId = "plex:1", timeStamp = 3016289L)
         assertThat(chapterBefore.title, `is`("Opening Credits"))
 
         // At boundary (now in Chapter 1)
-        val chapterAt = chapters.getChapterAt(trackId = 1L, timeStamp = 3016290L)
+        val chapterAt = chapters.getChapterAt(trackId = "plex:1", timeStamp = 3016290L)
         assertThat(chapterAt.title, `is`("Chapter 1"))
 
         // Just after boundary (still in Chapter 1)
-        val chapterAfter = chapters.getChapterAt(trackId = 1L, timeStamp = 3016291L)
+        val chapterAfter = chapters.getChapterAt(trackId = "plex:1", timeStamp = 3016291L)
         assertThat(chapterAfter.title, `is`("Chapter 1"))
     }
 }

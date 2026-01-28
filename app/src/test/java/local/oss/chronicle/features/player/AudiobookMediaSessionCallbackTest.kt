@@ -146,8 +146,8 @@ class AudiobookMediaSessionCallbackTest {
                 index = 3L,
                 startTimeOffset = chapterStartOffset,
                 endTimeOffset = chapterEndOffset,
-                trackId = 1L,
-                bookId = 1L,
+                trackId = "plex:1",
+                bookId = "plex:1",
             )
 
         val chapterFlow = MutableStateFlow(chapter)
@@ -203,8 +203,8 @@ class AudiobookMediaSessionCallbackTest {
                 index = 1L,
                 startTimeOffset = chapterStartOffset,
                 endTimeOffset = 5_000_000L,
-                trackId = 1L,
-                bookId = 1L,
+                trackId = "plex:1",
+                bookId = "plex:1",
             )
 
         val chapterFlow = MutableStateFlow(chapter)
@@ -237,8 +237,8 @@ class AudiobookMediaSessionCallbackTest {
                 index = 5L,
                 startTimeOffset = chapterStartOffset,
                 endTimeOffset = chapterEndOffset,
-                trackId = 1L,
-                bookId = 1L,
+                trackId = "plex:1",
+                bookId = "plex:1",
             )
 
         val chapterFlow = MutableStateFlow(chapter)
@@ -271,8 +271,8 @@ class AudiobookMediaSessionCallbackTest {
                 index = 1L,
                 startTimeOffset = 0L,
                 endTimeOffset = 1_500_000L,
-                trackId = 1L,
-                bookId = 1L,
+                trackId = "plex:1",
+                bookId = "plex:1",
             )
 
         val chapterFlow = MutableStateFlow(chapter)
@@ -306,8 +306,8 @@ class AudiobookMediaSessionCallbackTest {
                 index = 15L,
                 startTimeOffset = chapterStartOffset,
                 endTimeOffset = chapterEndOffset,
-                trackId = 1L,
-                bookId = 1L,
+                trackId = "plex:1",
+                bookId = "plex:1",
             )
 
         val chapterFlow = MutableStateFlow(chapter)

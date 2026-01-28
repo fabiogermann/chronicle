@@ -28,7 +28,7 @@ interface ITrackRepository {
      * If [forceUseNetwork] is true, override local copy with the network copy where it makes sense
      */
     suspend fun loadTracksForAudiobook(
-        bookId: Int,
+        bookId: String,
         forceUseNetwork: Boolean = false,
     ): Result<List<MediaItemTrack>, Throwable>
 
@@ -37,7 +37,7 @@ interface ITrackRepository {
      * [MediaItemTrack.id] == [trackId] in the [TrackDatabase]
      */
     suspend fun updateCachedStatus(
-        trackId: Int,
+        trackId: String,
         isCached: Boolean,
     ): Int
 
@@ -50,9 +50,9 @@ interface ITrackRepository {
      * Return a [LiveData<List<MediaItemTrack>>] containing all [MediaItemTrack]s where
      * [MediaItemTrack.parentKey] == [bookId]
      */
-    fun getTracksForAudiobook(bookId: Int): LiveData<List<MediaItemTrack>>
+    fun getTracksForAudiobook(bookId: String): LiveData<List<MediaItemTrack>>
 
-    suspend fun getTracksForAudiobookAsync(bookId: Int): List<MediaItemTrack>
+    suspend fun getTracksForAudiobookAsync(bookId: String): List<MediaItemTrack>
 
     /** Update the value of [MediaItemTrack.progress] == [trackProgress] and
      * [MediaItemTrack.lastViewedAt] == [lastViewedAt] for the track where
@@ -60,7 +60,7 @@ interface ITrackRepository {
      */
     suspend fun updateTrackProgress(
         trackProgress: Long,
-        trackId: Int,
+        trackId: String,
         lastViewedAt: Long,
     )
 
@@ -68,12 +68,12 @@ interface ITrackRepository {
      * Return a [MediaItemTrack] where [MediaItemTrack.id] == [id], or null if no such
      * [MediaItemTrack] exists
      */
-    suspend fun getTrackAsync(id: Int): MediaItemTrack?
+    suspend fun getTrackAsync(id: String): MediaItemTrack?
 
     /**
      * Return the [MediaItemTrack.parentKey] for a [MediaItemTrack] where [MediaItemTrack.id] == [trackId]
      */
-    suspend fun getBookIdForTrack(trackId: Int): Int
+    suspend fun getBookIdForTrack(trackId: String): String
 
     /** Remove all [MediaItemTrack] from the [TrackDatabase] */
     suspend fun clear()
@@ -84,13 +84,13 @@ interface ITrackRepository {
     suspend fun getCachedTracks(): List<MediaItemTrack>
 
     /** Returns the number of [MediaItemTrack] where [MediaItemTrack.parentKey] == [bookId] */
-    suspend fun getTrackCountForBookAsync(bookId: Int): Int
+    suspend fun getTrackCountForBookAsync(bookId: String): Int
 
     /**
      * Returns the number of [MediaItemTrack] where [MediaItemTrack.parentKey] == [bookId] and
      * [MediaItemTrack.cached] == true
      */
-    suspend fun getCachedTrackCountForBookAsync(bookId: Int): Int
+    suspend fun getCachedTrackCountForBookAsync(bookId: String): Int
 
     /** Sets [MediaItemTrack.cached] to false for all [MediaItemTrack] in [TrackDatabase] */
     suspend fun uncacheAll()
@@ -112,25 +112,25 @@ interface ITrackRepository {
      *
      * @return a [List<MediaItemTrack>] reflecting tracks returned by the server
      */
-    suspend fun fetchNetworkTracksForBook(bookId: Int): List<MediaItemTrack>
+    suspend fun fetchNetworkTracksForBook(bookId: String): List<MediaItemTrack>
 
     /**
      * Loads in new track data from the network, updates the DB and returns the new track data
      */
     suspend fun syncTracksInBook(
-        bookId: Int,
+        bookId: String,
         forceUseNetwork: Boolean = false,
     ): List<MediaItemTrack>
 
     /** Marks tracks in book as watched by setting the progress in all to 0 */
-    suspend fun markTracksInBookAsWatched(bookId: Int)
+    suspend fun markTracksInBookAsWatched(bookId: String)
 
     companion object {
         /**
          * The value representing the [MediaItemTrack.id] for any track which does not exist in the
          * [TrackDatabase]
          */
-        const val TRACK_NOT_FOUND: Int = -23
+        const val TRACK_NOT_FOUND: String = "track-not-found"
     }
 
     suspend fun refreshDataPaginated()
@@ -161,7 +161,9 @@ class TrackRepository
             val networkTracks = mutableListOf<MediaItemTrack>()
             withContext(Dispatchers.IO) {
                 try {
-                    val libraryId = plexPrefs.library?.id ?: return@withContext
+                    val library = plexPrefs.library ?: return@withContext
+                    val libraryIdNumeric = library.id
+                    val libraryId = "plex:library:${libraryIdNumeric}"
                     var tracksLeft = 1L
                     // Maximum number of pages of data we fetch. Failsafe in case of bad data from the
                     // server since we don't want infinite loops. This limits us to a maximum 1,000,000
@@ -171,10 +173,10 @@ class TrackRepository
                     while (tracksLeft > 0 && i < maxIterations) {
                         val response =
                             plexMediaService
-                                .retrieveTracksPaginated(libraryId, i * 100)
+                                .retrieveTracksPaginated(libraryIdNumeric, i * 100)
                                 .plexMediaContainer
                         tracksLeft = response.totalSize - (response.offset + response.size)
-                        networkTracks.addAll(response.asTrackList())
+                        networkTracks.addAll(response.asTrackList(libraryId))
                         i++
                     }
                 } catch (t: Throwable) {
@@ -193,16 +195,20 @@ class TrackRepository
             }
         }
 
-        override suspend fun fetchNetworkTracksForBook(bookId: Int): List<MediaItemTrack> {
+        override suspend fun fetchNetworkTracksForBook(bookId: String): List<MediaItemTrack> {
             return withContext(Dispatchers.IO) {
-                return@withContext plexMediaService.retrieveTracksForAlbum(bookId)
+                // Extract numeric ID from "plex:{id}" format
+                val numericId = bookId.removePrefix("plex:").toIntOrNull() ?: return@withContext emptyList()
+                val library = plexPrefs.library ?: return@withContext emptyList()
+                val libraryId = "plex:library:${library.id}"
+                return@withContext plexMediaService.retrieveTracksForAlbum(numericId)
                     .plexMediaContainer
-                    .asTrackList()
+                    .asTrackList(libraryId)
             }
         }
 
         override suspend fun syncTracksInBook(
-            bookId: Int,
+            bookId: String,
             forceUseNetwork: Boolean,
         ): List<MediaItemTrack> =
             withContext(Dispatchers.IO) {
@@ -220,7 +226,7 @@ class TrackRepository
                 mergedTracks
             }
 
-        override suspend fun markTracksInBookAsWatched(bookId: Int) {
+        override suspend fun markTracksInBookAsWatched(bookId: String) {
             withContext(Dispatchers.IO) {
                 val tracks = getTracksForAudiobookAsync(bookId)
                 val currentTime = System.currentTimeMillis()
@@ -233,16 +239,20 @@ class TrackRepository
         }
 
         override suspend fun loadTracksForAudiobook(
-            bookId: Int,
+            bookId: String,
             forceUseNetwork: Boolean,
         ): Result<List<MediaItemTrack>, Throwable> {
             return withContext(Dispatchers.IO) {
                 val localTracks = trackDao.getAllTracksAsync()
                 try {
+                    // Extract numeric ID from "plex:{id}" format
+                    val numericId = bookId.removePrefix("plex:").toIntOrNull() ?: return@withContext Err(IllegalArgumentException("Invalid book ID format: $bookId"))
+                    val library = plexPrefs.library ?: return@withContext Err(IllegalStateException("No library selected"))
+                    val libraryId = "plex:library:${library.id}"
                     val networkTracks =
-                        plexMediaService.retrieveTracksForAlbum(bookId)
+                        plexMediaService.retrieveTracksForAlbum(numericId)
                             .plexMediaContainer
-                            .asTrackList()
+                            .asTrackList(libraryId)
                     val mergedTracks =
                         mergeNetworkTracks(
                             networkTracks = networkTracks,
@@ -258,7 +268,7 @@ class TrackRepository
         }
 
         override suspend fun updateCachedStatus(
-            trackId: Int,
+            trackId: String,
             isCached: Boolean,
         ): Int {
             return withContext(Dispatchers.IO) {
@@ -276,11 +286,11 @@ class TrackRepository
             }
         }
 
-        override fun getTracksForAudiobook(bookId: Int): LiveData<List<MediaItemTrack>> {
+        override fun getTracksForAudiobook(bookId: String): LiveData<List<MediaItemTrack>> {
             return trackDao.getTracksForAudiobook(bookId, prefsRepo.offlineMode)
         }
 
-        override suspend fun getTracksForAudiobookAsync(bookId: Int): List<MediaItemTrack> {
+        override suspend fun getTracksForAudiobookAsync(bookId: String): List<MediaItemTrack> {
             return withContext(Dispatchers.IO) {
                 trackDao.getTracksForAudiobookAsync(bookId, prefsRepo.offlineMode)
             }
@@ -288,7 +298,7 @@ class TrackRepository
 
         override suspend fun updateTrackProgress(
             trackProgress: Long,
-            trackId: Int,
+            trackId: String,
             lastViewedAt: Long,
         ) {
             withContext(Dispatchers.IO) {
@@ -300,11 +310,11 @@ class TrackRepository
             }
         }
 
-        override suspend fun getTrackAsync(id: Int): MediaItemTrack? {
+        override suspend fun getTrackAsync(id: String): MediaItemTrack? {
             return trackDao.getTrackAsync(id)
         }
 
-        override suspend fun getBookIdForTrack(trackId: Int): Int {
+        override suspend fun getBookIdForTrack(trackId: String): String {
             return withContext(Dispatchers.IO) {
                 val track = trackDao.getTrackAsync(trackId)
                 Timber.i("Track is $track")
@@ -325,13 +335,13 @@ class TrackRepository
             }
         }
 
-        override suspend fun getTrackCountForBookAsync(bookId: Int): Int {
+        override suspend fun getTrackCountForBookAsync(bookId: String): Int {
             return withContext(Dispatchers.IO) {
                 trackDao.getTrackCountForAudiobookAsync(bookId)
             }
         }
 
-        override suspend fun getCachedTrackCountForBookAsync(bookId: Int): Int {
+        override suspend fun getCachedTrackCountForBookAsync(bookId: String): Int {
             return withContext(Dispatchers.IO) {
                 trackDao.getCachedTrackCountForBookAsync(bookId)
             }
@@ -347,10 +357,11 @@ class TrackRepository
             withContext(Dispatchers.IO) {
                 val localTracks = trackDao.getAllTracksAsync()
                 try {
+                    val library = Injector.get().plexPrefs().library!!
+                    val libraryId = "plex:library:${library.id}"
                     val networkTracks =
-                        plexMediaService.retrieveAllTracksInLibrary(
-                            Injector.get().plexPrefs().library!!.id,
-                        ).plexMediaContainer.asTrackList()
+                        plexMediaService.retrieveAllTracksInLibrary(library.id)
+                            .plexMediaContainer.asTrackList(libraryId)
                     val mergedTracks = mergeNetworkTracks(networkTracks, localTracks)
                     trackDao.insertAll(mergedTracks)
                     return@withContext mergedTracks
@@ -361,7 +372,7 @@ class TrackRepository
             }
 
         private data class TrackIdentifier(
-            val parentId: Int,
+            val parentId: String,
             val title: String,
             val duration: Long,
         ) {

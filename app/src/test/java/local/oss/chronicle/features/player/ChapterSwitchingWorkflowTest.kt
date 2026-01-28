@@ -68,27 +68,29 @@ class ChapterSwitchingWorkflowTest {
                     discNumber = 1,
                     startTimeOffset = (index - 1) * 600_000L,
                     endTimeOffset = index * 600_000L,
-                    trackId = 1L,
-                    bookId = 100L,
+                    trackId = "plex:1",
+                    bookId = "plex:100",
                 )
             }
 
         // Create a single track containing all chapters (60 minutes total)
         track =
             MediaItemTrack(
-                id = 1,
+                id = "plex:1",
                 title = "Test Track",
                 // 60 minutes
                 duration = 6_000_000L,
                 progress = 0L,
                 index = 1,
+                libraryId = "plex:library:1",
             )
 
         tracks = listOf(track)
 
         book =
             Audiobook(
-                id = 100,
+                id = "plex:100",
+                libraryId = "plex:library:1",
                 source = 1L,
                 title = "Test Audiobook",
                 chapters = chapters,
@@ -418,25 +420,25 @@ class ChapterSwitchingWorkflowTest {
         // Verify the underlying getChapterAt function works as expected
 
         // Test Chapter 1 (0-599,999)
-        val chapter1 = chapters.getChapterAt(trackId = 1L, timeStamp = 0L)
+        val chapter1 = chapters.getChapterAt(trackId = "plex:1", timeStamp = 0L)
         assertThat(chapter1.title, `is`("Chapter 1"))
 
-        val chapter1Mid = chapters.getChapterAt(trackId = 1L, timeStamp = 300_000L)
+        val chapter1Mid = chapters.getChapterAt(trackId = "plex:1", timeStamp = 300_000L)
         assertThat(chapter1Mid.title, `is`("Chapter 1"))
 
-        val chapter1End = chapters.getChapterAt(trackId = 1L, timeStamp = 599_999L)
+        val chapter1End = chapters.getChapterAt(trackId = "plex:1", timeStamp = 599_999L)
         assertThat(chapter1End.title, `is`("Chapter 1"))
 
         // Test Chapter 2 boundary (600,000-1,200,000)
-        val chapter2 = chapters.getChapterAt(trackId = 1L, timeStamp = 600_000L)
+        val chapter2 = chapters.getChapterAt(trackId = "plex:1", timeStamp = 600_000L)
         assertThat(chapter2.title, `is`("Chapter 2"))
 
         // Test Chapter 5 (2,400,000-3,000,000)
-        val chapter5 = chapters.getChapterAt(trackId = 1L, timeStamp = 2_700_000L)
+        val chapter5 = chapters.getChapterAt(trackId = "plex:1", timeStamp = 2_700_000L)
         assertThat(chapter5.title, `is`("Chapter 5"))
 
         // Test Chapter 10 (5,400,000-6,000,000)
-        val chapter10 = chapters.getChapterAt(trackId = 1L, timeStamp = 5_700_000L)
+        val chapter10 = chapters.getChapterAt(trackId = "plex:1", timeStamp = 5_700_000L)
         assertThat(chapter10.title, `is`("Chapter 10"))
     }
 
@@ -455,8 +457,8 @@ class ChapterSwitchingWorkflowTest {
                         index = 1L,
                         startTimeOffset = 0L,
                         endTimeOffset = 16573L,
-                        trackId = 65L,
-                        bookId = 100L,
+                        trackId = "plex:65",
+                        bookId = "plex:100",
                     ),
                     Chapter(
                         title = "The Four Houses of Midgard",
@@ -464,8 +466,8 @@ class ChapterSwitchingWorkflowTest {
                         index = 2L,
                         startTimeOffset = 16573L,
                         endTimeOffset = 88282L,
-                        trackId = 65L,
-                        bookId = 100L,
+                        trackId = "plex:65",
+                        bookId = "plex:100",
                     ),
                     Chapter(
                         title = "Prologue",
@@ -473,8 +475,8 @@ class ChapterSwitchingWorkflowTest {
                         index = 3L,
                         startTimeOffset = 88282L,
                         endTimeOffset = 3010880L,
-                        trackId = 65L,
-                        bookId = 100L,
+                        trackId = "plex:65",
+                        bookId = "plex:100",
                     ),
                     Chapter(
                         title = "Part I: The Chasm",
@@ -482,8 +484,8 @@ class ChapterSwitchingWorkflowTest {
                         index = 4L,
                         startTimeOffset = 3010880L,
                         endTimeOffset = 3016290L,
-                        trackId = 65L,
-                        bookId = 100L,
+                        trackId = "plex:65",
+                        bookId = "plex:100",
                     ),
                     Chapter(
                         title = "1",
@@ -491,23 +493,25 @@ class ChapterSwitchingWorkflowTest {
                         index = 5L,
                         startTimeOffset = 3016290L,
                         endTimeOffset = 5197230L,
-                        trackId = 65L,
-                        bookId = 100L,
+                        trackId = "plex:65",
+                        bookId = "plex:100",
                     ),
                 )
 
             val realTrack =
                 MediaItemTrack(
-                    id = 65,
+                    id = "plex:65",
                     title = "House of Sky and Breath, Book 2",
                     duration = 99738110L,
                     progress = 0L,
                     index = 1,
+                    libraryId = "plex:library:1",
                 )
 
             val realBook =
                 Audiobook(
-                    id = 100,
+                    id = "plex:100",
+                    libraryId = "plex:library:1",
                     source = 1L,
                     title = "Test Audiobook",
                     chapters = realChapters,

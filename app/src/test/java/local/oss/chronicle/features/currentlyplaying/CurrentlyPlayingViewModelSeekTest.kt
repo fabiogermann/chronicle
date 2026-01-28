@@ -60,13 +60,14 @@ class CurrentlyPlayingViewModelSeekTest {
             startTimeOffset = 3016290L,
             // Chapter ends at 7.2 seconds
             endTimeOffset = 7200000L,
-            trackId = 1L,
-            bookId = 1L,
+            trackId = "plex:1",
+            bookId = "plex:1",
         )
 
     private val testTrack =
         MediaItemTrack(
-            id = 1,
+            id = "plex:1",
+            libraryId = "plex:lib:1",
             title = "Test Track",
             duration = 10000000L,
             progress = 5000000L,
@@ -74,7 +75,8 @@ class CurrentlyPlayingViewModelSeekTest {
 
     private val testAudiobook =
         Audiobook(
-            id = 1,
+            id = "plex:1",
+            libraryId = "plex:lib:1",
             source = 1L,
             title = "Test Audiobook",
             chapters = listOf(testChapter),
@@ -205,8 +207,8 @@ class CurrentlyPlayingViewModelSeekTest {
                     startTimeOffset = 10000000L,
                     // Ends at 15 seconds
                     endTimeOffset = 15000000L,
-                    trackId = 1L,
-                    bookId = 1L,
+                    trackId = "plex:1",
+                    bookId = "plex:1",
                 )
 
             // Update the mock to return different chapter

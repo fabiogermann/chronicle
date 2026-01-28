@@ -22,11 +22,11 @@ class TrackListStateManagerThreadSafetyTest {
 
     private val testTrackList =
         listOf(
-            MediaItemTrack(1, progress = 0, duration = 60000, lastViewedAt = 1),
-            MediaItemTrack(2, progress = 0, duration = 60000, lastViewedAt = 2),
-            MediaItemTrack(3, progress = 0, duration = 60000, lastViewedAt = 3),
-            MediaItemTrack(4, progress = 0, duration = 60000, lastViewedAt = 4),
-            MediaItemTrack(5, progress = 0, duration = 60000, lastViewedAt = 5),
+            MediaItemTrack(id = "plex:1", libraryId = "plex:lib:1", progress = 0, duration = 60000, lastViewedAt = 1),
+            MediaItemTrack(id = "plex:2", libraryId = "plex:lib:1", progress = 0, duration = 60000, lastViewedAt = 2),
+            MediaItemTrack(id = "plex:3", libraryId = "plex:lib:1", progress = 0, duration = 60000, lastViewedAt = 3),
+            MediaItemTrack(id = "plex:4", libraryId = "plex:lib:1", progress = 0, duration = 60000, lastViewedAt = 4),
+            MediaItemTrack(id = "plex:5", libraryId = "plex:lib:1", progress = 0, duration = 60000, lastViewedAt = 5),
         )
 
     @Before
@@ -70,9 +70,9 @@ class TrackListStateManagerThreadSafetyTest {
         runBlocking {
             val alternateTrackList =
                 listOf(
-                    MediaItemTrack(10, progress = 0, duration = 30000, lastViewedAt = 1),
-                    MediaItemTrack(11, progress = 0, duration = 30000, lastViewedAt = 2),
-                    MediaItemTrack(12, progress = 0, duration = 30000, lastViewedAt = 3),
+                    MediaItemTrack(id = "plex:10", libraryId = "plex:lib:1", progress = 0, duration = 30000, lastViewedAt = 1),
+                    MediaItemTrack(id = "plex:11", libraryId = "plex:lib:1", progress = 0, duration = 30000, lastViewedAt = 2),
+                    MediaItemTrack(id = "plex:12", libraryId = "plex:lib:1", progress = 0, duration = 30000, lastViewedAt = 3),
                 )
 
             // Mix setTrackList and updatePosition calls
@@ -204,10 +204,10 @@ class TrackListStateManagerThreadSafetyTest {
         runBlocking {
             val tracksWithDifferentProgress =
                 listOf(
-                    MediaItemTrack(1, progress = 5000, duration = 60000, lastViewedAt = 1),
+                    MediaItemTrack(id = "plex:1", libraryId = "plex:lib:1", progress = 5000, duration = 60000, lastViewedAt = 1),
                     // Most recent
-                    MediaItemTrack(2, progress = 15000, duration = 60000, lastViewedAt = 5),
-                    MediaItemTrack(3, progress = 10000, duration = 60000, lastViewedAt = 3),
+                    MediaItemTrack(id = "plex:2", libraryId = "plex:lib:1", progress = 15000, duration = 60000, lastViewedAt = 5),
+                    MediaItemTrack(id = "plex:3", libraryId = "plex:lib:1", progress = 10000, duration = 60000, lastViewedAt = 3),
                 )
 
             // Concurrent seekToActiveTrack calls

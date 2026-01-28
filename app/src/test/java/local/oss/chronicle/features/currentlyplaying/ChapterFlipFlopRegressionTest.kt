@@ -57,7 +57,8 @@ class ChapterFlipFlopRegressionTest {
     // - Chapter 2 "The Four Houses of Midgard": [16573 - 88282]
     private val testBook =
         Audiobook(
-            id = 1,
+            id = "plex:1",
+            libraryId = "plex:lib:1",
             source = 1L,
             title = "Test Audiobook",
             chapters =
@@ -68,8 +69,8 @@ class ChapterFlipFlopRegressionTest {
                         index = 1L,
                         startTimeOffset = 0L,
                         endTimeOffset = 16573L,
-                        trackId = 1L,
-                        bookId = 1L,
+                        trackId = "plex:1",
+                        bookId = "plex:1",
                     ),
                     Chapter(
                         title = "The Four Houses of Midgard",
@@ -77,8 +78,8 @@ class ChapterFlipFlopRegressionTest {
                         index = 2L,
                         startTimeOffset = 16573L,
                         endTimeOffset = 88282L,
-                        trackId = 1L,
-                        bookId = 1L,
+                        trackId = "plex:1",
+                        bookId = "plex:1",
                     ),
                 ),
         )
@@ -86,7 +87,8 @@ class ChapterFlipFlopRegressionTest {
     private val testTracks =
         listOf(
             MediaItemTrack(
-                id = 1,
+                id = "plex:1",
+                libraryId = "plex:lib:1",
                 title = "Test Track 1",
                 duration = 88282L,
                 progress = 0L,

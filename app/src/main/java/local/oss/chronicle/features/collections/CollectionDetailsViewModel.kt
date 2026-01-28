@@ -18,7 +18,8 @@ class CollectionDetailsViewModel(
     private suspend fun getBooksInCollection(): List<Audiobook> {
         val childIds = collectionRepo.getChildIds(collectionId)
         return childIds.mapNotNull {
-            bookRepo.getAudiobookAsync(it.toInt())
+            // childIds are Long, convert to String format
+            bookRepo.getAudiobookAsync("plex:$it")
         }
     }
 
