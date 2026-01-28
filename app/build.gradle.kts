@@ -136,6 +136,7 @@ dependencies {
     implementation(libs.result)
     implementation(libs.swiperefresh)
     implementation(libs.seismic)
+    implementation(libs.security.crypto)
     implementation(libs.browserx)
     implementation(libs.oss)
     implementation(libs.appcompat)

@@ -512,4 +512,10 @@ class BookRepository
                     .asAudiobooks(libraryId)
                     .firstOrNull()
             }
+
+        suspend fun deleteByLibraryId(libraryId: String) {
+            withContext(Dispatchers.IO) {
+                bookDao.deleteByLibraryId(libraryId)
+            }
+        }
     }
