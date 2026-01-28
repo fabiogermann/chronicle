@@ -9,13 +9,13 @@ import local.oss.chronicle.data.local.TrackDatabase
 import local.oss.chronicle.data.model.PlexLibrary
 import local.oss.chronicle.data.model.ProviderType
 import local.oss.chronicle.data.model.ServerModel
-import local.oss.chronicle.data.sources.plex.SharedPreferencesPlexPrefsRepo
+import local.oss.chronicle.data.sources.plex.FakePlexPrefsRepo
 import local.oss.chronicle.data.sources.plex.model.Connection
 import local.oss.chronicle.data.sources.plex.model.MediaType
 import local.oss.chronicle.data.sources.plex.model.PlexUser
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.eq
@@ -23,19 +23,18 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.robolectric.RobolectricTestRunner
 
 /**
  * Tests for LegacyAccountMigration.
- *
- * NOTE: These tests are currently @Ignored due to issues with mocking Kotlin properties
- * in SharedPreferencesPlexPrefsRepo. See step-06-fixing-cleanup.md for details.
  */
+@RunWith(RobolectricTestRunner::class)
 class LegacyAccountMigrationTest {
 
     private lateinit var accountRepository: AccountRepository
     private lateinit var libraryRepository: LibraryRepository
     private lateinit var credentialManager: CredentialManager
-    private lateinit var plexPrefsRepo: SharedPreferencesPlexPrefsRepo
+    private lateinit var plexPrefsRepo: FakePlexPrefsRepo
     private lateinit var bookDatabase: BookDatabase
     private lateinit var trackDatabase: TrackDatabase
     private lateinit var migration: LegacyAccountMigration
@@ -45,7 +44,7 @@ class LegacyAccountMigrationTest {
         accountRepository = mock()
         libraryRepository = mock()
         credentialManager = mock()
-        plexPrefsRepo = mock()
+        plexPrefsRepo = FakePlexPrefsRepo()
         bookDatabase = mock()
         trackDatabase = mock()
 
@@ -59,7 +58,6 @@ class LegacyAccountMigrationTest {
         )
     }
 
-    @Ignore("Mocking issue with Kotlin properties - see step-06-fixing-cleanup.md")
     @Test
     fun migrate_skipsWhenAccountsAlreadyExist(): Unit = runBlocking {
         // Given
@@ -71,15 +69,13 @@ class LegacyAccountMigrationTest {
         // Then
         assertThat(result).isFalse()
         verify(accountRepository).hasAccounts()
-        verify(plexPrefsRepo, never()).accountAuthToken
     }
 
-    @Ignore("Mocking issue with Kotlin properties - see step-06-fixing-cleanup.md")
     @Test
     fun migrate_skipsWhenNoLegacyToken(): Unit = runBlocking {
         // Given
         whenever(accountRepository.hasAccounts()).thenReturn(false)
-        whenever(plexPrefsRepo.accountAuthToken).thenReturn("")
+        plexPrefsRepo.accountAuthToken = ""
 
         // When
         val result = migration.migrate()
@@ -87,11 +83,9 @@ class LegacyAccountMigrationTest {
         // Then
         assertThat(result).isFalse()
         verify(accountRepository).hasAccounts()
-        verify(plexPrefsRepo).accountAuthToken
         verify(accountRepository, never()).addAccount(any())
     }
 
-    @Ignore("Mocking issue with Kotlin properties - see step-06-fixing-cleanup.md")
     @Test
     fun migrate_createsAccountFromLegacyData(): Unit = runBlocking {
         // Given
@@ -116,10 +110,10 @@ class LegacyAccountMigrationTest {
         )
 
         whenever(accountRepository.hasAccounts()).thenReturn(false)
-        whenever(plexPrefsRepo.accountAuthToken).thenReturn(legacyToken)
-        whenever(plexPrefsRepo.user).thenReturn(plexUser)
-        whenever(plexPrefsRepo.library).thenReturn(plexLibrary)
-        whenever(plexPrefsRepo.server).thenReturn(server)
+        plexPrefsRepo.accountAuthToken = legacyToken
+        plexPrefsRepo.user = plexUser
+        plexPrefsRepo.library = plexLibrary
+        plexPrefsRepo.server = server
 
         val bookDao = mock<local.oss.chronicle.data.local.BookDao>()
         val trackDao = mock<local.oss.chronicle.data.local.TrackDao>()
@@ -164,7 +158,6 @@ class LegacyAccountMigrationTest {
         verify(trackDao).updateLegacyLibraryIds("plex:library:456")
     }
 
-    @Ignore("Mocking issue with Kotlin properties - see step-06-fixing-cleanup.md")
     @Test
     fun migrate_handlesNullUser(): Unit = runBlocking {
         // Given
@@ -176,10 +169,10 @@ class LegacyAccountMigrationTest {
         )
 
         whenever(accountRepository.hasAccounts()).thenReturn(false)
-        whenever(plexPrefsRepo.accountAuthToken).thenReturn(legacyToken)
-        whenever(plexPrefsRepo.user).thenReturn(null)
-        whenever(plexPrefsRepo.library).thenReturn(plexLibrary)
-        whenever(plexPrefsRepo.server).thenReturn(null)
+        plexPrefsRepo.accountAuthToken = legacyToken
+        plexPrefsRepo.user = null
+        plexPrefsRepo.library = plexLibrary
+        plexPrefsRepo.server = null
 
         val bookDao = mock<local.oss.chronicle.data.local.BookDao>()
         val trackDao = mock<local.oss.chronicle.data.local.TrackDao>()
@@ -201,7 +194,6 @@ class LegacyAccountMigrationTest {
         )
     }
 
-    @Ignore("Mocking issue with Kotlin properties - see step-06-fixing-cleanup.md")
     @Test
     fun migrate_handlesNullLibrary(): Unit = runBlocking {
         // Given
@@ -212,10 +204,10 @@ class LegacyAccountMigrationTest {
         )
 
         whenever(accountRepository.hasAccounts()).thenReturn(false)
-        whenever(plexPrefsRepo.accountAuthToken).thenReturn(legacyToken)
-        whenever(plexPrefsRepo.user).thenReturn(plexUser)
-        whenever(plexPrefsRepo.library).thenReturn(null)
-        whenever(plexPrefsRepo.server).thenReturn(null)
+        plexPrefsRepo.accountAuthToken = legacyToken
+        plexPrefsRepo.user = plexUser
+        plexPrefsRepo.library = null
+        plexPrefsRepo.server = null
 
         val bookDao = mock<local.oss.chronicle.data.local.BookDao>()
         val trackDao = mock<local.oss.chronicle.data.local.TrackDao>()
@@ -243,15 +235,14 @@ class LegacyAccountMigrationTest {
         verify(trackDao).updateLegacyLibraryIds("plex:library:legacy")
     }
 
-    @Ignore("Mocking issue with Kotlin properties - see step-06-fixing-cleanup.md")
     @Test
     fun migrate_throwsExceptionOnFailure(): Unit = runBlocking {
         // Given
         whenever(accountRepository.hasAccounts()).thenReturn(false)
-        whenever(plexPrefsRepo.accountAuthToken).thenReturn("token")
-        whenever(plexPrefsRepo.user).thenReturn(null)
-        whenever(plexPrefsRepo.library).thenReturn(null)
-        whenever(plexPrefsRepo.server).thenReturn(null)
+        plexPrefsRepo.accountAuthToken = "token"
+        plexPrefsRepo.user = null
+        plexPrefsRepo.library = null
+        plexPrefsRepo.server = null
         whenever(accountRepository.addAccount(any())).thenThrow(RuntimeException("Database error"))
 
         // When/Then
