@@ -125,7 +125,7 @@ class AudiobookDetailsViewModel(
         DoubleLiveData(
             cachedFileManager.activeBookDownloads,
             audiobook,
-        ) { activeDownloadIDs: Set<Int>?, _audiobook: Audiobook? ->
+        ) { activeDownloadIDs: Set<String>?, _audiobook: Audiobook? ->
             Timber.i("Active downloads: $activeDownloadIDs")
             return@DoubleLiveData when {
                 _audiobook?.isCached == true -> CACHED
@@ -265,7 +265,7 @@ class AudiobookDetailsViewModel(
                 val activeTrack = _tracks.getActiveTrack()
                 val bookProgress = _tracks.getProgress()
                 // Use getChapterAt to find the correct chapter based on track ID and progress
-                _chapters.getChapterAt(activeTrack.id.toLong(), activeTrack.progress)
+                _chapters.getChapterAt(activeTrack.id, activeTrack.progress)
             } else {
                 EMPTY_CHAPTER
             }
@@ -298,7 +298,7 @@ class AudiobookDetailsViewModel(
      * Refresh details for the current audiobook. Mostly important because we want to refresh the
      * progress in the audiobook is there has been new playback
      */
-    private fun loadBookDetails(bookId: Int) {
+    private fun loadBookDetails(bookId: String) {
         Timber.i("Refreshing tracks!")
         viewModelScope.launch {
             try {
@@ -420,7 +420,7 @@ class AudiobookDetailsViewModel(
     private fun pausePlay(
         bookId: String,
         startTimeOffset: Long = USE_SAVED_TRACK_PROGRESS,
-        trackId: Long = ACTIVE_TRACK,
+        trackId: String = ACTIVE_TRACK,
         forcePlayFromMediaId: Boolean = false,
     ) {
         if (mediaServiceConnection.isConnected.value != true) {
@@ -434,7 +434,7 @@ class AudiobookDetailsViewModel(
         val extras =
             Bundle().apply {
                 putLong(KEY_START_TIME_TRACK_OFFSET, startTimeOffset)
-                putLong(KEY_SEEK_TO_TRACK_WITH_ID, trackId)
+                putString(KEY_SEEK_TO_TRACK_WITH_ID, trackId)
             }
         Timber.i(
             "is this book playing? ${isBookInViewPlaying.value}, this this book active? ${isBookInViewActive.value}",
@@ -459,7 +459,7 @@ class AudiobookDetailsViewModel(
             } else {
                 Timber.i("Currently playing is $currentlyPlayingTrackId")
                 tracks.value?.let { trackList ->
-                    trackList.none { it.id == currentlyPlayingTrackId.toInt() }
+                    trackList.none { it.id == currentlyPlayingTrackId }
                 } ?: false
             }
 
@@ -467,7 +467,7 @@ class AudiobookDetailsViewModel(
             if (!currentlyPlayingTrackId.isNullOrEmpty()) {
                 mediaServiceConnection.playbackState.value?.let { state ->
                     progressUpdater.updateProgress(
-                        currentlyPlayingTrackId.toInt(),
+                        currentlyPlayingTrackId,
                         PLEX_STATE_STOPPED,
                         state.extras?.getLong(EXTRA_ABSOLUTE_TRACK_POSITION)
                             ?: state.currentPlayBackPosition,
@@ -481,7 +481,7 @@ class AudiobookDetailsViewModel(
     /** Jumps to a chapter starting [offset] milliseconds into the audiobook */
     fun jumpToChapter(
         offset: Long = 0,
-        trackId: Long = TRACK_NOT_FOUND.toLong(),
+        trackId: String = TRACK_NOT_FOUND,
         hasUserConfirmation: Boolean = false,
     ) {
         if (!hasUserConfirmation) {

@@ -78,13 +78,14 @@ class AudiobookDetailsFragment : Fragment() {
 
         val binding = FragmentAudiobookDetailsBinding.inflate(inflater, container, false)
 
-        val inputId = requireArguments().getInt(ARG_AUDIOBOOK_ID)
+        val inputId = requireArguments().getString(ARG_AUDIOBOOK_ID) ?: return null
         val bookTitle = requireArguments().getString(ARG_AUDIOBOOK_TITLE) ?: ""
         val inputCached = requireArguments().getBoolean(ARG_IS_AUDIOBOOK_CACHED)
 
         viewModelFactory.inputAudiobook =
             Audiobook(
                 id = inputId,
+                libraryId = "", // Not needed for fragment initialization
                 title = bookTitle,
                 source = MediaSource.NO_SOURCE_FOUND,
                 isCached = inputCached,

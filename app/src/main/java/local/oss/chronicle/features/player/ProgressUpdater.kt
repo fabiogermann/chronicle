@@ -41,7 +41,7 @@ interface ProgressUpdater {
      * to pass playback state to server
      */
     fun updateProgress(
-        trackId: Int,
+        trackId: String,
         playbackState: String,
         progress: Long,
         forceNetworkUpdate: Boolean,
@@ -127,7 +127,7 @@ class SimpleProgressUpdater
                 if (isPlaying) {
                     serviceScope.launch(context = serviceScope.coroutineContext + Dispatchers.IO) {
                         updateProgress(
-                            controller.metadata?.id?.toInt() ?: TRACK_NOT_FOUND,
+                            controller.metadata?.id ?: TRACK_NOT_FOUND,
                             MediaPlayerService.PLEX_STATE_PLAYING,
                             playerPosition,
                             false,
@@ -147,7 +147,7 @@ class SimpleProgressUpdater
                     PlaybackStateCompat.STATE_STOPPED -> MediaPlayerService.PLEX_STATE_PAUSED
                     else -> ""
                 }
-            val currentTrack = controller.metadata.id?.toInt() ?: return
+            val currentTrack = controller.metadata.id ?: return
 
             // Use the absolute track position from extras as baseline
             val absolutePositionFromExtras = controller.playbackState?.extras?.getLong(MediaPlayerService.EXTRA_ABSOLUTE_TRACK_POSITION) ?: 0L
@@ -176,7 +176,7 @@ class SimpleProgressUpdater
         }
 
         override fun updateProgress(
-            trackId: Int,
+            trackId: String,
             playbackState: String,
             progress: Long,
             forceNetworkUpdate: Boolean,
@@ -187,7 +187,7 @@ class SimpleProgressUpdater
             }
             val currentTime = System.currentTimeMillis()
             serviceScope.launch(context = serviceScope.coroutineContext + Dispatchers.IO) {
-                val bookId: Int = trackRepository.getBookIdForTrack(trackId)
+                val bookId: String = trackRepository.getBookIdForTrack(trackId)
                 val track: MediaItemTrack = trackRepository.getTrackAsync(trackId) ?: EMPTY_TRACK
 
                 // No reason to update if the track or book doesn't exist in the DB
@@ -223,8 +223,8 @@ class SimpleProgressUpdater
                 // [ChapterDebug] Calculate expected chapter based on player position vs DB position
                 val chapters = if (book?.chapters?.isNotEmpty() == true) book.chapters else tracks.asChapterList()
                 if (chapters.isNotEmpty()) {
-                    val chapterFromPlayerPos = chapters.getChapterAt(trackId.toLong(), progress)
-                    val chapterFromDbPos = chapters.getChapterAt(trackId.toLong(), track.progress)
+                    val chapterFromPlayerPos = chapters.getChapterAt(trackId, progress)
+                    val chapterFromDbPos = chapters.getChapterAt(trackId, track.progress)
                     Timber.d(
                         "[ChapterDebug] ProgressUpdater BEFORE update: " +
                             "chapterFromPlayerPos='${chapterFromPlayerPos.title}' (idx=${chapterFromPlayerPos.index}), " +
@@ -273,7 +273,7 @@ class SimpleProgressUpdater
         }
 
         private fun updateNetworkProgress(
-            trackId: Int,
+            trackId: String,
             playbackState: String,
             trackProgress: Long,
             bookProgress: Long,
@@ -304,10 +304,10 @@ class SimpleProgressUpdater
         }
 
         private suspend fun updateLocalProgress(
-            bookId: Int,
+            bookId: String,
             currentTime: Long,
             trackProgress: Long,
-            trackId: Int,
+            trackId: String,
             bookProgress: Long,
             tracks: List<MediaItemTrack>,
             bookDuration: Long,

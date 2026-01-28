@@ -260,8 +260,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         val openAudiobookWithId =
-            intent?.extras?.getInt(
-                FLAG_OPEN_ACTIVITY_TO_AUDIOBOOK_WITH_ID, NO_AUDIOBOOK_FOUND_ID,
+            intent?.extras?.getString(
+                FLAG_OPEN_ACTIVITY_TO_AUDIOBOOK_WITH_ID
             ) ?: NO_AUDIOBOOK_FOUND_ID
         if (openAudiobookWithId != NO_AUDIOBOOK_FOUND_ID) {
             lifecycleScope.launch {

@@ -16,21 +16,21 @@ class ChapterDetectionRealWorldTest {
     // Exact chapter data from logs/playback.log
     private val chapters =
         listOf(
-            Chapter(title = "Opening Credits", id = 483, index = 1, discNumber = 1, startTimeOffset = 0, endTimeOffset = 16573, downloaded = false, trackId = 65, bookId = -22321),
-            Chapter(title = "The Four Houses of Midgard", id = 484, index = 2, discNumber = 1, startTimeOffset = 16573, endTimeOffset = 88282, downloaded = false, trackId = 65, bookId = -22321),
-            Chapter(title = "Prologue", id = 485, index = 3, discNumber = 1, startTimeOffset = 88282, endTimeOffset = 3010880, downloaded = false, trackId = 65, bookId = -22321),
-            Chapter(title = "Part I: The Chasm", id = 486, index = 4, discNumber = 1, startTimeOffset = 3010880, endTimeOffset = 3016290, downloaded = false, trackId = 65, bookId = -22321),
-            Chapter(title = "1", id = 487, index = 5, discNumber = 1, startTimeOffset = 3016290, endTimeOffset = 5197230, downloaded = false, trackId = 65, bookId = -22321),
-            Chapter(title = "2", id = 488, index = 6, discNumber = 1, startTimeOffset = 5197230, endTimeOffset = 6971840, downloaded = false, trackId = 65, bookId = -22321),
-            Chapter(title = "3", id = 489, index = 7, discNumber = 1, startTimeOffset = 6971840, endTimeOffset = 7517410, downloaded = false, trackId = 65, bookId = -22321),
-            Chapter(title = "4", id = 490, index = 8, discNumber = 1, startTimeOffset = 7517410, endTimeOffset = 8974650, downloaded = false, trackId = 65, bookId = -22321),
+            Chapter(title = "Opening Credits", id = 483, index = 1, discNumber = 1, startTimeOffset = 0, endTimeOffset = 16573, downloaded = false, trackId = "plex:65", bookId = "plex:-22321"),
+            Chapter(title = "The Four Houses of Midgard", id = 484, index = 2, discNumber = 1, startTimeOffset = 16573, endTimeOffset = 88282, downloaded = false, trackId = "plex:65", bookId = "plex:-22321"),
+            Chapter(title = "Prologue", id = 485, index = 3, discNumber = 1, startTimeOffset = 88282, endTimeOffset = 3010880, downloaded = false, trackId = "plex:65", bookId = "plex:-22321"),
+            Chapter(title = "Part I: The Chasm", id = 486, index = 4, discNumber = 1, startTimeOffset = 3010880, endTimeOffset = 3016290, downloaded = false, trackId = "plex:65", bookId = "plex:-22321"),
+            Chapter(title = "1", id = 487, index = 5, discNumber = 1, startTimeOffset = 3016290, endTimeOffset = 5197230, downloaded = false, trackId = "plex:65", bookId = "plex:-22321"),
+            Chapter(title = "2", id = 488, index = 6, discNumber = 1, startTimeOffset = 5197230, endTimeOffset = 6971840, downloaded = false, trackId = "plex:65", bookId = "plex:-22321"),
+            Chapter(title = "3", id = 489, index = 7, discNumber = 1, startTimeOffset = 6971840, endTimeOffset = 7517410, downloaded = false, trackId = "plex:65", bookId = "plex:-22321"),
+            Chapter(title = "4", id = 490, index = 8, discNumber = 1, startTimeOffset = 7517410, endTimeOffset = 8974650, downloaded = false, trackId = "plex:65", bookId = "plex:-22321"),
         )
 
     @Test
     fun `test chapter detection when playing chapter 1 - should show chapter 1`() {
         // From log line 28: position=2180940 is in Prologue (88282 to 3010880)
         // Chapter 1 spans: 3016290 to 5197230
-        val trackId = 65L
+        val trackId = "plex:65"
         val position = 2180940L
 
         val detectedChapter = chapters.getChapterAt(trackId, position)
@@ -50,7 +50,7 @@ class ChapterDetectionRealWorldTest {
         // From log line 79: Cached progress: 5108948
         // Chapter 2 spans: 5197230 to 6971840
         // Position 5108948 is BEFORE chapter 2 starts, so should be in chapter 1
-        val trackId = 65L
+        val trackId = "plex:65"
         val position = 5108948L
 
         val detectedChapter = chapters.getChapterAt(trackId, position)
@@ -69,7 +69,7 @@ class ChapterDetectionRealWorldTest {
     fun `test chapter detection at exact chapter boundary - playing state`() {
         // From log line 174: position=5109560
         // This is 5109560, which is BEFORE chapter 2 starts at 5197230
-        val trackId = 65L
+        val trackId = "plex:65"
         val position = 5109560L
 
         val detectedChapter = chapters.getChapterAt(trackId, position)
@@ -88,7 +88,7 @@ class ChapterDetectionRealWorldTest {
         // From log line 567: position=5113970 (paused state)
         // Notification shows: chapter=Prologue, index=3 (BUG!)
         // But position 5113970 is in chapter "1" (3016290 to 5197230)
-        val trackId = 65L
+        val trackId = "plex:65"
         val position = 5113970L
 
         val detectedChapter = chapters.getChapterAt(trackId, position)
@@ -106,7 +106,7 @@ class ChapterDetectionRealWorldTest {
 
     @Test
     fun `test all chapter boundaries are correctly detected`() {
-        val trackId = 65L
+        val trackId = "plex:65"
 
         // Test positions at start of each chapter
         assertThat(
@@ -181,7 +181,7 @@ class ChapterDetectionRealWorldTest {
     fun `test issue scenario - user selects chapter 2 while playing`() {
         // User clicks on chapter "2" to play it
         // Chapter 2: startTimeOffset=5197230, endTimeOffset=6971840
-        val trackId = 65L
+        val trackId = "plex:65"
 
         // Simulate playback starting just after chapter 2 begins
         val positionAfterChapter2Starts = 5197230L + 100L // 5197330
@@ -200,7 +200,7 @@ class ChapterDetectionRealWorldTest {
     fun `test issue scenario - paused in middle of chapter shows wrong chapter`() {
         // From log: when paused at position 5113970, it showed "Prologue" (index 3)
         // But 5113970 is in chapter "1" (3016290 to 5197230)
-        val trackId = 65L
+        val trackId = "plex:65"
         val pausedPosition = 5113970L
 
         val detectedChapter = chapters.getChapterAt(trackId, pausedPosition)
@@ -219,7 +219,7 @@ class ChapterDetectionRealWorldTest {
 
     @Test
     fun `test actual positions from log - playing state shows wrong chapter`() {
-        val trackId = 65L
+        val trackId = "plex:65"
 
         // From log line 55: Initial cached progress shows 2180940
         // This should be in Prologue (88282 to 3010880)
@@ -260,7 +260,7 @@ class ChapterDetectionRealWorldTest {
 
     @Test
     fun `test edge case - position exactly at chapter end boundary`() {
-        val trackId = 65L
+        val trackId = "plex:65"
 
         // Test at exact end of Prologue
         val prologueEnd = 3010880L
@@ -284,7 +284,7 @@ class ChapterDetectionRealWorldTest {
 
     @Test
     fun `test comprehensive playing state positions`() {
-        val trackId = 65L
+        val trackId = "plex:65"
 
         // Test various positions during playback to understand the pattern
 
@@ -323,7 +323,7 @@ class ChapterDetectionRealWorldTest {
 
     @Test
     fun `test comprehensive paused state - verifies UI should show chapter 1 not Prologue`() {
-        val trackId = 65L
+        val trackId = "plex:65"
         val pausedPosition = 5113970L // From log line 567
 
         // When paused, the log shows:
@@ -360,7 +360,7 @@ class ChapterDetectionRealWorldTest {
 
     @Test
     fun `test comprehensive playing state - playing chapter shows wrong chapter in UI`() {
-        val trackId = 65L
+        val trackId = "plex:65"
 
         // From the log, after user interaction:
         // Line 47: "Building notification! chapter=1, index=5" (while buffering)
@@ -392,7 +392,7 @@ class ChapterDetectionRealWorldTest {
 
     @Test
     fun `test initial state transition - from position 2180940 to 5108948`() {
-        val trackId = 65L
+        val trackId = "plex:65"
 
         // Initial position (line 55): 2180940 - in Prologue
         val initialPos = 2180940L
@@ -413,7 +413,7 @@ class ChapterDetectionRealWorldTest {
 
     @Test
     fun `test wrong chapter displayed bug scenario - complete flow`() {
-        val trackId = 65L
+        val trackId = "plex:65"
 
         // SCENARIO FROM LOGS:
         // 1. Book initially at position 2180940 (in Prologue)
@@ -447,7 +447,7 @@ class ChapterDetectionRealWorldTest {
      * This now uses the correct getChapterAt() function with absolute time offsets.
      */
     private fun List<Chapter>.getChapterAtUsingBrokenCachedLogic(
-        trackId: Long,
+        trackId: String,
         progress: Long,
     ): Chapter {
         return this.getChapterAt(trackId, progress)
@@ -462,7 +462,7 @@ class ChapterDetectionRealWorldTest {
         //
         // This test verifies the CORRECT behavior now works
 
-        val trackId = 65L
+        val trackId = "plex:65"
         val position = 3016290L // Start of chapter "1"
 
         // This is what the fixed code now does (returns "1" correctly)
@@ -493,7 +493,7 @@ class ChapterDetectionRealWorldTest {
     @Test
     fun `test chapter boundary - position at chapter start returns that chapter`() {
         // Test that a position exactly at the start of a chapter returns that chapter
-        val trackId = 65L
+        val trackId = "plex:65"
 
         // Test chapter "The Four Houses of Midgard" starts at 16573
         val chapter2Start = 16573L
@@ -511,7 +511,7 @@ class ChapterDetectionRealWorldTest {
     fun `test chapter boundary - position at chapter end returns next chapter`() {
         // Test that a position exactly at the end of a chapter returns the NEXT chapter
         // This verifies the half-open interval behavior [start, end)
-        val trackId = 65L
+        val trackId = "plex:65"
 
         // Chapter "The Four Houses of Midgard" ends at 88282
         // Position 88282 should return "Prologue" (the next chapter), not "The Four Houses of Midgard"
@@ -529,7 +529,7 @@ class ChapterDetectionRealWorldTest {
     @Test
     fun `test chapter boundary - position one millisecond before chapter end returns current chapter`() {
         // Test that a position just before the chapter end still returns the current chapter
-        val trackId = 65L
+        val trackId = "plex:65"
 
         // Chapter "The Four Houses of Midgard" ends at 88282
         // Position 88281 (one millisecond before end) should still return "The Four Houses of Midgard"
@@ -577,7 +577,7 @@ class ChapterDetectionRealWorldTest {
         )
 
         // Verify that the absolute position correctly identifies the chapter
-        val trackId = 65L
+        val trackId = "plex:65"
         val detectedChapter1 = chapters.getChapterAt(trackId, absolutePosition1)
         assertThat(
             "Absolute position 16573 should be detected as chapter 2",
@@ -602,7 +602,7 @@ class ChapterDetectionRealWorldTest {
     @Test
     fun `test flip-flop prevention - absolute vs relative position`() {
         // Simulate the scenario: chapter 2 starts at 16573ms, player is at absolute position 20000ms
-        val trackId = 65L
+        val trackId = "plex:65"
         val chapter2 = chapters[1] // "The Four Houses of Midgard" starts at 16573
 
         assertThat("Chapter 2 startTimeOffset", chapter2.startTimeOffset, `is`(16573L))

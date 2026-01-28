@@ -63,12 +63,14 @@ class CollectionsRepository
 
             withContext(Dispatchers.IO) {
                 try {
+                    val library = plexPrefsRepo.library ?: return@withContext
+                    val libraryId = "plex:library:${library.id}"
                     val collectionsWithChildIds =
                         networkCollections.map {
                             val collectionItems =
                                 plexMediaService.fetchBooksInCollection(it.id)
                                     .plexMediaContainer
-                                    .asAudiobooks()
+                                    .asAudiobooks(libraryId)
 
                             val childIds = collectionItems.map { book -> book.id.toLong() }
                             it.copy(childIds = childIds)

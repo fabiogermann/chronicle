@@ -40,9 +40,9 @@ class PlaybackStateControllerTest {
     // Test data
     private val testTracks =
         listOf(
-            MediaItemTrack(id = 1, title = "Track 1", duration = 60_000L, index = 1),
-            MediaItemTrack(id = 2, title = "Track 2", duration = 60_000L, index = 2),
-            MediaItemTrack(id = 3, title = "Track 3", duration = 60_000L, index = 3),
+            MediaItemTrack(id = "plex:1", libraryId = "plex:lib:1", title = "Track 1", duration = 60_000L, index = 1),
+            MediaItemTrack(id = "plex:2", libraryId = "plex:lib:1", title = "Track 2", duration = 60_000L, index = 2),
+            MediaItemTrack(id = "plex:3", libraryId = "plex:lib:1", title = "Track 3", duration = 60_000L, index = 3),
         )
 
     private val testChapters =
@@ -53,7 +53,8 @@ class PlaybackStateControllerTest {
                 index = 1,
                 startTimeOffset = 0L,
                 endTimeOffset = 90_000L,
-                bookId = 100L,
+                trackId = "plex:1",
+                bookId = "plex:100",
             ),
             Chapter(
                 id = 2,
@@ -61,7 +62,8 @@ class PlaybackStateControllerTest {
                 index = 2,
                 startTimeOffset = 90_000L,
                 endTimeOffset = 150_000L,
-                bookId = 100L,
+                trackId = "plex:2",
+                bookId = "plex:100",
             ),
             Chapter(
                 id = 3,
@@ -69,13 +71,15 @@ class PlaybackStateControllerTest {
                 index = 3,
                 startTimeOffset = 150_000L,
                 endTimeOffset = 180_000L,
-                bookId = 100L,
+                trackId = "plex:3",
+                bookId = "plex:100",
             ),
         )
 
     private val testAudiobook =
         Audiobook(
-            id = 100,
+            id = "plex:100",
+            libraryId = "plex:lib:1",
             source = PlexMediaSource.MEDIA_SOURCE_ID_PLEX,
             title = "Test Audiobook",
             author = "Test Author",
@@ -569,8 +573,8 @@ class PlaybackStateControllerTest {
     @Test
     fun `loading new audiobook clears previous state`() =
         runTest {
-            val firstBook = testAudiobook.copy(id = 1)
-            val secondBook = testAudiobook.copy(id = 2)
+            val firstBook = testAudiobook.copy(id = "plex:1")
+            val secondBook = testAudiobook.copy(id = "plex:2")
 
             controller.loadAudiobook(firstBook, testTracks, testChapters)
             controller.updatePosition(2, 30_000L)
@@ -578,7 +582,7 @@ class PlaybackStateControllerTest {
             controller.loadAudiobook(secondBook, testTracks, testChapters)
 
             val state = controller.currentState
-            assertEquals(2, state.audiobook?.id)
+            assertEquals("plex:2", state.audiobook?.id)
             assertEquals(0, state.currentTrackIndex) // Reset to start
             assertEquals(0L, state.currentTrackPositionMs)
         }

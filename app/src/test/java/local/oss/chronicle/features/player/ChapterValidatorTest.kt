@@ -11,9 +11,9 @@ class ChapterValidatorTest {
     // Test data: 3 chapters - Chapter 1: 0-60s, Chapter 2: 60-120s, Chapter 3: 120-180s
     private val testChapters =
         listOf(
-            Chapter(id = 1, title = "Chapter 1", startTimeOffset = 0L, endTimeOffset = 60_000L, bookId = 1),
-            Chapter(id = 2, title = "Chapter 2", startTimeOffset = 60_000L, endTimeOffset = 120_000L, bookId = 1),
-            Chapter(id = 3, title = "Chapter 3", startTimeOffset = 120_000L, endTimeOffset = 180_000L, bookId = 1),
+            Chapter(id = 1, title = "Chapter 1", startTimeOffset = 0L, endTimeOffset = 60_000L, trackId = "plex:1", bookId = "plex:1"),
+            Chapter(id = 2, title = "Chapter 2", startTimeOffset = 60_000L, endTimeOffset = 120_000L, trackId = "plex:1", bookId = "plex:1"),
+            Chapter(id = 3, title = "Chapter 3", startTimeOffset = 120_000L, endTimeOffset = 180_000L, trackId = "plex:1", bookId = "plex:1"),
         )
     private val bookDurationMs = 180_000L // 3 minutes
 

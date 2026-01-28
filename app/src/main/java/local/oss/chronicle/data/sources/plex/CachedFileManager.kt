@@ -32,20 +32,20 @@ import javax.inject.Inject
 interface ICachedFileManager {
     enum class CacheStatus { CACHED, CACHING, NOT_CACHED }
 
-    val activeBookDownloads: LiveData<Set<Int>>
+    val activeBookDownloads: LiveData<Set<String>>
 
     fun cancelCaching()
 
-    fun cancelGroup(id: Int)
+    fun cancelGroup(id: String)
 
     fun downloadTracks(
-        bookId: Int,
+        bookId: String,
         bookTitle: String,
     )
 
     suspend fun uncacheAllInLibrary(): Int
 
-    suspend fun deleteCachedBook(bookId: Int)
+    suspend fun deleteCachedBook(bookId: String)
 
     suspend fun hasUserCachedTracks(): Boolean
 
@@ -88,21 +88,22 @@ class CachedFileManager
                                 .cancelAll()
                         DownloadNotificationWorker.ACTION_CANCEL_BOOK_DOWNLOAD -> {
                             val bookId =
-                                intent.getIntExtra(
-                                    DownloadNotificationWorker.KEY_BOOK_ID,
-                                    -1,
-                                )
-                            if (bookId != -1) {
+                                intent.getStringExtra(DownloadNotificationWorker.KEY_BOOK_ID)
+                            if (bookId != null) {
                                 Timber.i("Cancelling book: $bookId")
-                                Injector.get().fetch().cancelGroup(bookId)
+                                // Extract numeric ID for Fetch group
+                                val numericId = bookId.removePrefix("plex:").toIntOrNull() ?: return
+                                Injector.get().fetch().cancelGroup(numericId)
                             }
                         }
                     }
                 }
             }
 
-        override fun cancelGroup(id: Int) {
-            fetch.cancelGroup(id)
+        override fun cancelGroup(id: String) {
+            // Extract numeric ID for Fetch group
+            val numericId = id.removePrefix("plex:").toIntOrNull() ?: return
+            fetch.cancelGroup(numericId)
         }
 
         override fun cancelCaching() {
@@ -116,7 +117,7 @@ class CachedFileManager
         }
 
         override fun downloadTracks(
-            bookId: Int,
+            bookId: String,
             bookTitle: String,
         ) {
             // Add downloads to Fetch
@@ -151,11 +152,13 @@ class CachedFileManager
          * @return the number of files to be downloaded
          */
         private suspend fun makeRequests(
-            bookId: Int,
+            bookId: String,
             bookTitle: String,
         ): List<Request> {
             // Gets all tracks for album id
             val tracks = trackRepository.getTracksForAudiobookAsync(bookId)
+            // Extract numeric ID for Fetch group
+            val numericBookId = bookId.removePrefix("plex:").toIntOrNull() ?: return emptyList()
 
             val cachedFilesDir = prefsRepo.cachedMediaDir
             Timber.i("Caching tracks to: ${cachedFilesDir.path}")
@@ -187,7 +190,7 @@ class CachedFileManager
 
                     return@mapNotNull makeTrackDownloadRequest(
                         track,
-                        bookId,
+                        numericBookId,
                         bookTitle,
                         "file://${destFile.absolutePath}",
                     )
@@ -238,9 +241,13 @@ class CachedFileManager
          * Return [Result.success] on successful deletion of all files or [Result.failure] if the
          * deletion of any files fail
          */
-        override suspend fun deleteCachedBook(bookId: Int) {
+        override suspend fun deleteCachedBook(bookId: String) {
             Timber.i("Deleting downloaded book: $bookId")
-            fetch.deleteGroup(bookId)
+            // Extract numeric ID for Fetch group
+            val numericBookId = bookId.removePrefix("plex:").toIntOrNull()
+            if (numericBookId != null) {
+                fetch.deleteGroup(numericBookId)
+            }
             scopeManager.launchSafe(
                 tag = "delete-cache-$bookId",
                 onError = { error ->
@@ -262,28 +269,28 @@ class CachedFileManager
 
         /** Set of [Audiobook.id] representing all books being actively downloaded */
         private var activeDownloads =
-            object : SimpleSet<Int> {
-                private val internalSet = mutableSetOf<Int>()
+            object : SimpleSet<String> {
+                private val internalSet = mutableSetOf<String>()
                 override val size: Int
                     get() = internalSet.size
 
-                override fun add(elem: Int): Boolean {
+                override fun add(elem: String): Boolean {
                     _activeBookDownloads.postValue(internalSet)
                     return internalSet.add(elem)
                 }
 
-                override fun remove(elem: Int): Boolean {
+                override fun remove(elem: String): Boolean {
                     _activeBookDownloads.postValue(internalSet)
                     return internalSet.remove(elem)
                 }
 
                 override fun toString() = internalSet.toString()
 
-                override operator fun contains(elem: Int) = internalSet.contains(elem)
+                override operator fun contains(elem: String) = internalSet.contains(elem)
             }
 
-        private val _activeBookDownloads = MutableLiveData<Set<Int>>()
-        override val activeBookDownloads: LiveData<Set<Int>>
+        private val _activeBookDownloads = MutableLiveData<Set<String>>()
+        override val activeBookDownloads: LiveData<Set<String>>
             get() = _activeBookDownloads
 
         init {
@@ -303,10 +310,12 @@ class CachedFileManager
                         groupId: Int,
                         fetchGroup: FetchGroup,
                     ) {
-                        if (groupId !in activeDownloads) {
-                            Timber.i("Starting downloading book with id: $groupId")
+                        // Convert numeric group ID to String format
+                        val bookId = "plex:$groupId"
+                        if (bookId !in activeDownloads) {
+                            Timber.i("Starting downloading book with id: $bookId")
                         }
-                        activeDownloads.add(groupId)
+                        activeDownloads.add(bookId)
                     }
 
                     override fun onStarted(
@@ -323,25 +332,27 @@ class CachedFileManager
                         groupId: Int,
                         fetchGroup: FetchGroup,
                     ) {
+                        // Convert numeric group ID to String format
+                        val bookId = "plex:$groupId"
                         // Handle the various downloaded statuses
                         Timber.i(
-                            "Group change for book with id $groupId: ${fetchGroup.downloads.size} tracks downloaded",
+                            "Group change for book with id $bookId: ${fetchGroup.downloads.size} tracks downloaded",
                         )
                         val downloads = fetchGroup.downloads
                         Timber.i(downloads.joinToString { it.status.toString() })
-                        activeDownloads.remove(groupId)
+                        activeDownloads.remove(bookId)
                         val downloadSuccess =
                             downloads.all { it.error == Error.NONE } && downloads.isNotEmpty()
                         if (downloadSuccess) {
                             scopeManager.launchSafe(
-                                tag = "update-cache-status-$groupId",
+                                tag = "update-cache-status-$bookId",
                                 onError = { error ->
-                                    Timber.e("Failed to update cache status for book $groupId: ${error.message}")
+                                    Timber.e("Failed to update cache status for book $bookId: ${error.message}")
                                 },
                             ) {
                                 withContext(Dispatchers.IO) {
-                                    Timber.i("Book download success for ($groupId)")
-                                    bookRepository.updateCachedStatus(groupId, true)
+                                    Timber.i("Book download success for ($bookId)")
+                                    bookRepository.updateCachedStatus(bookId, true)
                                 }
                             }
                         }
@@ -357,7 +368,7 @@ class CachedFileManager
          * for downloaded files which no longer exist on the file system
          */
         override suspend fun refreshTrackDownloadedStatus() {
-            val idToFileMap = HashMap<Int, File>()
+            val idToFileMap = HashMap<String, File>()
             val trackIdsFoundOnDisk =
                 prefsRepo.cachedMediaDir.listFiles(
                     FileFilter {
@@ -371,7 +382,7 @@ class CachedFileManager
 
             val reportedCachedKeys = trackRepository.getCachedTracks().map { it.id }
 
-            val alteredTracks = mutableListOf<Int>()
+            val alteredTracks = mutableListOf<String>()
 
             // Exists in DB but not in cache- remove from DB!
             reportedCachedKeys.filter {
@@ -400,7 +411,7 @@ class CachedFileManager
             // Update cached status for the books containing any added/removed tracks
             alteredTracks.map {
                 trackRepository.getBookIdForTrack(it)
-            }.distinct().forEach { bookId: Int ->
+            }.distinct().forEach { bookId: String ->
                 Timber.i("Book: $bookId")
                 if (bookId == NO_AUDIOBOOK_FOUND_ID) {
                     return@forEach
@@ -432,14 +443,14 @@ class CachedFileManager
         /**
          * Cancels a specific download by book ID.
          */
-        fun cancelDownload(bookId: Int) {
+        fun cancelDownload(bookId: String) {
             scopeManager.cancel("download-book-$bookId")
         }
 
         /**
          * Returns true if a download is in progress for the given book.
          */
-        fun isDownloading(bookId: Int): Boolean {
+        fun isDownloading(bookId: String): Boolean {
             return scopeManager.isActive("download-book-$bookId")
         }
 

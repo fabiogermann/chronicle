@@ -6,6 +6,7 @@ import android.support.v4.media.MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import local.oss.chronicle.data.sources.MediaSource
@@ -18,10 +19,12 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 @TypeConverters(ChapterListConverter::class)
-@Entity
+@Entity(indices = [Index(value = ["libraryId"])])
 data class Audiobook(
     @PrimaryKey
-    val id: Int,
+    val id: String,
+    /** Library ID this audiobook belongs to */
+    val libraryId: String,
     /** Unique long representing a [MediaSource] in [SourceManager] */
     val source: Long,
     val title: String = "",
@@ -54,9 +57,10 @@ data class Audiobook(
     val chapters: List<Chapter> = emptyList(),
 ) {
     companion object {
-        fun from(dir: PlexDirectory) =
+        fun from(dir: PlexDirectory, libraryId: String) =
             Audiobook(
-                id = dir.ratingKey.toInt(),
+                id = "plex:${dir.ratingKey}",
+                libraryId = libraryId,
                 source = PlexMediaSource.MEDIA_SOURCE_ID_PLEX,
                 title = dir.title,
                 titleSort = dir.titleSort.takeIf { it.isNotEmpty() } ?: dir.title,
@@ -146,7 +150,7 @@ data class Audiobook(
 
 fun Audiobook.toAlbumMediaMetadata(): MediaMetadataCompat {
     val metadataBuilder = MediaMetadataCompat.Builder()
-    metadataBuilder.id = this.id.toString()
+    metadataBuilder.id = this.id
     metadataBuilder.title = this.title
     metadataBuilder.displayTitle = this.title
     metadataBuilder.albumArtUri = this.thumb
@@ -164,7 +168,7 @@ fun Audiobook.toAlbumMediaMetadata(): MediaMetadataCompat {
 fun Audiobook.toMediaItem(plexConfig: PlexConfig): MediaBrowserCompat.MediaItem {
     val mediaDescription = MediaDescriptionCompat.Builder()
     mediaDescription.setTitle(title)
-    mediaDescription.setMediaId(id.toString())
+    mediaDescription.setMediaId(id)
     mediaDescription.setSubtitle(author)
     mediaDescription.setIconUri(plexConfig.makeThumbUri(this.thumb))
     val extras = Bundle()
@@ -187,9 +191,9 @@ fun Audiobook.isCompleted(): Boolean {
 }
 
 fun Audiobook.uniqueId(): Int {
-    return (source * id).toInt()
+    return (source.toString() + id).hashCode()
 }
 
-const val NO_AUDIOBOOK_FOUND_ID = -22321
+const val NO_AUDIOBOOK_FOUND_ID = "no-audiobook-found"
 const val NO_AUDIOBOOK_FOUND_TITLE = "No audiobook found"
-val EMPTY_AUDIOBOOK = Audiobook(NO_AUDIOBOOK_FOUND_ID, NO_SOURCE_FOUND, NO_AUDIOBOOK_FOUND_TITLE)
+val EMPTY_AUDIOBOOK = Audiobook(NO_AUDIOBOOK_FOUND_ID, "no-library", NO_SOURCE_FOUND, NO_AUDIOBOOK_FOUND_TITLE)

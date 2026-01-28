@@ -31,10 +31,11 @@ class PlaybackUrlResolverTest {
     private val testServerUrl = "http://test-server:32400"
     private val testTrack =
         MediaItemTrack(
-            id = 123,
+            id = "plex:123",
             title = "Test Track",
             media = "/library/parts/456/file.mp3",
             duration = 180000L,
+            libraryId = "plex:library:1",
         )
 
     @Before
@@ -176,8 +177,8 @@ class PlaybackUrlResolverTest {
             val tracks =
                 listOf(
                     testTrack,
-                    testTrack.copy(id = 124, media = "/library/parts/457/file.mp3"),
-                    testTrack.copy(id = 125, media = "/library/parts/458/file.mp3"),
+                    testTrack.copy(id = "plex:124", media = "/library/parts/457/file.mp3"),
+                    testTrack.copy(id = "plex:125", media = "/library/parts/458/file.mp3"),
                 )
 
             // Setup successful resolution for all tracks
@@ -204,8 +205,8 @@ class PlaybackUrlResolverTest {
     fun `preResolveUrls reports failed tracks`() =
         runBlocking {
             val track1 = testTrack
-            val track2 = testTrack.copy(id = 124, media = "/library/parts/457/file.mp3")
-            val track3 = testTrack.copy(id = 125, media = "/library/parts/458/file.mp3")
+            val track2 = testTrack.copy(id = "plex:124", media = "/library/parts/457/file.mp3")
+            val track3 = testTrack.copy(id = "plex:125", media = "/library/parts/458/file.mp3")
             val tracks = listOf(track1, track2, track3)
 
             // Setup: track1 succeeds, track2 fails, track3 succeeds
@@ -267,7 +268,7 @@ class PlaybackUrlResolverTest {
         runBlocking {
             val tracks =
                 List(10) { index ->
-                    testTrack.copy(id = 100 + index, media = "/library/parts/${100 + index}/file.mp3")
+                    testTrack.copy(id = "plex:${100 + index}", media = "/library/parts/${100 + index}/file.mp3")
                 }
 
             // Setup successful resolution for all tracks
@@ -318,7 +319,7 @@ class PlaybackUrlResolverTest {
             val tracks =
                 listOf(
                     testTrack,
-                    testTrack.copy(id = 124, media = "/library/parts/457/file.mp3"),
+                    testTrack.copy(id = "plex:124", media = "/library/parts/457/file.mp3"),
                 )
 
             // Setup successful resolution for all tracks
