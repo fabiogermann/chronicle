@@ -10,7 +10,6 @@ import java.util.UUID
  * Provides consistent test data across all account-related test classes.
  */
 object AccountTestFixtures {
-
     // ===== Account Fixtures =====
 
     fun createPlexAccount(
@@ -20,15 +19,16 @@ object AccountTestFixtures {
         credentials: String = "encrypted_token_placeholder",
         createdAt: Long = System.currentTimeMillis(),
         lastUsedAt: Long = System.currentTimeMillis(),
-    ): Account = Account(
-        id = id,
-        providerType = ProviderType.PLEX,
-        displayName = displayName,
-        avatarUrl = avatarUrl,
-        credentials = credentials,
-        createdAt = createdAt,
-        lastUsedAt = lastUsedAt,
-    )
+    ): Account =
+        Account(
+            id = id,
+            providerType = ProviderType.PLEX,
+            displayName = displayName,
+            avatarUrl = avatarUrl,
+            credentials = credentials,
+            createdAt = createdAt,
+            lastUsedAt = lastUsedAt,
+        )
 
     fun createAudiobookshelfAccount(
         id: String = "abs:account:${UUID.randomUUID()}",
@@ -37,15 +37,16 @@ object AccountTestFixtures {
         credentials: String = "encrypted_token_placeholder",
         createdAt: Long = System.currentTimeMillis(),
         lastUsedAt: Long = System.currentTimeMillis(),
-    ): Account = Account(
-        id = id,
-        providerType = ProviderType.AUDIOBOOKSHELF,
-        displayName = displayName,
-        avatarUrl = avatarUrl,
-        credentials = credentials,
-        createdAt = createdAt,
-        lastUsedAt = lastUsedAt,
-    )
+    ): Account =
+        Account(
+            id = id,
+            providerType = ProviderType.AUDIOBOOKSHELF,
+            displayName = displayName,
+            avatarUrl = avatarUrl,
+            credentials = credentials,
+            createdAt = createdAt,
+            lastUsedAt = lastUsedAt,
+        )
 
     // ===== Library Fixtures =====
 
@@ -59,17 +60,18 @@ object AccountTestFixtures {
         lastSyncedAt: Long? = null,
         itemCount: Int = 0,
         isActive: Boolean = false,
-    ): Library = Library(
-        id = id,
-        accountId = accountId,
-        serverId = serverId,
-        serverName = serverName,
-        name = name,
-        type = type,
-        lastSyncedAt = lastSyncedAt,
-        itemCount = itemCount,
-        isActive = isActive,
-    )
+    ): Library =
+        Library(
+            id = id,
+            accountId = accountId,
+            serverId = serverId,
+            serverName = serverName,
+            name = name,
+            type = type,
+            lastSyncedAt = lastSyncedAt,
+            itemCount = itemCount,
+            isActive = isActive,
+        )
 
     fun createAudiobookshelfLibrary(
         id: String = "abs:library:${UUID.randomUUID().toString().take(8)}",
@@ -81,17 +83,18 @@ object AccountTestFixtures {
         lastSyncedAt: Long? = null,
         itemCount: Int = 0,
         isActive: Boolean = false,
-    ): Library = Library(
-        id = id,
-        accountId = accountId,
-        serverId = serverId,
-        serverName = serverName,
-        name = name,
-        type = type,
-        lastSyncedAt = lastSyncedAt,
-        itemCount = itemCount,
-        isActive = isActive,
-    )
+    ): Library =
+        Library(
+            id = id,
+            accountId = accountId,
+            serverId = serverId,
+            serverName = serverName,
+            name = name,
+            type = type,
+            lastSyncedAt = lastSyncedAt,
+            itemCount = itemCount,
+            isActive = isActive,
+        )
 
     // ===== Composite Fixtures =====
 
@@ -102,13 +105,14 @@ object AccountTestFixtures {
         account: Account = createPlexAccount(),
         libraryCount: Int = 2,
     ): Pair<Account, List<Library>> {
-        val libraries = (1..libraryCount).map { index ->
-            createPlexLibrary(
-                accountId = account.id,
-                name = "Library $index",
-                isActive = index == 1, // First library is active
-            )
-        }
+        val libraries =
+            (1..libraryCount).map { index ->
+                createPlexLibrary(
+                    accountId = account.id,
+                    name = "Library $index",
+                    isActive = index == 1, // First library is active
+                )
+            }
         return account to libraries
     }
 
@@ -116,12 +120,17 @@ object AccountTestFixtures {
 
     object IdGenerator {
         fun plexAccountId(): String = "plex:account:${UUID.randomUUID()}"
+
         fun plexLibraryId(sectionId: Int): String = "plex:library:$sectionId"
+
         fun plexAudiobookId(ratingKey: Int): String = "plex:$ratingKey"
+
         fun plexTrackId(ratingKey: Int): String = "plex:$ratingKey"
 
         fun absAccountId(): String = "abs:account:${UUID.randomUUID()}"
+
         fun absLibraryId(libraryId: String): String = "abs:library:$libraryId"
+
         fun absAudiobookId(itemId: String): String = "abs:$itemId"
     }
 
@@ -135,15 +144,17 @@ object AccountTestFixtures {
         val account1 = createPlexAccount(displayName = "User One")
         val account2 = createPlexAccount(displayName = "User Two")
 
-        val account1Libraries = listOf(
-            createPlexLibrary(accountId = account1.id, name = "Audiobooks A", isActive = true),
-            createPlexLibrary(accountId = account1.id, name = "Audiobooks B", isActive = false),
-        )
+        val account1Libraries =
+            listOf(
+                createPlexLibrary(accountId = account1.id, name = "Audiobooks A", isActive = true),
+                createPlexLibrary(accountId = account1.id, name = "Audiobooks B", isActive = false),
+            )
 
-        val account2Libraries = listOf(
-            createPlexLibrary(accountId = account2.id, name = "My Books", isActive = false),
-            createPlexLibrary(accountId = account2.id, name = "Shared Books", isActive = false),
-        )
+        val account2Libraries =
+            listOf(
+                createPlexLibrary(accountId = account2.id, name = "My Books", isActive = false),
+                createPlexLibrary(accountId = account2.id, name = "Shared Books", isActive = false),
+            )
 
         return mapOf(
             "accounts" to listOf(account1, account2),

@@ -12,7 +12,7 @@ import local.oss.chronicle.databinding.ListItemAccountLibraryBinding
 
 /**
  * RecyclerView adapter for displaying accounts with expandable library lists.
- * 
+ *
  * Uses two view types:
  * - TYPE_ACCOUNT_HEADER: Account card with expand/collapse
  * - TYPE_LIBRARY: Library item (shown when account is expanded)
@@ -21,9 +21,8 @@ class AccountListAdapter(
     private val onAccountClick: (Account) -> Unit,
     private val onLibraryClick: (Library) -> Unit,
     private val onRemoveClick: (Account) -> Unit,
-    private val activeLibraryId: () -> String?
+    private val activeLibraryId: () -> String?,
 ) : ListAdapter<AccountListItem, RecyclerView.ViewHolder>(AccountListItemDiffCallback()) {
-
     companion object {
         private const val TYPE_ACCOUNT_HEADER = 1
         private const val TYPE_LIBRARY = 2
@@ -36,7 +35,10 @@ class AccountListAdapter(
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): RecyclerView.ViewHolder {
         return when (viewType) {
             TYPE_ACCOUNT_HEADER -> AccountHeaderViewHolder.from(parent)
             TYPE_LIBRARY -> LibraryItemViewHolder.from(parent)
@@ -44,14 +46,17 @@ class AccountListAdapter(
         }
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        position: Int,
+    ) {
         when (holder) {
             is AccountHeaderViewHolder -> {
                 val item = getItem(position) as AccountListItem.AccountHeader
                 holder.bind(
                     item,
                     onAccountClick,
-                    onRemoveClick
+                    onRemoveClick,
                 )
             }
             is LibraryItemViewHolder -> {
@@ -59,7 +64,7 @@ class AccountListAdapter(
                 holder.bind(
                     item,
                     onLibraryClick,
-                    activeLibraryId()
+                    activeLibraryId(),
                 )
             }
         }
@@ -76,10 +81,10 @@ class AccountListAdapter(
                 AccountListItem.AccountHeader(
                     account = accountWithLibraries.account,
                     libraryCount = accountWithLibraries.libraries.size,
-                    isExpanded = accountWithLibraries.isExpanded
-                )
+                    isExpanded = accountWithLibraries.isExpanded,
+                ),
             )
-            
+
             // Add libraries if expanded
             if (accountWithLibraries.isExpanded) {
                 accountWithLibraries.libraries.forEach { library ->
@@ -95,13 +100,12 @@ class AccountListAdapter(
  * ViewHolder for account header items.
  */
 class AccountHeaderViewHolder private constructor(
-    private val binding: ListItemAccountHeaderBinding
+    private val binding: ListItemAccountHeaderBinding,
 ) : RecyclerView.ViewHolder(binding.root) {
-
     fun bind(
         item: AccountListItem.AccountHeader,
         onAccountClick: (Account) -> Unit,
-        onRemoveClick: (Account) -> Unit
+        onRemoveClick: (Account) -> Unit,
     ) {
         binding.account = item.account
         binding.libraryCount = item.libraryCount
@@ -124,13 +128,12 @@ class AccountHeaderViewHolder private constructor(
  * ViewHolder for library items.
  */
 class LibraryItemViewHolder private constructor(
-    private val binding: ListItemAccountLibraryBinding
+    private val binding: ListItemAccountLibraryBinding,
 ) : RecyclerView.ViewHolder(binding.root) {
-
     fun bind(
         item: AccountListItem.LibraryItem,
         onLibraryClick: (Library) -> Unit,
-        activeLibraryId: String?
+        activeLibraryId: String?,
     ) {
         binding.library = item.library
         binding.isActive = item.library.id == activeLibraryId
@@ -154,11 +157,11 @@ sealed class AccountListItem {
     data class AccountHeader(
         val account: Account,
         val libraryCount: Int,
-        val isExpanded: Boolean
+        val isExpanded: Boolean,
     ) : AccountListItem()
 
     data class LibraryItem(
-        val library: Library
+        val library: Library,
     ) : AccountListItem()
 }
 
@@ -168,7 +171,7 @@ sealed class AccountListItem {
 class AccountListItemDiffCallback : DiffUtil.ItemCallback<AccountListItem>() {
     override fun areItemsTheSame(
         oldItem: AccountListItem,
-        newItem: AccountListItem
+        newItem: AccountListItem,
     ): Boolean {
         return when {
             oldItem is AccountListItem.AccountHeader && newItem is AccountListItem.AccountHeader ->
@@ -181,7 +184,7 @@ class AccountListItemDiffCallback : DiffUtil.ItemCallback<AccountListItem>() {
 
     override fun areContentsTheSame(
         oldItem: AccountListItem,
-        newItem: AccountListItem
+        newItem: AccountListItem,
     ): Boolean {
         return oldItem == newItem
     }

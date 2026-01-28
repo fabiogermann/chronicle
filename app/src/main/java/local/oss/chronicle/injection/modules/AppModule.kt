@@ -62,7 +62,11 @@ class AppModule(private val app: Application) {
 
     @Provides
     @Singleton
-    fun provideTrackDao(): TrackDao = getTrackDatabase(app.applicationContext).trackDao
+    fun provideTrackDatabase(): TrackDatabase = getTrackDatabase(app.applicationContext)
+
+    @Provides
+    @Singleton
+    fun provideTrackDao(trackDatabase: TrackDatabase): TrackDao = trackDatabase.trackDao
 
     @Provides
     @Singleton
@@ -70,7 +74,11 @@ class AppModule(private val app: Application) {
 
     @Provides
     @Singleton
-    fun provideBookDao(): BookDao = getBookDatabase(app.applicationContext).bookDao
+    fun provideBookDatabase(): BookDatabase = getBookDatabase(app.applicationContext)
+
+    @Provides
+    @Singleton
+    fun provideBookDao(bookDatabase: BookDatabase): BookDao = bookDatabase.bookDao
 
     @Provides
     @Singleton
@@ -85,13 +93,11 @@ class AppModule(private val app: Application) {
 
     @Provides
     @Singleton
-    fun provideAccountDao(): AccountDao =
-        AccountDatabase.getInstance(app.applicationContext).accountDao()
+    fun provideAccountDao(): AccountDao = AccountDatabase.getInstance(app.applicationContext).accountDao()
 
     @Provides
     @Singleton
-    fun provideLibraryDao(): LibraryDao =
-        AccountDatabase.getInstance(app.applicationContext).libraryDao()
+    fun provideLibraryDao(): LibraryDao = AccountDatabase.getInstance(app.applicationContext).libraryDao()
 
     @Provides
     @Singleton

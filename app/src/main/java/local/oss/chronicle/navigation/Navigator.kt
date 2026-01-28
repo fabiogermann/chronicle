@@ -170,7 +170,7 @@ class Navigator
                 .addToBackStack(CollectionDetailsFragment.TAG)
                 .commit()
         }
-    
+
         fun showAccountList() {
             val accountListFragment = AccountListFragment.newInstance()
             fragmentManager.beginTransaction()
@@ -178,12 +178,12 @@ class Navigator
                 .addToBackStack(AccountListFragment.TAG)
                 .commit()
         }
-    
+
         fun showLibrarySelector() {
             val bottomSheet = LibrarySelectorBottomSheet.newInstance()
             bottomSheet.show(activity.supportFragmentManager, LibrarySelectorBottomSheet.TAG)
         }
-    
+
         /** Handle back presses. Return a boolean indicating whether the back press event was handled */
         fun onBackPressed(): Boolean {
             val wasBackPressHandled =

@@ -11,7 +11,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  * or when using Robolectric for unit tests.
  */
 object RoomTestUtil {
-
     /**
      * Creates an in-memory database for testing.
      * This is primarily for instrumented tests (androidTest).
@@ -46,14 +45,15 @@ object RoomTestUtil {
             while (cursor.moveToNext()) {
                 val row = mutableMapOf<String, Any?>()
                 columnNames.forEachIndexed { index, name ->
-                    row[name] = when (cursor.getType(index)) {
-                        android.database.Cursor.FIELD_TYPE_NULL -> null
-                        android.database.Cursor.FIELD_TYPE_INTEGER -> cursor.getLong(index)
-                        android.database.Cursor.FIELD_TYPE_FLOAT -> cursor.getDouble(index)
-                        android.database.Cursor.FIELD_TYPE_STRING -> cursor.getString(index)
-                        android.database.Cursor.FIELD_TYPE_BLOB -> cursor.getBlob(index)
-                        else -> null
-                    }
+                    row[name] =
+                        when (cursor.getType(index)) {
+                            android.database.Cursor.FIELD_TYPE_NULL -> null
+                            android.database.Cursor.FIELD_TYPE_INTEGER -> cursor.getLong(index)
+                            android.database.Cursor.FIELD_TYPE_FLOAT -> cursor.getDouble(index)
+                            android.database.Cursor.FIELD_TYPE_STRING -> cursor.getString(index)
+                            android.database.Cursor.FIELD_TYPE_BLOB -> cursor.getBlob(index)
+                            else -> null
+                        }
                 }
                 results.add(row)
             }
@@ -91,10 +91,11 @@ object RoomTestUtil {
      * ```
      */
     fun SupportSQLiteDatabase.tableExists(tableName: String): Boolean {
-        val cursor = query(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-            arrayOf(tableName),
-        )
+        val cursor =
+            query(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                arrayOf(tableName),
+            )
         return cursor.use {
             cursor.moveToFirst()
         }

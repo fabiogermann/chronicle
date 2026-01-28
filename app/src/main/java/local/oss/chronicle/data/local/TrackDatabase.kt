@@ -89,16 +89,17 @@ val MIGRATION_6_7 =
             } catch (e: Exception) {
                 // Column already exists, continue
             }
-            
+
             // Ensure source column exists (may be missing from databases migrated from v1-v5)
             try {
                 db.execSQL("ALTER TABLE MediaItemTrack ADD COLUMN source INTEGER NOT NULL DEFAULT 0")
             } catch (e: Exception) {
                 // Column already exists, continue
             }
-            
+
             // Create new table with updated schema
-            db.execSQL("""
+            db.execSQL(
+                """
                 CREATE TABLE MediaItemTrack_new (
                     id TEXT NOT NULL PRIMARY KEY,
                     parentKey TEXT NOT NULL,
@@ -122,21 +123,24 @@ val MIGRATION_6_7 =
                     size INTEGER NOT NULL,
                     source INTEGER NOT NULL
                 )
-            """)
-            
+            """,
+            )
+
             // Copy data with ID transformation: convert Int to "plex:{id}"
-            db.execSQL("""
+            db.execSQL(
+                """
                 INSERT INTO MediaItemTrack_new (id, parentKey, libraryId, title, playQueueItemID, thumb, `index`, discNumber, duration, media, album, artist, genre, cached, artwork, viewCount, progress, lastViewedAt, updatedAt, size, source)
                 SELECT 'plex:' || id, 'plex:' || parentServerId, '', title, playQueueItemID, thumb, `index`, discNumber, duration, media, album, artist, genre, cached, artwork, viewCount, progress, lastViewedAt, updatedAt, size, source
                 FROM MediaItemTrack
-            """)
-            
+            """,
+            )
+
             // Drop old table
             db.execSQL("DROP TABLE MediaItemTrack")
-            
+
             // Rename new table to original name
             db.execSQL("ALTER TABLE MediaItemTrack_new RENAME TO MediaItemTrack")
-            
+
             // Create indices
             db.execSQL("CREATE INDEX index_MediaItemTrack_libraryId ON MediaItemTrack(libraryId)")
             db.execSQL("CREATE INDEX index_MediaItemTrack_parentKey ON MediaItemTrack(parentKey)")
@@ -216,7 +220,7 @@ interface TrackDao {
 
     @Query("SELECT * FROM MediaItemTrack WHERE title LIKE :title")
     suspend fun findTrackByTitle(title: String): MediaItemTrack?
-    
+
     // Library-scoped DAO methods
     @Query("SELECT * FROM MediaItemTrack WHERE libraryId = :libraryId")
     fun getTracksForLibrary(libraryId: String): Flow<List<MediaItemTrack>>

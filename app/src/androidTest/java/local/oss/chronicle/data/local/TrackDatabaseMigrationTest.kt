@@ -11,7 +11,7 @@ import org.junit.runner.RunWith
 
 /**
  * Tests for TrackDatabase migration from version 6 to version 7.
- * 
+ *
  * Migration changes:
  * - id: INTEGER → TEXT (with "plex:" prefix)
  * - parentKey: INTEGER → TEXT (with "plex:" prefix)
@@ -19,15 +19,15 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class TrackDatabaseMigrationTest {
-
     private val TEST_DB = "track-migration-test"
 
     @get:Rule
-    val helper: MigrationTestHelper = MigrationTestHelper(
-        InstrumentationRegistry.getInstrumentation(),
-        TrackDatabase::class.java.canonicalName,
-        FrameworkSQLiteOpenHelperFactory()
-    )
+    val helper: MigrationTestHelper =
+        MigrationTestHelper(
+            InstrumentationRegistry.getInstrumentation(),
+            TrackDatabase::class.java.canonicalName,
+            FrameworkSQLiteOpenHelperFactory(),
+        )
 
     // ===== Schema Migration Tests =====
 
@@ -35,11 +35,13 @@ class TrackDatabaseMigrationTest {
     fun migrate6To7_createsNewSchema() {
         // Create database at version 6
         helper.createDatabase(TEST_DB, 6).apply {
-            execSQL("""
+            execSQL(
+                """
                 INSERT INTO tracks (id, parentKey, title, duration, 
                     trackIndex, discNumber, filePath)
                 VALUES (111, 12345, 'Chapter 1', 300000, 1, 1, '/path/to/file.mp3')
-            """)
+            """,
+            )
             close()
         }
 
@@ -54,13 +56,13 @@ class TrackDatabaseMigrationTest {
                 val type = cursor.getString(cursor.getColumnIndexOrThrow("type"))
                 columns[name] = type
             }
-            
+
             // Verify id is now TEXT
             assertThat(columns["id"]).isEqualTo("TEXT")
-            
+
             // Verify parentKey is now TEXT
             assertThat(columns["parentKey"]).isEqualTo("TEXT")
-            
+
             // Verify libraryId column exists and is TEXT
             assertThat(columns["libraryId"]).isEqualTo("TEXT")
         }
@@ -70,11 +72,13 @@ class TrackDatabaseMigrationTest {
     fun migrate6To7_convertsIdAndParentKeyToStringWithPrefix() {
         // Create database at version 6
         helper.createDatabase(TEST_DB, 6).apply {
-            execSQL("""
+            execSQL(
+                """
                 INSERT INTO tracks (id, parentKey, title, duration, 
                     trackIndex, discNumber, filePath)
                 VALUES (111, 12345, 'Chapter 1', 300000, 1, 1, '/path/to/file.mp3')
-            """)
+            """,
+            )
             close()
         }
 
@@ -84,10 +88,10 @@ class TrackDatabaseMigrationTest {
         // Verify ID and parentKey conversion
         db.query("SELECT id, parentKey FROM tracks").use { cursor ->
             assertThat(cursor.moveToFirst()).isTrue()
-            
+
             val newId = cursor.getString(0)
             val newParentKey = cursor.getString(1)
-            
+
             assertThat(newId).isEqualTo("plex:111")
             assertThat(newParentKey).isEqualTo("plex:12345")
         }
@@ -97,11 +101,13 @@ class TrackDatabaseMigrationTest {
     fun migrate6To7_setsDefaultLibraryId() {
         // Create database at version 6
         helper.createDatabase(TEST_DB, 6).apply {
-            execSQL("""
+            execSQL(
+                """
                 INSERT INTO tracks (id, parentKey, title, duration, 
                     trackIndex, discNumber, filePath)
                 VALUES (111, 12345, 'Chapter 1', 300000, 1, 1, '/path/to/file.mp3')
-            """)
+            """,
+            )
             close()
         }
 
@@ -120,21 +126,27 @@ class TrackDatabaseMigrationTest {
     fun migrate6To7_preservesAllData() {
         // Create database at version 6 with multiple tracks
         helper.createDatabase(TEST_DB, 6).apply {
-            execSQL("""
+            execSQL(
+                """
                 INSERT INTO tracks (id, parentKey, title, duration, 
                     trackIndex, discNumber, filePath)
                 VALUES (111, 12345, 'Chapter 1', 300000, 1, 1, '/path/ch1.mp3')
-            """)
-            execSQL("""
+            """,
+            )
+            execSQL(
+                """
                 INSERT INTO tracks (id, parentKey, title, duration, 
                     trackIndex, discNumber, filePath)
                 VALUES (222, 12345, 'Chapter 2', 400000, 2, 1, '/path/ch2.mp3')
-            """)
-            execSQL("""
+            """,
+            )
+            execSQL(
+                """
                 INSERT INTO tracks (id, parentKey, title, duration, 
                     trackIndex, discNumber, filePath)
                 VALUES (333, 67890, 'Intro', 60000, 1, 1, '/path/intro.mp3')
-            """)
+            """,
+            )
             close()
         }
 
@@ -144,7 +156,7 @@ class TrackDatabaseMigrationTest {
         // Verify all data preserved
         db.query("SELECT * FROM tracks ORDER BY id").use { cursor ->
             assertThat(cursor.count).isEqualTo(3)
-            
+
             // First track
             cursor.moveToFirst()
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("id"))).isEqualTo("plex:111")
@@ -152,13 +164,13 @@ class TrackDatabaseMigrationTest {
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("title"))).isEqualTo("Chapter 1")
             assertThat(cursor.getLong(cursor.getColumnIndexOrThrow("duration"))).isEqualTo(300000)
             assertThat(cursor.getInt(cursor.getColumnIndexOrThrow("trackIndex"))).isEqualTo(1)
-            
+
             // Second track
             cursor.moveToNext()
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("id"))).isEqualTo("plex:222")
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("parentKey"))).isEqualTo("plex:12345")
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("title"))).isEqualTo("Chapter 2")
-            
+
             // Third track
             cursor.moveToNext()
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("id"))).isEqualTo("plex:333")
@@ -187,11 +199,13 @@ class TrackDatabaseMigrationTest {
     fun migrate6To7_preservesNullFilePaths() {
         // Create database at version 6 with null filePath
         helper.createDatabase(TEST_DB, 6).apply {
-            execSQL("""
+            execSQL(
+                """
                 INSERT INTO tracks (id, parentKey, title, duration, 
                     trackIndex, discNumber, filePath)
                 VALUES (111, 12345, 'Streaming Chapter', 300000, 1, 1, NULL)
-            """)
+            """,
+            )
             close()
         }
 

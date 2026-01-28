@@ -10,24 +10,23 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map as mapFlow
 import kotlinx.coroutines.launch
 import local.oss.chronicle.navigation.Navigator
 import local.oss.chronicle.util.Event
 import javax.inject.Inject
+import kotlinx.coroutines.flow.map as mapFlow
 
 /**
  * ViewModel for AccountListFragment.
- * 
+ *
  * Manages the display and interaction of accounts and their libraries
  * in an expandable list format.
  */
 class AccountListViewModel(
     private val accountManager: AccountManager,
     private val activeLibraryProvider: ActiveLibraryProvider,
-    private val navigator: Navigator
+    private val navigator: Navigator,
 ) : ViewModel() {
-
     // ===== Private State =====
 
     /**
@@ -41,19 +40,20 @@ class AccountListViewModel(
      * All accounts with their libraries, ordered by last used.
      * Includes expanded state for UI.
      */
-    val accounts: LiveData<List<AccountWithLibraries>> = combine(
-        accountManager.getAccountsOrderedByLastUsed(),
-        _expandedAccountIds
-    ) { accountList, expandedIds ->
-        accountList.map { account ->
-            val libraries = accountManager.getLibrariesForAccount(account.id).first()
-            AccountWithLibraries(
-                account = account,
-                libraries = libraries,
-                isExpanded = account.id in expandedIds
-            )
-        }
-    }.asLiveData()
+    val accounts: LiveData<List<AccountWithLibraries>> =
+        combine(
+            accountManager.getAccountsOrderedByLastUsed(),
+            _expandedAccountIds,
+        ) { accountList, expandedIds ->
+            accountList.map { account ->
+                val libraries = accountManager.getLibrariesForAccount(account.id).first()
+                AccountWithLibraries(
+                    account = account,
+                    libraries = libraries,
+                    isExpanded = account.id in expandedIds,
+                )
+            }
+        }.asLiveData()
 
     /**
      * Currently active library ID for highlighting in the list.
@@ -94,11 +94,12 @@ class AccountListViewModel(
      */
     fun onToggleExpand(accountId: String) {
         val current = _expandedAccountIds.value
-        _expandedAccountIds.value = if (accountId in current) {
-            current - accountId
-        } else {
-            current + accountId
-        }
+        _expandedAccountIds.value =
+            if (accountId in current) {
+                current - accountId
+            } else {
+                current + accountId
+            }
     }
 
     /**
@@ -138,18 +139,20 @@ class AccountListViewModel(
 
     // ===== Factory =====
 
-    class Factory @Inject constructor(
-        private val accountManager: AccountManager,
-        private val activeLibraryProvider: ActiveLibraryProvider,
-        private val navigator: Navigator
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return AccountListViewModel(
-                accountManager,
-                activeLibraryProvider,
-                navigator
-            ) as T
+    class Factory
+        @Inject
+        constructor(
+            private val accountManager: AccountManager,
+            private val activeLibraryProvider: ActiveLibraryProvider,
+            private val navigator: Navigator,
+        ) : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return AccountListViewModel(
+                    accountManager,
+                    activeLibraryProvider,
+                    navigator,
+                ) as T
+            }
         }
-    }
 }
