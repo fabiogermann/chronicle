@@ -26,6 +26,7 @@ ktlint = "12.1.2"
 material = "1.12.0" # 1.13.0 causes KSP/Dagger compatibility issues
 media3 = "1.5.0" # 1.6.0 causes KSP/Dagger compatibility issues
 mockk = "1.13.14"
+mockito-kotlin = "5.2.1"
 moshi = "1.15.2"
 okhttp3 = "4.12.0" # 4.13.0 not yet available
 oss = "17.1.0" # 17.2.0 causes KSP/Dagger compatibility issues
@@ -73,6 +74,7 @@ media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", versi
 media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
 media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
 moshi = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi" }
 moshi-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshi" }
 okhttp3 = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp3" }
