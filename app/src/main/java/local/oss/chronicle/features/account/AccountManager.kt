@@ -69,6 +69,79 @@ class AccountManager
         }
 
         /**
+         * Add a complete Plex account with library after login flow.
+         * This is called from the login flow when user completes OAuth + server + library selection.
+         *
+         * @param userUuid Plex user UUID
+         * @param username Plex username
+         * @param userThumb User avatar URL (optional, provide empty string if null)
+         * @param serverId Plex server machine identifier
+         * @param serverName  Plex server name
+         * @param libraryId Library section ID
+         * @param libraryName Library name
+         * @param libraryType Library type (e.g., "artist")
+         * @param userAuthToken User's authentication token
+         * @param serverAccessToken Server access token (for shared servers)
+         * @return Pair of (Account, Library)
+         */
+        suspend fun addPlexAccountWithLibrary(
+            userUuid: String,
+            username: String,
+            userThumb: String,
+            serverId: String,
+            serverName: String,
+            libraryId: String,
+            libraryName: String,
+            libraryType: String = "artist",
+            userAuthToken: String,
+            serverAccessToken: String,
+        ): Pair<Account, Library> {
+            // Generate account ID using user UUID
+            val accountId = "plex:account:$userUuid"
+            val now = System.currentTimeMillis()
+
+            val account =
+                Account(
+                    id = accountId,
+                    providerType = ProviderType.PLEX,
+                    displayName = username.ifEmpty { "Plex User" },
+                    avatarUrl = userThumb.takeIf { it.isNotEmpty() },
+                    credentials = "", // Stored separately for security
+                    createdAt = now,
+                    lastUsedAt = now,
+                )
+
+            // Store credentials securely (store BOTH tokens as JSON for future use)
+            val credentials = """{"userToken":"$userAuthToken","serverToken":"$serverAccessToken"}"""
+            credentialManager.storeCredentials(accountId, credentials)
+
+            // Save account to database
+            accountRepository.addAccount(account)
+
+            // Create library
+            val library =
+                Library(
+                    id = "plex:library:$libraryId",
+                    accountId = accountId,
+                    serverId = serverId,
+                    serverName = serverName,
+                    name = libraryName,
+                    type = libraryType,
+                    lastSyncedAt = null,
+                    itemCount = 0,
+                    isActive = false, // Set via switch
+                )
+
+            // Save library
+            libraryRepository.addLibraries(listOf(library))
+
+            // Set as active library
+            activeLibraryProvider.switchToLibrary(library.id)
+
+            return Pair(account, library)
+        }
+
+        /**
          * Remove an account and all associated data.
          * This cascades: Account → Libraries → Books/Tracks for those libraries.
          */

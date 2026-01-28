@@ -86,6 +86,17 @@ app/src/main/java/local/oss/chronicle/
 │       └── local/           # Local media source
 │
 ├── features/                # Feature modules (UI + ViewModels)
+│   ├── account/            # Account and library management
+│   │   ├── AccountListFragment.kt
+│   │   ├── AccountListViewModel.kt
+│   │   ├── AccountListAdapter.kt
+│   │   ├── AccountWithLibraries.kt
+│   │   ├── AccountManager.kt
+│   │   ├── ActiveLibraryProvider.kt
+│   │   ├── CredentialManager.kt
+│   │   ├── LegacyAccountMigration.kt
+│   │   ├── LibrarySelectorBottomSheet.kt
+│   │   └── LibrarySelectorAdapter.kt
 │   ├── login/              # OAuth, server/user/library selection
 │   ├── home/               # Recently listened, recently added
 │   ├── library/            # Full audiobook library with search
@@ -235,6 +246,21 @@ Uses **[Fetch library](https://github.com/tonyofrancis/Fetch)** for downloads:
 - **Media sessions** must be properly released to avoid memory leaks
 - **Data Binding** is used throughout for UI binding - see binding adapters in [`views/`](app/src/main/java/local/oss/chronicle/views/) and feature packages
 
+### 6.7 Multi-Account System
+
+Chronicle supports multiple accounts and libraries:
+
+- **AccountDatabase** - Stores Account and Library entities
+- **AccountManager** - Coordinates account operations (add, remove, switch)
+- **ActiveLibraryProvider** - StateFlow-based current library state
+- **CredentialManager** - Encrypted credential storage using AndroidX Security
+- **LegacyAccountMigration** - Migrates single-account data on first launch
+
+**ID Format**: Content IDs use prefixed strings:
+- Audiobooks/Tracks: `"plex:{ratingKey}"` (e.g., `"plex:12345"`)
+- Libraries: `"plex:library:{sectionId}"` (e.g., `"plex:library:1"`)
+- Accounts: `"plex:account:{uuid}"` (e.g., `"plex:account:abc-123"`)
+
 ## 7. Documentation Index
 
 ### Architecture & Design
@@ -259,6 +285,7 @@ Uses **[Fetch library](https://github.com/tonyofrancis/Fetch)** for downloads:
 - [`docs/features/downloads.md`](docs/features/downloads.md) - Download management documentation
 - [`docs/features/android-auto.md`](docs/features/android-auto.md) - Android Auto integration documentation
 - [`docs/features/settings.md`](docs/features/settings.md) - Settings/preferences documentation
+- [`docs/features/account-ui-design.md`](docs/features/account-ui-design.md) - Multi-account UI design
 
 ### API Integration
 - [`docs/API_FLOWS.md`](docs/API_FLOWS.md) - Plex API integration details
@@ -477,5 +504,5 @@ For reported and confirmed bugs a test recreating the scenario is required. The 
 
 ---
 
-**Last Updated:** 2026-01-25
+**Last Updated:** 2026-01-28
 **Project Version:** Check [`CHANGELOG.md`](CHANGELOG.md) for current version
