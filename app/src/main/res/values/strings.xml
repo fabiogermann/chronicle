@@ -302,6 +302,7 @@
     <string name="remove">Remove</string>
     <string name="remove_account">Remove account</string>
     <string name="expand_collapse">Expand/collapse</string>
+    <string name="active_library">Active library</string>
 
     <!-- Plurals -->
     <plurals name="library_count">
