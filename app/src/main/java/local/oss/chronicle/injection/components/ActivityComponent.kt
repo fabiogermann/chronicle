@@ -4,6 +4,8 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dagger.Component
 import local.oss.chronicle.application.MainActivity
 import local.oss.chronicle.application.MainActivityViewModel
+import local.oss.chronicle.features.account.AccountListFragment
+import local.oss.chronicle.features.account.AccountListViewModel
 import local.oss.chronicle.features.bookdetails.AudiobookDetailsFragment
 import local.oss.chronicle.features.bookdetails.AudiobookDetailsViewModel
 import local.oss.chronicle.features.collections.CollectionDetailsFragment
@@ -44,7 +46,11 @@ interface ActivityComponent {
 
     fun debugInfoViewModelFactory(): DebugInfoViewModel.Factory
 
+    fun accountListViewModelFactory(): AccountListViewModel.Factory
+
     fun inject(activity: MainActivity)
+
+    fun inject(accountListFragment: AccountListFragment)
 
     fun inject(libraryFragment: LibraryFragment)
 
