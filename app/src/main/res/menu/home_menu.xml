@@ -9,4 +9,10 @@
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="collapseActionView|always" />
 
+    <item
+        android:id="@+id/menu_switch_library"
+        android:icon="@drawable/ic_library_music"
+        android:title="@string/switch_library"
+        app:showAsAction="never" />
+
 </menu>

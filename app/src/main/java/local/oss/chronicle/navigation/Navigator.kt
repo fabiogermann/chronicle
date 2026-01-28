@@ -8,6 +8,8 @@ import local.oss.chronicle.R
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo.LoginState.*
 import local.oss.chronicle.data.sources.plex.PlexConfig
+import local.oss.chronicle.features.account.AccountListFragment
+import local.oss.chronicle.features.account.LibrarySelectorBottomSheet
 import local.oss.chronicle.features.bookdetails.AudiobookDetailsFragment
 import local.oss.chronicle.features.bookdetails.AudiobookDetailsFragment.Companion.ARG_AUDIOBOOK_ID
 import local.oss.chronicle.features.bookdetails.AudiobookDetailsFragment.Companion.ARG_AUDIOBOOK_TITLE
@@ -40,7 +42,7 @@ class Navigator
         private val fragmentManager: FragmentManager,
         private val plexConfig: PlexConfig,
         plexLoginRepo: IPlexLoginRepo,
-        activity: AppCompatActivity,
+        private val activity: AppCompatActivity,
     ) {
         init {
             // never remove observer, but this is a singleton so it's okay
@@ -168,7 +170,20 @@ class Navigator
                 .addToBackStack(CollectionDetailsFragment.TAG)
                 .commit()
         }
-
+    
+        fun showAccountList() {
+            val accountListFragment = AccountListFragment.newInstance()
+            fragmentManager.beginTransaction()
+                .replace(R.id.fragNavHost, accountListFragment)
+                .addToBackStack(AccountListFragment.TAG)
+                .commit()
+        }
+    
+        fun showLibrarySelector() {
+            val bottomSheet = LibrarySelectorBottomSheet.newInstance()
+            bottomSheet.show(activity.supportFragmentManager, LibrarySelectorBottomSheet.TAG)
+        }
+    
         /** Handle back presses. Return a boolean indicating whether the back press event was handled */
         fun onBackPressed(): Boolean {
             val wasBackPressHandled =
