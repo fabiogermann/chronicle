@@ -235,7 +235,7 @@ class BookRepository
                 try {
                     val library = plexPrefsRepo.library ?: return@withContext
                     val libraryIdNumeric = library.id
-                    val libraryId = "plex:library:${libraryIdNumeric}"
+                    val libraryId = "plex:library:$libraryIdNumeric"
                     var booksLeft = 1L
                     // Maximum number of pages of data we fetch. Failsafe in case of bad data from the
                     // server since we don't want infinite loops. This limits us to a maximum 1,000,000
@@ -451,8 +451,9 @@ class BookRepository
                     try {
                         tracks.flatMap { track ->
                             // Extract numeric ID for Plex API call
-                            val numericTrackId = track.id.removePrefix("plex:").toIntOrNull()
-                                ?: return@flatMap emptyList()
+                            val numericTrackId =
+                                track.id.removePrefix("plex:").toIntOrNull()
+                                    ?: return@flatMap emptyList()
                             val networkChapters =
                                 plexMediaService.retrieveChapterInfo(numericTrackId)
                                     .plexMediaContainer.metadata.firstOrNull()?.plexChapters

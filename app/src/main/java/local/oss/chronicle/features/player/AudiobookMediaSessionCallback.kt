@@ -378,7 +378,7 @@ class AudiobookMediaSessionCallback
 
                 // startingTrackId is already a String
                 check(
-                    startingTrackId == ACTIVE_TRACK || startingTrackId in tracks.map { it.id }
+                    startingTrackId == ACTIVE_TRACK || startingTrackId in tracks.map { it.id },
                 ) { "Track not found! " }
 
                 val startingTrack =

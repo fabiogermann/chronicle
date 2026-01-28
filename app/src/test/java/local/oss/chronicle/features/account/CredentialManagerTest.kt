@@ -11,7 +11,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class CredentialManagerTest {
-
     private lateinit var credentialManager: CredentialManager
     private lateinit var context: Context
 

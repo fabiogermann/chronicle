@@ -20,10 +20,10 @@ import javax.inject.Inject
 
 /**
  * Bottom sheet dialog for quick library switching.
- * 
+ *
  * Displays all libraries grouped by account, with the currently active library highlighted.
  * Provides a "Manage Accounts" link to navigate to the full account management screen.
- * 
+ *
  * Usage:
  * ```
  * LibrarySelectorBottomSheet.newInstance()
@@ -31,7 +31,6 @@ import javax.inject.Inject
  * ```
  */
 class LibrarySelectorBottomSheet : BottomSheetDialogFragment() {
-
     @Inject
     lateinit var accountManager: AccountManager
 
@@ -46,7 +45,7 @@ class LibrarySelectorBottomSheet : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "LibrarySelectorBottomSheet"
-        
+
         fun newInstance() = LibrarySelectorBottomSheet()
     }
 
@@ -61,20 +60,21 @@ class LibrarySelectorBottomSheet : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?,
     ): View {
         binding = BottomSheetLibrarySelectorBinding.inflate(inflater, container, false)
-        
+
         setupRecyclerView()
         observeData()
         setupClickListeners()
-        
+
         return binding.root
     }
 
     private fun setupRecyclerView() {
-        adapter = LibrarySelectorAdapter(
-            onLibraryClick = { library ->
-                switchToLibrary(library.id)
-            }
-        )
+        adapter =
+            LibrarySelectorAdapter(
+                onLibraryClick = { library ->
+                    switchToLibrary(library.id)
+                },
+            )
         binding.libraryList.adapter = adapter
     }
 
@@ -83,7 +83,7 @@ class LibrarySelectorBottomSheet : BottomSheetDialogFragment() {
         lifecycleScope.launch {
             combine(
                 accountManager.getAllAccounts(),
-                activeLibraryProvider.currentLibrary
+                activeLibraryProvider.currentLibrary,
             ) { accounts: List<Account>, activeLibrary: Library? ->
                 buildLibrarySelectorItems(accounts, activeLibrary)
             }.collect { items: List<LibrarySelectorItem> ->
@@ -97,7 +97,7 @@ class LibrarySelectorBottomSheet : BottomSheetDialogFragment() {
      */
     private suspend fun buildLibrarySelectorItems(
         accounts: List<Account>,
-        activeLibrary: Library?
+        activeLibrary: Library?,
     ): List<LibrarySelectorItem> {
         val items = mutableListOf<LibrarySelectorItem>()
 
@@ -114,8 +114,8 @@ class LibrarySelectorBottomSheet : BottomSheetDialogFragment() {
                         LibrarySelectorItem.LibraryItem(
                             library = library,
                             accountName = account.displayName,
-                            isActive = library.id == activeLibrary?.id
-                        )
+                            isActive = library.id == activeLibrary?.id,
+                        ),
                     )
                 }
             }
@@ -141,7 +141,7 @@ class LibrarySelectorBottomSheet : BottomSheetDialogFragment() {
                 Toast.makeText(
                     context,
                     "Failed to switch library: ${e.message}",
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_SHORT,
                 ).show()
             }
         }
@@ -150,7 +150,7 @@ class LibrarySelectorBottomSheet : BottomSheetDialogFragment() {
 
 /**
  * Sealed class representing items in the library selector RecyclerView.
- * 
+ *
  * Two types:
  * - Header: Account name header (non-clickable)
  * - LibraryItem: Clickable library item with active state indicator
@@ -167,6 +167,6 @@ sealed class LibrarySelectorItem {
     data class LibraryItem(
         val library: Library,
         val accountName: String,
-        val isActive: Boolean
+        val isActive: Boolean,
     ) : LibrarySelectorItem()
 }

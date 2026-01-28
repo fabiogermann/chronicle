@@ -23,7 +23,6 @@ import org.mockito.kotlin.whenever
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(MockitoJUnitRunner::class)
 class ActiveLibraryProviderTest {
-
     private val testDispatcher = StandardTestDispatcher()
 
     @Mock
@@ -45,155 +44,167 @@ class ActiveLibraryProviderTest {
     // ===== Initialization Tests =====
 
     @Test
-    fun `initialize subscribes to library repository flow`() = runTest {
-        val library = AccountTestFixtures.createPlexLibrary(accountId = "account-123", isActive = true)
-        val flow = MutableStateFlow(library)
-        whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
+    fun `initialize subscribes to library repository flow`() =
+        runTest {
+            val library = AccountTestFixtures.createPlexLibrary(accountId = "account-123", isActive = true)
+            val flow = MutableStateFlow(library)
+            whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
 
-        provider.initialize()
-        advanceUntilIdle()
+            provider.initialize()
+            advanceUntilIdle()
 
-        assertThat(provider.currentLibrary.value).isEqualTo(library)
-    }
-
-    @Test
-    fun `initialize with no active library sets null`() = runTest {
-        val flow = MutableStateFlow<local.oss.chronicle.data.model.Library?>(null)
-        whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
-
-        provider.initialize()
-        advanceUntilIdle()
-
-        assertThat(provider.currentLibrary.value).isNull()
-    }
+            assertThat(provider.currentLibrary.value).isEqualTo(library)
+        }
 
     @Test
-    fun `currentLibrary updates when repository flow emits`() = runTest {
-        val library1 = AccountTestFixtures.createPlexLibrary(accountId = "account-123", name = "Library 1")
-        val library2 = AccountTestFixtures.createPlexLibrary(accountId = "account-123", name = "Library 2")
-        val flow = MutableStateFlow(library1)
-        whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
+    fun `initialize with no active library sets null`() =
+        runTest {
+            val flow = MutableStateFlow<local.oss.chronicle.data.model.Library?>(null)
+            whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
 
-        provider.initialize()
-        advanceUntilIdle()
-        assertThat(provider.currentLibrary.value).isEqualTo(library1)
+            provider.initialize()
+            advanceUntilIdle()
 
-        // Emit new value
-        flow.value = library2
-        advanceUntilIdle()
-        assertThat(provider.currentLibrary.value).isEqualTo(library2)
-    }
+            assertThat(provider.currentLibrary.value).isNull()
+        }
+
+    @Test
+    fun `currentLibrary updates when repository flow emits`() =
+        runTest {
+            val library1 = AccountTestFixtures.createPlexLibrary(accountId = "account-123", name = "Library 1")
+            val library2 = AccountTestFixtures.createPlexLibrary(accountId = "account-123", name = "Library 2")
+            val flow = MutableStateFlow(library1)
+            whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
+
+            provider.initialize()
+            advanceUntilIdle()
+            assertThat(provider.currentLibrary.value).isEqualTo(library1)
+
+            // Emit new value
+            flow.value = library2
+            advanceUntilIdle()
+            assertThat(provider.currentLibrary.value).isEqualTo(library2)
+        }
 
     // ===== Current Library Tests =====
 
     @Test
-    fun `currentLibraryId returns library id when library is active`() = runTest {
-        val library = AccountTestFixtures.createPlexLibrary(accountId = "account-123", isActive = true)
-        val flow = MutableStateFlow(library)
-        whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
+    fun `currentLibraryId returns library id when library is active`() =
+        runTest {
+            val library = AccountTestFixtures.createPlexLibrary(accountId = "account-123", isActive = true)
+            val flow = MutableStateFlow(library)
+            whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
 
-        provider.initialize()
-        advanceUntilIdle()
+            provider.initialize()
+            advanceUntilIdle()
 
-        assertThat(provider.currentLibraryId).isEqualTo(library.id)
-    }
+            assertThat(provider.currentLibraryId).isEqualTo(library.id)
+        }
 
     @Test
-    fun `currentLibraryId returns null when no library is active`() = runTest {
-        val flow = MutableStateFlow<local.oss.chronicle.data.model.Library?>(null)
-        whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
+    fun `currentLibraryId returns null when no library is active`() =
+        runTest {
+            val flow = MutableStateFlow<local.oss.chronicle.data.model.Library?>(null)
+            whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
 
-        provider.initialize()
-        advanceUntilIdle()
+            provider.initialize()
+            advanceUntilIdle()
 
-        assertThat(provider.currentLibraryId).isNull()
-    }
+            assertThat(provider.currentLibraryId).isNull()
+        }
 
     // ===== Switch Library Tests =====
 
     @Test
-    fun `switchToLibrary delegates to repository setActiveLibrary`() = runTest {
-        val libraryId = "library-123"
+    fun `switchToLibrary delegates to repository setActiveLibrary`() =
+        runTest {
+            val libraryId = "library-123"
 
-        provider.switchToLibrary(libraryId)
+            provider.switchToLibrary(libraryId)
 
-        verify(libraryRepository).setActiveLibrary(libraryId)
-    }
+            verify(libraryRepository).setActiveLibrary(libraryId)
+        }
 
     @Test
-    fun `clearLibrary delegates to repository clearActiveLibrary`() = runTest {
-        provider.clearLibrary()
+    fun `clearLibrary delegates to repository clearActiveLibrary`() =
+        runTest {
+            provider.clearLibrary()
 
-        verify(libraryRepository).clearActiveLibrary()
-    }
+            verify(libraryRepository).clearActiveLibrary()
+        }
 
     // ===== hasActiveLibrary Tests =====
 
     @Test
-    fun `hasActiveLibrary returns true when library is set`() = runTest {
-        val library = AccountTestFixtures.createPlexLibrary(accountId = "account-123", isActive = true)
-        val flow = MutableStateFlow(library)
-        whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
+    fun `hasActiveLibrary returns true when library is set`() =
+        runTest {
+            val library = AccountTestFixtures.createPlexLibrary(accountId = "account-123", isActive = true)
+            val flow = MutableStateFlow(library)
+            whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
 
-        provider.initialize()
-        advanceUntilIdle()
+            provider.initialize()
+            advanceUntilIdle()
 
-        assertThat(provider.hasActiveLibrary()).isTrue()
-    }
+            assertThat(provider.hasActiveLibrary()).isTrue()
+        }
 
     @Test
-    fun `hasActiveLibrary returns false when no library is set`() = runTest {
-        val flow = MutableStateFlow<local.oss.chronicle.data.model.Library?>(null)
-        whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
+    fun `hasActiveLibrary returns false when no library is set`() =
+        runTest {
+            val flow = MutableStateFlow<local.oss.chronicle.data.model.Library?>(null)
+            whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
 
-        provider.initialize()
-        advanceUntilIdle()
+            provider.initialize()
+            advanceUntilIdle()
 
-        assertThat(provider.hasActiveLibrary()).isFalse()
-    }
+            assertThat(provider.hasActiveLibrary()).isFalse()
+        }
 
     // ===== requireLibraryId Tests =====
 
     @Test
-    fun `requireLibraryId returns library id when library is active`() = runTest {
-        val library = AccountTestFixtures.createPlexLibrary(accountId = "account-123", isActive = true)
-        val flow = MutableStateFlow(library)
-        whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
+    fun `requireLibraryId returns library id when library is active`() =
+        runTest {
+            val library = AccountTestFixtures.createPlexLibrary(accountId = "account-123", isActive = true)
+            val flow = MutableStateFlow(library)
+            whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
 
-        provider.initialize()
-        advanceUntilIdle()
+            provider.initialize()
+            advanceUntilIdle()
 
-        assertThat(provider.requireLibraryId()).isEqualTo(library.id)
-    }
+            assertThat(provider.requireLibraryId()).isEqualTo(library.id)
+        }
 
     @Test
-    fun `requireLibraryId throws exception when no library is active`() = runTest {
-        val flow = MutableStateFlow<local.oss.chronicle.data.model.Library?>(null)
-        whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
+    fun `requireLibraryId throws exception when no library is active`() =
+        runTest {
+            val flow = MutableStateFlow<local.oss.chronicle.data.model.Library?>(null)
+            whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
 
-        provider.initialize()
-        advanceUntilIdle()
+            provider.initialize()
+            advanceUntilIdle()
 
-        try {
-            provider.requireLibraryId()
-            assertThat(false).isTrue() // Should not reach here
-        } catch (e: IllegalStateException) {
-            assertThat(e.message).contains("No active library selected")
+            try {
+                provider.requireLibraryId()
+                assertThat(false).isTrue() // Should not reach here
+            } catch (e: IllegalStateException) {
+                assertThat(e.message).contains("No active library selected")
+            }
         }
-    }
 
     // ===== Flow Behavior Tests =====
 
     @Test
-    fun `currentLibrary is a StateFlow that exposes current value`() = runTest {
-        val library = AccountTestFixtures.createPlexLibrary(accountId = "account-123", isActive = true)
-        val flow = MutableStateFlow(library)
-        whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
+    fun `currentLibrary is a StateFlow that exposes current value`() =
+        runTest {
+            val library = AccountTestFixtures.createPlexLibrary(accountId = "account-123", isActive = true)
+            val flow = MutableStateFlow(library)
+            whenever(libraryRepository.getActiveLibraryFlow()).thenReturn(flow)
 
-        provider.initialize()
-        advanceUntilIdle()
+            provider.initialize()
+            advanceUntilIdle()
 
-        // StateFlow.value gives us the current value without suspending
-        assertThat(provider.currentLibrary.value).isEqualTo(library)
-    }
+            // StateFlow.value gives us the current value without suspending
+            assertThat(provider.currentLibrary.value).isEqualTo(library)
+        }
 }

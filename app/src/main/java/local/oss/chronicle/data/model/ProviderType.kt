@@ -7,7 +7,7 @@ package local.oss.chronicle.data.model
 enum class ProviderType {
     /** Plex Media Server */
     PLEX,
-    
+
     /** Audiobookshelf server (future implementation) */
-    AUDIOBOOKSHELF
+    AUDIOBOOKSHELF,
 }

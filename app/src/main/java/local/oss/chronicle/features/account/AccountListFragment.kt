@@ -18,12 +18,11 @@ import javax.inject.Inject
 
 /**
  * Fragment for managing multiple accounts and libraries.
- * 
+ *
  * Displays accounts in an expandable list with their associated libraries.
  * Users can add accounts (via OAuth), remove accounts, and switch between libraries.
  */
 class AccountListFragment : Fragment() {
-
     @Inject
     lateinit var viewModelFactory: AccountListViewModel.Factory
 
@@ -34,6 +33,7 @@ class AccountListFragment : Fragment() {
 
     companion object {
         const val TAG = "AccountListFragment"
+
         fun newInstance() = AccountListFragment()
     }
 
@@ -45,13 +45,14 @@ class AccountListFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentAccountListBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
 
-        viewModel = ViewModelProvider(this, viewModelFactory)
-            .get(AccountListViewModel::class.java)
+        viewModel =
+            ViewModelProvider(this, viewModelFactory)
+                .get(AccountListViewModel::class.java)
         binding.viewModel = viewModel
 
         setupToolbar()
@@ -74,18 +75,19 @@ class AccountListFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        accountAdapter = AccountListAdapter(
-            onAccountClick = { account ->
-                viewModel.onToggleExpand(account.id)
-            },
-            onLibraryClick = { library ->
-                viewModel.onSwitchToLibrary(library.id)
-            },
-            onRemoveClick = { account ->
-                viewModel.onRemoveAccount(account.id)
-            },
-            activeLibraryId = { viewModel.activeLibraryId.value }
-        )
+        accountAdapter =
+            AccountListAdapter(
+                onAccountClick = { account ->
+                    viewModel.onToggleExpand(account.id)
+                },
+                onLibraryClick = { library ->
+                    viewModel.onSwitchToLibrary(library.id)
+                },
+                onRemoveClick = { account ->
+                    viewModel.onRemoveAccount(account.id)
+                },
+                activeLibraryId = { viewModel.activeLibraryId.value },
+            )
 
         binding.accountList.apply {
             adapter = accountAdapter

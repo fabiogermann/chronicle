@@ -11,15 +11,14 @@ import local.oss.chronicle.databinding.ListItemLibrarySelectorItemBinding
 
 /**
  * RecyclerView adapter for library selector bottom sheet.
- * 
+ *
  * Displays libraries grouped by account using two view types:
  * - TYPE_HEADER: Account name header (non-clickable)
  * - TYPE_LIBRARY_ITEM: Library item (clickable) with active indicator
  */
 class LibrarySelectorAdapter(
-    private val onLibraryClick: (Library) -> Unit
+    private val onLibraryClick: (Library) -> Unit,
 ) : ListAdapter<LibrarySelectorItem, RecyclerView.ViewHolder>(LibrarySelectorItemDiffCallback()) {
-
     companion object {
         private const val TYPE_HEADER = 1
         private const val TYPE_LIBRARY_ITEM = 2
@@ -32,7 +31,10 @@ class LibrarySelectorAdapter(
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): RecyclerView.ViewHolder {
         return when (viewType) {
             TYPE_HEADER -> HeaderViewHolder.from(parent)
             TYPE_LIBRARY_ITEM -> LibraryViewHolder.from(parent)
@@ -40,7 +42,10 @@ class LibrarySelectorAdapter(
         }
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        position: Int,
+    ) {
         when (holder) {
             is HeaderViewHolder -> {
                 val item = getItem(position) as LibrarySelectorItem.Header
@@ -58,9 +63,8 @@ class LibrarySelectorAdapter(
  * ViewHolder for account header items.
  */
 class HeaderViewHolder private constructor(
-    private val binding: ListItemLibrarySelectorHeaderBinding
+    private val binding: ListItemLibrarySelectorHeaderBinding,
 ) : RecyclerView.ViewHolder(binding.root) {
-
     fun bind(item: LibrarySelectorItem.Header) {
         binding.accountName = item.accountName
         binding.executePendingBindings()
@@ -79,12 +83,11 @@ class HeaderViewHolder private constructor(
  * ViewHolder for library items.
  */
 class LibraryViewHolder private constructor(
-    private val binding: ListItemLibrarySelectorItemBinding
+    private val binding: ListItemLibrarySelectorItemBinding,
 ) : RecyclerView.ViewHolder(binding.root) {
-
     fun bind(
         item: LibrarySelectorItem.LibraryItem,
-        onLibraryClick: (Library) -> Unit
+        onLibraryClick: (Library) -> Unit,
     ) {
         binding.library = item.library
         binding.accountName = item.accountName
@@ -108,7 +111,7 @@ class LibraryViewHolder private constructor(
 class LibrarySelectorItemDiffCallback : DiffUtil.ItemCallback<LibrarySelectorItem>() {
     override fun areItemsTheSame(
         oldItem: LibrarySelectorItem,
-        newItem: LibrarySelectorItem
+        newItem: LibrarySelectorItem,
     ): Boolean {
         return when {
             oldItem is LibrarySelectorItem.Header && newItem is LibrarySelectorItem.Header ->
@@ -121,7 +124,7 @@ class LibrarySelectorItemDiffCallback : DiffUtil.ItemCallback<LibrarySelectorIte
 
     override fun areContentsTheSame(
         oldItem: LibrarySelectorItem,
-        newItem: LibrarySelectorItem
+        newItem: LibrarySelectorItem,
     ): Boolean {
         return oldItem == newItem
     }

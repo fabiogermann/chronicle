@@ -57,12 +57,14 @@ class PlexSyncScrobbleWorker(
 
                 check(bookId != NO_AUDIOBOOK_FOUND_ID)
                 check(trackId != TRACK_NOT_FOUND && track != null)
-                
+
                 // Extract numeric IDs for Plex API calls
-                val numericTrackId = trackId.removePrefix("plex:").toIntOrNull()
-                    ?: return@launch
-                val numericBookId = bookId.removePrefix("plex:").toIntOrNull()
-                    ?: return@launch
+                val numericTrackId =
+                    trackId.removePrefix("plex:").toIntOrNull()
+                        ?: return@launch
+                val numericBookId =
+                    bookId.removePrefix("plex:").toIntOrNull()
+                        ?: return@launch
 
                 try {
                     Injector.get().plexMediaService().progress(

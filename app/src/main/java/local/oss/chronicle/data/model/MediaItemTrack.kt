@@ -57,7 +57,10 @@ data class MediaItemTrack(
         @JvmStatic
         val streamingUrlCache = ConcurrentHashMap<String, String>()
 
-        fun from(metadata: MediaMetadataCompat, libraryId: String = ""): MediaItemTrack {
+        fun from(
+            metadata: MediaMetadataCompat,
+            libraryId: String = "",
+        ): MediaItemTrack {
             return MediaItemTrack(
                 id = metadata.id ?: "unknown",
                 libraryId = libraryId,
@@ -109,7 +112,10 @@ data class MediaItemTrack(
         }
 
         /** Create a [MediaItemTrack] from a Plex model and an index */
-        fun fromPlexModel(networkTrack: PlexDirectory, libraryId: String): MediaItemTrack {
+        fun fromPlexModel(
+            networkTrack: PlexDirectory,
+            libraryId: String,
+        ): MediaItemTrack {
             return MediaItemTrack(
                 id = "plex:${networkTrack.ratingKey}",
                 parentKey = "plex:${networkTrack.parentRatingKey}",

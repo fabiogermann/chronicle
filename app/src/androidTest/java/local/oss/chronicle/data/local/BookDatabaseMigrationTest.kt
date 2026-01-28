@@ -11,22 +11,22 @@ import org.junit.runner.RunWith
 
 /**
  * Tests for BookDatabase migration from version 8 to version 9.
- * 
+ *
  * Migration changes:
  * - id: INTEGER → TEXT (with "plex:" prefix)
  * - Added libraryId: TEXT (foreign key to libraries table, NOT NULL with default)
  */
 @RunWith(AndroidJUnit4::class)
 class BookDatabaseMigrationTest {
-
     private val TEST_DB = "migration-test"
 
     @get:Rule
-    val helper: MigrationTestHelper = MigrationTestHelper(
-        InstrumentationRegistry.getInstrumentation(),
-        BookDatabase::class.java.canonicalName,
-        FrameworkSQLiteOpenHelperFactory()
-    )
+    val helper: MigrationTestHelper =
+        MigrationTestHelper(
+            InstrumentationRegistry.getInstrumentation(),
+            BookDatabase::class.java.canonicalName,
+            FrameworkSQLiteOpenHelperFactory(),
+        )
 
     // ===== Schema Migration Tests =====
 
@@ -35,14 +35,16 @@ class BookDatabaseMigrationTest {
         // Create database at version 8
         helper.createDatabase(TEST_DB, 8).apply {
             // Insert test data with old schema
-            execSQL("""
+            execSQL(
+                """
                 INSERT INTO books (id, title, author, thumb, duration, 
                     addedAt, updatedAt, lastListenedAt, playbackProgress, 
                     lastListenedTrackKey, cachedState, favorite, playlistTrackKey)
                 VALUES (12345, 'Test Book', 'Test Author', '/thumb.jpg', 36000000,
                     1234567890, 1234567890, 1234567890, 50,
                     67890, 0, 0, 67890)
-            """)
+            """,
+            )
             close()
         }
 
@@ -57,10 +59,10 @@ class BookDatabaseMigrationTest {
                 val type = cursor.getString(cursor.getColumnIndexOrThrow("type"))
                 columns[name] = type
             }
-            
+
             // Verify id is now TEXT
             assertThat(columns["id"]).isEqualTo("TEXT")
-            
+
             // Verify libraryId column exists and is TEXT
             assertThat(columns["libraryId"]).isEqualTo("TEXT")
         }
@@ -70,14 +72,16 @@ class BookDatabaseMigrationTest {
     fun migrate8To9_convertsIdToStringWithPrefix() {
         // Create database at version 8
         helper.createDatabase(TEST_DB, 8).apply {
-            execSQL("""
+            execSQL(
+                """
                 INSERT INTO books (id, title, author, thumb, duration, 
                     addedAt, updatedAt, lastListenedAt, playbackProgress, 
                     lastListenedTrackKey, cachedState, favorite, playlistTrackKey)
                 VALUES (12345, 'Test Book', 'Test Author', '/thumb.jpg', 36000000,
                     1234567890, 1234567890, 1234567890, 50,
                     67890, 0, 0, 67890)
-            """)
+            """,
+            )
             close()
         }
 
@@ -96,14 +100,16 @@ class BookDatabaseMigrationTest {
     fun migrate8To9_setsDefaultLibraryId() {
         // Create database at version 8
         helper.createDatabase(TEST_DB, 8).apply {
-            execSQL("""
+            execSQL(
+                """
                 INSERT INTO books (id, title, author, thumb, duration, 
                     addedAt, updatedAt, lastListenedAt, playbackProgress, 
                     lastListenedTrackKey, cachedState, favorite, playlistTrackKey)
                 VALUES (12345, 'Test Book', 'Test Author', '/thumb.jpg', 36000000,
                     1234567890, 1234567890, 1234567890, 50,
                     67890, 0, 0, 67890)
-            """)
+            """,
+            )
             close()
         }
 
@@ -123,20 +129,24 @@ class BookDatabaseMigrationTest {
     fun migrate8To9_preservesAllData() {
         // Create database at version 8 with multiple books
         helper.createDatabase(TEST_DB, 8).apply {
-            execSQL("""
+            execSQL(
+                """
                 INSERT INTO books (id, title, author, thumb, duration, 
                     addedAt, updatedAt, lastListenedAt, playbackProgress, 
                     lastListenedTrackKey, cachedState, favorite, playlistTrackKey)
                 VALUES (111, 'Book One', 'Author One', '/thumb1.jpg', 10000,
                     1000, 2000, 3000, 25, 1001, 1, 1, 1001)
-            """)
-            execSQL("""
+            """,
+            )
+            execSQL(
+                """
                 INSERT INTO books (id, title, author, thumb, duration, 
                     addedAt, updatedAt, lastListenedAt, playbackProgress, 
                     lastListenedTrackKey, cachedState, favorite, playlistTrackKey)
                 VALUES (222, 'Book Two', 'Author Two', '/thumb2.jpg', 20000,
                     4000, 5000, 6000, 75, 2001, 2, 0, 2001)
-            """)
+            """,
+            )
             close()
         }
 
@@ -146,7 +156,7 @@ class BookDatabaseMigrationTest {
         // Verify all data preserved
         db.query("SELECT * FROM books ORDER BY title").use { cursor ->
             assertThat(cursor.count).isEqualTo(2)
-            
+
             // First book
             cursor.moveToFirst()
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("id"))).isEqualTo("plex:111")
@@ -154,8 +164,8 @@ class BookDatabaseMigrationTest {
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("author"))).isEqualTo("Author One")
             assertThat(cursor.getLong(cursor.getColumnIndexOrThrow("playbackProgress"))).isEqualTo(25)
             assertThat(cursor.getInt(cursor.getColumnIndexOrThrow("favorite"))).isEqualTo(1)
-            
-            // Second book  
+
+            // Second book
             cursor.moveToNext()
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("id"))).isEqualTo("plex:222")
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("title"))).isEqualTo("Book Two")
@@ -184,14 +194,16 @@ class BookDatabaseMigrationTest {
     fun migrate8To9_convertsTrackKeys() {
         // Create database at version 8
         helper.createDatabase(TEST_DB, 8).apply {
-            execSQL("""
+            execSQL(
+                """
                 INSERT INTO books (id, title, author, thumb, duration, 
                     addedAt, updatedAt, lastListenedAt, playbackProgress, 
                     lastListenedTrackKey, cachedState, favorite, playlistTrackKey)
                 VALUES (12345, 'Test Book', 'Test Author', '/thumb.jpg', 36000000,
                     1234567890, 1234567890, 1234567890, 50,
                     67890, 0, 0, 99999)
-            """)
+            """,
+            )
             close()
         }
 
@@ -203,7 +215,7 @@ class BookDatabaseMigrationTest {
             cursor.moveToFirst()
             val lastListenedTrackKey = cursor.getString(0)
             val playlistTrackKey = cursor.getString(1)
-            
+
             // Track keys should also be prefixed
             assertThat(lastListenedTrackKey).isEqualTo("plex:67890")
             assertThat(playlistTrackKey).isEqualTo("plex:99999")

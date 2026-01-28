@@ -19,6 +19,7 @@ import local.oss.chronicle.data.local.PrefsRepo
 import local.oss.chronicle.data.model.asServer
 import local.oss.chronicle.data.sources.plex.*
 import local.oss.chronicle.data.sources.plex.model.Connection
+import local.oss.chronicle.features.account.LegacyAccountMigration
 import local.oss.chronicle.injection.components.AppComponent
 import local.oss.chronicle.injection.components.DaggerAppComponent
 import local.oss.chronicle.injection.modules.AppModule
@@ -70,6 +71,9 @@ open class ChronicleApplication : Application() {
     @Inject
     lateinit var frescoConfig: ImagePipelineConfig
 
+    @Inject
+    lateinit var legacyAccountMigration: LegacyAccountMigration
+
     override fun onCreate() {
         if (USE_STRICT_MODE && BuildConfig.DEBUG) {
             StrictMode.setThreadPolicy(
@@ -99,6 +103,7 @@ open class ChronicleApplication : Application() {
         appComponent.inject(this)
         setupNetwork(plexPrefs)
         updateDownloadedFileState()
+        runLegacyAccountMigration()
         super.onCreate()
         Fresco.initialize(this, frescoConfig)
         // TODO: remove in a future version
@@ -116,6 +121,22 @@ open class ChronicleApplication : Application() {
         applicationScope.launch {
             withContext(Dispatchers.IO) {
                 cachedFileManager.refreshTrackDownloadedStatus()
+            }
+        }
+    }
+
+    /**
+     * Run legacy account migration on first launch.
+     * Migrates existing single-account data to the new multi-account schema.
+     */
+    private fun runLegacyAccountMigration() {
+        applicationScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    legacyAccountMigration.migrate()
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to run legacy account migration")
+                }
             }
         }
     }

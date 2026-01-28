@@ -89,7 +89,8 @@ val BOOK_MIGRATION_8_9 =
     object : Migration(8, 9) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // Create new table with updated schema
-            db.execSQL("""
+            db.execSQL(
+                """
                 CREATE TABLE Audiobook_new (
                     id TEXT NOT NULL PRIMARY KEY,
                     libraryId TEXT NOT NULL DEFAULT 'legacy:pending',
@@ -114,21 +115,24 @@ val BOOK_MIGRATION_8_9 =
                     viewCount INTEGER NOT NULL,
                     chapters TEXT NOT NULL
                 )
-            """)
-            
+            """,
+            )
+
             // Copy data with ID transformation: convert Int to "plex:{id}"
-            db.execSQL("""
+            db.execSQL(
+                """
                 INSERT INTO Audiobook_new (id, libraryId, source, title, titleSort, author, thumb, parentId, genre, summary, year, addedAt, updatedAt, lastViewedAt, duration, isCached, progress, favorited, viewedLeafCount, leafCount, viewCount, chapters)
                 SELECT 'plex:' || id, 'legacy:pending', source, title, titleSort, author, thumb, parentId, genre, summary, year, addedAt, updatedAt, lastViewedAt, duration, isCached, progress, favorited, viewedLeafCount, leafCount, viewCount, chapters
                 FROM Audiobook
-            """)
-            
+            """,
+            )
+
             // Drop old table
             db.execSQL("DROP TABLE Audiobook")
-            
+
             // Rename new table to original name
             db.execSQL("ALTER TABLE Audiobook_new RENAME TO Audiobook")
-            
+
             // Create index on libraryId
             db.execSQL("CREATE INDEX index_Audiobook_libraryId ON Audiobook(libraryId)")
         }
@@ -289,19 +293,25 @@ interface BookDao {
 
     @Query("UPDATE Audiobook SET viewCount = 0 WHERE id = :bookId")
     suspend fun setUnwatched(bookId: String)
-    
+
     // Library-scoped DAO methods
     @Query("SELECT * FROM Audiobook WHERE libraryId = :libraryId")
     fun getBooksForLibrary(libraryId: String): kotlinx.coroutines.flow.Flow<List<Audiobook>>
 
     @Query("SELECT * FROM Audiobook WHERE libraryId = :libraryId AND (title LIKE :query OR author LIKE :query)")
-    fun searchBooksInLibrary(libraryId: String, query: String): kotlinx.coroutines.flow.Flow<List<Audiobook>>
+    fun searchBooksInLibrary(
+        libraryId: String,
+        query: String,
+    ): kotlinx.coroutines.flow.Flow<List<Audiobook>>
 
     @Query("SELECT * FROM Audiobook WHERE libraryId = :libraryId AND favorited = 1")
     fun getFavoritesForLibrary(libraryId: String): kotlinx.coroutines.flow.Flow<List<Audiobook>>
 
     @Query("SELECT * FROM Audiobook WHERE libraryId = :libraryId AND lastViewedAt != 0 ORDER BY lastViewedAt DESC LIMIT :limit")
-    fun getRecentlyListenedForLibrary(libraryId: String, limit: Int): kotlinx.coroutines.flow.Flow<List<Audiobook>>
+    fun getRecentlyListenedForLibrary(
+        libraryId: String,
+        limit: Int,
+    ): kotlinx.coroutines.flow.Flow<List<Audiobook>>
 
     @Query("DELETE FROM Audiobook WHERE libraryId = :libraryId")
     suspend fun deleteByLibraryId(libraryId: String)

@@ -163,7 +163,7 @@ class TrackRepository
                 try {
                     val library = plexPrefs.library ?: return@withContext
                     val libraryIdNumeric = library.id
-                    val libraryId = "plex:library:${libraryIdNumeric}"
+                    val libraryId = "plex:library:$libraryIdNumeric"
                     var tracksLeft = 1L
                     // Maximum number of pages of data we fetch. Failsafe in case of bad data from the
                     // server since we don't want infinite loops. This limits us to a maximum 1,000,000

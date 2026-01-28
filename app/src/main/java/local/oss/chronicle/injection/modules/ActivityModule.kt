@@ -70,7 +70,7 @@ class ActivityModule(private val activity: AppCompatActivity) {
     fun provideAccountListViewModelFactory(
         accountManager: AccountManager,
         activeLibraryProvider: ActiveLibraryProvider,
-        navigator: Navigator
+        navigator: Navigator,
     ): AccountListViewModel.Factory {
         return AccountListViewModel.Factory(accountManager, activeLibraryProvider, navigator)
     }

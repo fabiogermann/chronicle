@@ -10,5 +10,5 @@ import local.oss.chronicle.data.model.Library
 data class AccountWithLibraries(
     val account: Account,
     val libraries: List<Library>,
-    val isExpanded: Boolean = false
+    val isExpanded: Boolean = false,
 )

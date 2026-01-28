@@ -57,26 +57,28 @@ data class Audiobook(
     val chapters: List<Chapter> = emptyList(),
 ) {
     companion object {
-        fun from(dir: PlexDirectory, libraryId: String) =
-            Audiobook(
-                id = "plex:${dir.ratingKey}",
-                libraryId = libraryId,
-                source = PlexMediaSource.MEDIA_SOURCE_ID_PLEX,
-                title = dir.title,
-                titleSort = dir.titleSort.takeIf { it.isNotEmpty() } ?: dir.title,
-                author = dir.parentTitle,
-                thumb = dir.thumb,
-                parentId = dir.parentRatingKey,
-                genre = dir.plexGenres.joinToString(separator = ", "),
-                summary = dir.summary,
-                year = dir.year.takeIf { it != 0 } ?: dir.parentYear,
-                addedAt = dir.addedAt,
-                updatedAt = dir.updatedAt,
-                lastViewedAt = dir.lastViewedAt,
-                viewedLeafCount = dir.viewedLeafCount,
-                leafCount = dir.leafCount,
-                viewCount = dir.viewCount,
-            )
+        fun from(
+            dir: PlexDirectory,
+            libraryId: String,
+        ) = Audiobook(
+            id = "plex:${dir.ratingKey}",
+            libraryId = libraryId,
+            source = PlexMediaSource.MEDIA_SOURCE_ID_PLEX,
+            title = dir.title,
+            titleSort = dir.titleSort.takeIf { it.isNotEmpty() } ?: dir.title,
+            author = dir.parentTitle,
+            thumb = dir.thumb,
+            parentId = dir.parentRatingKey,
+            genre = dir.plexGenres.joinToString(separator = ", "),
+            summary = dir.summary,
+            year = dir.year.takeIf { it != 0 } ?: dir.parentYear,
+            addedAt = dir.addedAt,
+            updatedAt = dir.updatedAt,
+            lastViewedAt = dir.lastViewedAt,
+            viewedLeafCount = dir.viewedLeafCount,
+            leafCount = dir.leafCount,
+            viewCount = dir.viewCount,
+        )
 
         /**
          * Merges updated local fields with a network copy of the book. Respects network metadata
