@@ -22,7 +22,12 @@ class FakePlexPrefsRepo
         override val uuid: String = ""
 
         override fun clear() {
-            TODO("NOT IMPLEMENTED")
+            accountAuthToken = ""
+            user = null
+            library = null
+            server = null
+            oAuthTempId = 0L
+            serverListLastRefreshed = 0L
         }
 
         companion object {

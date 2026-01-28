@@ -8,7 +8,7 @@ import local.oss.chronicle.data.local.TrackDatabase
 import local.oss.chronicle.data.model.Account
 import local.oss.chronicle.data.model.Library
 import local.oss.chronicle.data.model.ProviderType
-import local.oss.chronicle.data.sources.plex.SharedPreferencesPlexPrefsRepo
+import local.oss.chronicle.data.sources.plex.PlexPrefsRepo
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,7 +26,7 @@ class LegacyAccountMigration @Inject constructor(
     private val accountRepository: AccountRepository,
     private val libraryRepository: LibraryRepository,
     private val credentialManager: CredentialManager,
-    private val plexPrefsRepo: SharedPreferencesPlexPrefsRepo,
+    private val plexPrefsRepo: PlexPrefsRepo,
     private val bookDatabase: BookDatabase,
     private val trackDatabase: TrackDatabase
 ) {
