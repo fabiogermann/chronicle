@@ -165,6 +165,19 @@ Chronicle integrates with Plex Media Server for:
 
 ---
 
+## Account Management
+
+Chronicle supports multiple Plex accounts and libraries:
+- **Multi-account support** - Store and switch between multiple Plex accounts
+- **Library isolation** - Each library maintains separate audiobook collections and progress
+- **Encrypted credentials** - Secure storage using AndroidX Security library
+- **Seamless switching** - Switch libraries via library selector bottom sheet
+- **Legacy migration** - Automatic migration from single-account to multi-account system
+
+→ See [Account UI Design](../docs/features/account-ui-design.md) for implementation details.
+
+---
+
 ## File Structure
 
 ```

@@ -207,6 +207,23 @@ erDiagram
 | `thumb` | String | Thumbnail path |
 | `childCount` | Int | Number of books |
 
+### 4. AccountDatabase
+
+Stores account and library information for multi-account support.
+
+| Entity | Purpose |
+|--------|---------|
+| `Account` | User account with provider type, credentials, display name |
+| `Library` | Library within an account with server URL, section ID |
+
+**Key relationships:**
+- Account has many Libraries (foreign key cascade delete)
+- Library is referenced by Audiobook and MediaItemTrack via `libraryId`
+
+**Migrations:**
+- BookDatabase v8→v9: Added `libraryId` column, converted `id` from Int to String
+- TrackDatabase v6→v7: Added `libraryId` column, converted `id`/`parentKey` from Int to String
+
 ## Repository Pattern
 
 Repositories provide a single source of truth combining local and remote data.

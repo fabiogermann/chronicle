@@ -11,6 +11,7 @@ Chronicle is a feature-rich Android audiobook player that integrates with Plex M
 | Document | Description |
 |----------|-------------|
 | [Login & Authentication](features/login.md) | OAuth flow, user selection, server selection, library selection |
+| [Account Management](features/account-ui-design.md) | Multi-account and library switching UI |
 | [Library & Browsing](features/library.md) | Home screen, library view, search, collections, audiobook details |
 | [Media Playback](features/playback.md) | Player architecture, sleep timer, speed control, progress sync, notifications |
 | [Chapter System](features/chapters.md) | Chapter data flow, detection algorithm, track-to-chapter mapping, navigation |
@@ -70,6 +71,13 @@ graph TB
 Chronicle uses Plex's OAuth 2.0 PIN-based authentication flow. Users can select from multiple managed users, servers, and libraries.
 
 → See [Login & Authentication](features/login.md) for OAuth flow details and implementation.
+
+---
+
+### Account Management
+Chronicle supports multiple Plex accounts and libraries with seamless switching via a library selector UI.
+
+→ See [Account Management](features/account-ui-design.md) for multi-account and library switching UI.
 
 ---
 
@@ -164,6 +172,7 @@ graph TD
 
 ### Feature Details
 - [Login & Authentication](features/login.md) - OAuth and server selection
+- [Account Management](features/account-ui-design.md) - Multi-account and library switching
 - [Library & Browsing](features/library.md) - Library and collections
 - [Media Playback](features/playback.md) - Player and controls
 - [Chapter System](features/chapters.md) - Chapter detection and navigation
