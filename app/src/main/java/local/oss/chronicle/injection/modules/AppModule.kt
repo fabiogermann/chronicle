@@ -85,6 +85,16 @@ class AppModule(private val app: Application) {
 
     @Provides
     @Singleton
+    fun provideAccountDao(): AccountDao =
+        AccountDatabase.getInstance(app.applicationContext).accountDao()
+
+    @Provides
+    @Singleton
+    fun provideLibraryDao(): LibraryDao =
+        AccountDatabase.getInstance(app.applicationContext).libraryDao()
+
+    @Provides
+    @Singleton
     fun provideInternalDeviceDirs(): File = app.applicationContext.filesDir
 
     @Provides

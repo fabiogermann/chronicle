@@ -12,6 +12,8 @@ import local.oss.chronicle.application.ChronicleApplication
 import local.oss.chronicle.application.ChronicleBillingManager
 import local.oss.chronicle.data.local.*
 import local.oss.chronicle.data.sources.plex.*
+import local.oss.chronicle.features.account.AccountManager
+import local.oss.chronicle.features.account.ActiveLibraryProvider
 import local.oss.chronicle.features.currentlyplaying.CurrentlyPlaying
 import local.oss.chronicle.features.login.ChooseLibraryFragment
 import local.oss.chronicle.features.login.ChooseServerFragment
@@ -79,6 +81,10 @@ interface AppComponent {
 
     //    fun plexMediaSource(): PlexMediaSource
     fun billingManager(): ChronicleBillingManager
+
+    fun accountManager(): AccountManager
+
+    fun activeLibraryProvider(): ActiveLibraryProvider
 
     // Inject
     fun inject(chronicleApplication: ChronicleApplication)

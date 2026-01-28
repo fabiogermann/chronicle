@@ -290,5 +290,23 @@
     <string name="toggle_watched">Toggle Watched</string>
     <string name="settings_version_title">Version information</string>
 
+    <!-- Account Management -->
+    <string name="accounts_title">Accounts &amp; Libraries</string>
+    <string name="no_accounts_message">No accounts connected.\nAdd a Plex account to get started.</string>
+    <string name="add_account">Add account</string>
+    <string name="manage_accounts">Manage Accounts</string>
+    <string name="manage_accounts_summary">Add or remove Plex accounts</string>
+    <string name="switch_library">Switch Library</string>
+    <string name="remove_account_title">Remove Account?</string>
+    <string name="remove_account_message">This will delete the account and all associated data (books, progress, downloads). This cannot be undone.</string>
+    <string name="remove">Remove</string>
+    <string name="remove_account">Remove account</string>
+    <string name="expand_collapse">Expand/collapse</string>
+
+    <!-- Plurals -->
+    <plurals name="library_count">
+        <item quantity="one">%d library</item>
+        <item quantity="other">%d libraries</item>
+    </plurals>
 
 </resources>
