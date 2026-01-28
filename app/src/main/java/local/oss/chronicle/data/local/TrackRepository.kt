@@ -434,4 +434,10 @@ class TrackRepository
                 return@map networkTrack
             }
         }
+
+        suspend fun deleteByLibraryId(libraryId: String) {
+            withContext(Dispatchers.IO) {
+                trackDao.deleteByLibraryId(libraryId)
+            }
+        }
     }

@@ -305,4 +305,7 @@ interface BookDao {
 
     @Query("DELETE FROM Audiobook WHERE libraryId = :libraryId")
     suspend fun deleteByLibraryId(libraryId: String)
+
+    @Query("UPDATE Audiobook SET libraryId = :libraryId WHERE libraryId = 'legacy:pending' OR libraryId = ''")
+    suspend fun updateLegacyLibraryIds(libraryId: String)
 }

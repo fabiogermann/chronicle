@@ -223,4 +223,7 @@ interface TrackDao {
 
     @Query("DELETE FROM MediaItemTrack WHERE libraryId = :libraryId")
     suspend fun deleteByLibraryId(libraryId: String)
+
+    @Query("UPDATE MediaItemTrack SET libraryId = :libraryId WHERE libraryId = 'legacy:pending' OR libraryId = ''")
+    suspend fun updateLegacyLibraryIds(libraryId: String)
 }
