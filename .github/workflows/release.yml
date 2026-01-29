@@ -50,7 +50,7 @@ jobs:
           fi
       
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test --no-daemon
       
       - name: Build release APK
         env:
@@ -58,7 +58,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleRelease --no-daemon
       
       - name: Get version from tag
         id: get_version
