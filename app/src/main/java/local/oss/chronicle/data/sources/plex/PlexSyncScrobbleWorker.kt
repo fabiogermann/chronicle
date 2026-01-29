@@ -21,16 +21,10 @@ class PlexSyncScrobbleWorker(
     context: Context,
     workerParameters: WorkerParameters,
 ) : Worker(context, workerParameters) {
-    val library =
-        SharedPreferencesPlexPrefsRepo(
-            context.getSharedPreferences(
-                APP_NAME,
-                MODE_PRIVATE,
-            ),
-            Injector.get().moshi(),
-        ).library
     val trackRepository = Injector.get().trackRepo()
     val bookRepository = Injector.get().bookRepo()
+    val libraryRepository = Injector.get().libraryRepository()
+    val accountRepository = Injector.get().accountRepository()
     val plexConfig = Injector.get().plexConfig()
     val plexPrefs = Injector.get().plexPrefs()
     val plexMediaService = Injector.get().plexMediaService()
@@ -57,6 +51,28 @@ class PlexSyncScrobbleWorker(
 
                 check(bookId != NO_AUDIOBOOK_FOUND_ID)
                 check(trackId != TRACK_NOT_FOUND && track != null)
+                check(book != null) { "Book not found for ID: $bookId" }
+
+                // Derive library context from the audiobook being played
+                val library = libraryRepository.getLibraryById(book.libraryId)
+                if (library == null) {
+                    Timber.e("Library not found for book: ${book.title} (libraryId: ${book.libraryId})")
+                    return@launch
+                }
+
+                // Get account for this library
+                val account = accountRepository.getAccountById(library.accountId)
+                if (account == null) {
+                    Timber.e("Account not found for library: ${library.name} (accountId: ${library.accountId})")
+                    return@launch
+                }
+
+                // TODO: Phase 2 enhancement - Switch PlexConfig to use library's server URL and account's auth token
+                // For now, Phase 1 relies on global PlexConfig URL which works for single-server setups
+                // Future enhancement: plexConfig.url = library.serverUrl
+                // Future enhancement: Use account-specific auth token from CredentialManager
+
+                Timber.d("Syncing progress for book: ${book.title} in library: ${library.name} (${library.id})")
 
                 // Extract numeric IDs for Plex API calls
                 val numericTrackId =

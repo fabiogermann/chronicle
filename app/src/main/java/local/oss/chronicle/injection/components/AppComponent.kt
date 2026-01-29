@@ -86,6 +86,10 @@ interface AppComponent {
 
     fun activeLibraryProvider(): ActiveLibraryProvider
 
+    fun libraryRepository(): LibraryRepository
+
+    fun accountRepository(): AccountRepository
+
     // Inject
     fun inject(chronicleApplication: ChronicleApplication)
 

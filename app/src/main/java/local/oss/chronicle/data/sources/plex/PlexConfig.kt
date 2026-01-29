@@ -272,13 +272,46 @@ class PlexConfig
         fun clearLibrary() {
             plexPrefsRepo.library = null
         }
-
+    
         fun clearUser() {
             plexPrefsRepo.library = null
             plexPrefsRepo.server = null
             plexPrefsRepo.user = null
         }
-
+    
+        /**
+         * Temporarily update server configuration for multi-account sync.
+         * This allows syncing libraries from different servers/accounts by updating
+         * the global PlexConfig state temporarily during the sync operation.
+         *
+         * @param connections List of server connections to test
+         * @param authToken The auth token to use for this server
+         */
+        suspend fun updateServerForSync(
+            connections: List<Connection>,
+            authToken: String,
+        ): Boolean {
+            Timber.d("updateServerForSync: Setting ${connections.size} connections")
+            setPotentialConnections(connections)
+            
+            // Temporarily update the auth token in prefs for the interceptor to use
+            val previousToken = plexPrefsRepo.accountAuthToken
+            plexPrefsRepo.accountAuthToken = authToken
+            
+            return try {
+                // Connect to the server with the new connections
+                // This will update PlexConfig.url with the viable connection
+                val plexMediaService = Injector.get().plexMediaService()
+                connectToServerWithRetry(plexMediaService)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to update server for sync")
+                false
+            } finally {
+                // Note: We keep the updated token and URL for the duration of the sync
+                // The caller is responsible for restoring previous state if needed
+            }
+        }
+    
         sealed class ConnectionResult {
             data class Success(val url: String) : ConnectionResult()
 

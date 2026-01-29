@@ -20,10 +20,4 @@
         android:icon="@drawable/ic_filter_list_white"
         android:title="@string/filter"
         app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/menu_switch_library"
-        android:icon="@drawable/ic_library_music"
-        android:title="@string/switch_library"
-        app:showAsAction="never" />
 </menu>

@@ -147,10 +147,6 @@ class HomeFragment : Fragment() {
                 override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                     return when (menuItem.itemId) {
                         R.id.search -> true
-                        R.id.menu_switch_library -> {
-                            navigator.showLibrarySelector()
-                            true
-                        }
                         else -> false
                     }
                 }
