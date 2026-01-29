@@ -80,20 +80,39 @@ data class PlaybackState(
 
     /**
      * The current chapter based on book position, or null if no chapters or position is invalid.
+     *
+     * Chapter boundary rules:
+     * 1. If position exactly matches a chapter's startTimeOffset, return that chapter
+     * 2. If position is within a chapter's range (startTimeOffset <= pos < endTimeOffset), return that chapter
+     * 3. If position exactly matches a chapter's endTimeOffset, return the next chapter
+     * 4. Otherwise, return the last chapter whose start is before our position
      */
     val currentChapter: Chapter?
         get() {
             if (chapters.isEmpty()) return null
             val bookPos = bookPositionMs
             
-            // First check if we're exactly at a chapter boundary
-            val exactMatch = chapters.find { it.startTimeOffset == bookPos }
-            if (exactMatch != null) return exactMatch
+            // Sort chapters by startTimeOffset to ensure consistent ordering
+            val sortedChapters = chapters.sortedBy { it.startTimeOffset }
             
-            // Otherwise find the last chapter whose start is before our position
-            return chapters.lastOrNull { it.startTimeOffset <= bookPos && bookPos < it.endTimeOffset }
-                ?: chapters.lastOrNull { it.startTimeOffset <= bookPos }
-                ?: chapters.firstOrNull()
+            // Rule 1: Exact match with start offset
+            val exactMatchStart = sortedChapters.find { it.startTimeOffset == bookPos }
+            if (exactMatchStart != null) return exactMatchStart
+            
+            // Rule 2: Position within chapter range
+            val containingChapter = sortedChapters.lastOrNull { it.startTimeOffset <= bookPos && bookPos < it.endTimeOffset }
+            if (containingChapter != null) return containingChapter
+            
+            // Rule 3: Exact match with end offset (boundary case)
+            for (i in 0 until sortedChapters.size - 1) {
+                if (sortedChapters[i].endTimeOffset == bookPos) {
+                    return sortedChapters[i + 1]
+                }
+            }
+            
+            // Rule 4: Fallback to last chapter whose start is before position
+            return sortedChapters.lastOrNull { it.startTimeOffset <= bookPos }
+                ?: sortedChapters.firstOrNull()
         }
 
     /**
@@ -102,19 +121,27 @@ data class PlaybackState(
     val currentChapterIndex: Int
         get() {
             if (chapters.isEmpty()) return -1
+            
+            // Get the current chapter and find its index
+            val chapter = currentChapter
+            if (chapter != null) {
+                val index = chapters.indexOf(chapter)
+                if (index >= 0) return index
+            }
+            
+            // Fallback to calculating index directly
             val bookPos = bookPositionMs
             
-            // First check if we're exactly at a chapter boundary
-            val exactMatchIndex = chapters.indexOfFirst { it.startTimeOffset == bookPos }
-            if (exactMatchIndex >= 0) return exactMatchIndex
+            // First check if we're exactly at a chapter boundary (start of a chapter)
+            val exactMatchStartIndex = chapters.indexOfFirst { it.startTimeOffset == bookPos }
+            if (exactMatchStartIndex >= 0) return exactMatchStartIndex
             
-            // Otherwise find the last chapter whose start is before our position and end is after
+            // Find the chapter that contains our position
             val inRangeIndex = chapters.indexOfLast { it.startTimeOffset <= bookPos && bookPos < it.endTimeOffset }
             if (inRangeIndex >= 0) return inRangeIndex
             
-            // Fallback to last chapter whose start is before our position
-            return chapters.indexOfLast { it.startTimeOffset <= bookPos }
-                .takeIf { it >= 0 } ?: 0
+            // Fallback to first chapter
+            return 0
         }
 
     /**
