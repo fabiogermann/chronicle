@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.60.17] - 2026-01-29
+
+- fix: issue with android auto (2417131)
+- ci: bump (7f605cb)
+- ci: fix flakey tests (97bc9ea)
+
 ## [0.60.11] - 2026-01-18
 
 - chore: bump version to 0.60.10-SNAPSHOT and update CHANGELOG.md (e879e27)
