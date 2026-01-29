@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, feat/*, fix/* ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, feat/*, fix/* ]
 
 permissions:
   contents: read
@@ -26,7 +26,7 @@ jobs:
         run: chmod +x gradlew
       
       - name: Run unit tests
-        run: ./gradlew test
+        run: ./gradlew testDebugUnitTest
       
       - name: Upload test results
         uses: actions/upload-artifact@v4

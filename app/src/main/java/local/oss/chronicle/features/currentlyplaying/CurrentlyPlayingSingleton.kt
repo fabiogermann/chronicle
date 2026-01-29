@@ -67,8 +67,8 @@ class CurrentlyPlayingSingleton
     constructor(
         private val playbackStateController: PlaybackStateController,
     ) : CurrentlyPlaying {
-        // Use Dispatchers.Default for tests compatibility - will be replaced by Main dispatcher in production
-        private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        // Use Dispatchers.Main.immediate for proper test dispatcher support
+        private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
         // ========================
         // Backward Compatibility Flows
