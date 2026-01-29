@@ -192,15 +192,19 @@ class PlexLoginRepo
                             serverAccessToken = server.accessToken
                         )
                         Timber.i("Account saved to database: ${user.uuid}, library: ${plexLibrary.id}")
+                        // ✅ Navigate ONLY after save completes
+                        _loginState.postEvent(LOGGED_IN_FULLY)
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to save account to database")
+                        // Still navigate on error to avoid blocking user
+                        _loginState.postEvent(LOGGED_IN_FULLY)
                     }
                 }
             } else {
                 Timber.w("Cannot save account: user=$user, server=$server, token=${accountToken.isNotEmpty()}")
+                // No save needed, navigate immediately
+                _loginState.postEvent(LOGGED_IN_FULLY)
             }
-            
-            _loginState.postEvent(LOGGED_IN_FULLY)
         }
 
         init {
