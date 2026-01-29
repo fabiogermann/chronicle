@@ -75,18 +75,32 @@ Chronicle uses Plex's OAuth 2.0 PIN-based authentication flow. Users can select 
 ---
 
 ### Account Management
-Chronicle supports multiple Plex accounts and libraries with seamless switching via a library selector UI.
+Chronicle supports multiple Plex accounts and libraries with a **Unified Library View** that displays content from ALL connected accounts and libraries in a single interface.
 
-→ See [Account Management](features/account-ui-design.md) for multi-account and library switching UI.
+#### Unified Library View
+Chronicle aggregates audiobooks from all connected accounts and libraries:
+- **Library Screen** - Shows all audiobooks from all libraries, sorted alphabetically
+- **Home Screen** - "Recently Listened" and "Recently Added" aggregate across all libraries
+- **Collections Screen** - Shows all collections from all libraries
+- **Search** - Finds audiobooks across all connected libraries
+
+#### Multi-Account Support
+- Add multiple Plex accounts via **Settings → Manage Accounts**
+- Each account can have multiple libraries, and all content is shown together
+- All libraries sync automatically when refreshing
+- Playback progress syncs to the correct server for each audiobook
+- Remove accounts individually via Manage Accounts
+
+→ See [Account Management](features/account-ui-design.md) for multi-account UI details.
 
 ---
 
 ### Library & Browsing
-The app provides multiple ways to browse audiobooks:
-- **Home Screen** - Recently listened and recently added
-- **Library View** - Full library with sorting/filtering
-- **Collections** - Plex collection support
-- **Search** - Real-time search across titles and authors
+The app provides multiple ways to browse audiobooks from **all your connected libraries**:
+- **Home Screen** - Recently listened and recently added from all libraries
+- **Library View** - Full library with sorting/filtering across all libraries
+- **Collections** - All Plex collections from all libraries
+- **Search** - Real-time search across titles and authors from all libraries
 
 → See [Library & Browsing](features/library.md) for browsing features and audiobook details.
 

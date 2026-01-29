@@ -261,6 +261,15 @@ Chronicle supports multiple accounts and libraries:
 - Libraries: `"plex:library:{sectionId}"` (e.g., `"plex:library:1"`)
 - Accounts: `"plex:account:{uuid}"` (e.g., `"plex:account:abc-123"`)
 
+#### Unified Library View
+
+Chronicle displays all libraries together in a unified view:
+- [`LibrarySyncRepository.refreshLibrary()`](app/src/main/java/local/oss/chronicle/data/local/LibrarySyncRepository.kt) syncs ALL libraries sequentially
+- [`PlexSyncScrobbleWorker`](app/src/main/java/local/oss/chronicle/data/sources/plex/PlexSyncScrobbleWorker.kt) uses `audiobook.libraryId` for contextual API calls to the correct server
+- ViewModels query all books without library filtering - unified data access
+- Library switching UI has been removed - users add/remove accounts via Settings → Manage Accounts
+- Home, Library, Collections, and Search screens aggregate content from all libraries
+
 ## 7. Documentation Index
 
 ### Architecture & Design

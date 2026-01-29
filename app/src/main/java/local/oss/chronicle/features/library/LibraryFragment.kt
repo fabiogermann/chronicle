@@ -290,10 +290,6 @@ class LibraryFragment : Fragment() {
                             true
                         }
                         R.id.search -> true
-                        R.id.menu_switch_library -> {
-                            navigator.showLibrarySelector()
-                            true
-                        }
                         else -> false
                     }
                 }

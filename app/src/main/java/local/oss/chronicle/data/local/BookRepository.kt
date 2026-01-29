@@ -206,11 +206,12 @@ class BookRepository
                     }
                 }
 
-            // remove books which have been deleted from server
+            // remove books which have been deleted from server (only from current library)
+            val currentLibraryId = plexPrefsRepo.library?.let { "plex:library:${it.id}" } ?: return
             val networkIds = networkBooks.map { it.id }
             val removedFromNetwork =
                 localBooks.filter { localBook ->
-                    !networkIds.contains(localBook.id)
+                    localBook.libraryId == currentLibraryId && !networkIds.contains(localBook.id)
                 }
 
             Timber.i("Removed from network: ${removedFromNetwork.map { it.title }}")
@@ -270,11 +271,12 @@ class BookRepository
                     }
                 }
 
-            // remove books which have been deleted from server
+            // remove books which have been deleted from server (only from current library)
+            val currentLibraryId = plexPrefsRepo.library?.let { "plex:library:${it.id}" } ?: return
             val networkIds = networkBooks.map { it.id }
             val removedFromNetwork =
                 localBooks.filter { localBook ->
-                    !networkIds.contains(localBook.id)
+                    localBook.libraryId == currentLibraryId && !networkIds.contains(localBook.id)
                 }
 
             Timber.i("Removed from network: ${removedFromNetwork.map { it.title }}")

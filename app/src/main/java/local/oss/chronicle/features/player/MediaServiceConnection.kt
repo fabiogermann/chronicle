@@ -23,10 +23,15 @@ class MediaServiceConnection
         val isConnected = MutableLiveData(false)
         val playbackState = MutableLiveData(EMPTY_PLAYBACK_STATE)
         val nowPlaying = MutableLiveData(NOTHING_PLAYING)
-
+    
+        // Add connection state tracking
+        private var isConnecting = false
+        private val pendingConnectCallbacks = mutableListOf<() -> Unit?>()
+    
         private val connectionCallbacks =
             object : MediaBrowserCompat.ConnectionCallback() {
                 override fun onConnected() {
+                    isConnecting = false  // Clear connecting flag
                     isConnected.postValue(true)
 
                     // Create a MediaControllerCompat from the session token
@@ -46,18 +51,25 @@ class MediaServiceConnection
                         )
                         nowPlaying.postValue(mediaController?.metadata ?: NOTHING_PLAYING)
                     }
+
+                    // Execute pending callbacks
+                    pendingConnectCallbacks.forEach { it.invoke() }
+                    pendingConnectCallbacks.clear()
                 }
 
                 override fun onConnectionSuspended() {
                     // The Service has crashed. Disable transport controls until it automatically reconnects
                     Timber.i("Service connection suspended")
+                    isConnecting = false
                     isConnected.postValue(false)
                 }
 
                 override fun onConnectionFailed() {
                     // The Service has refused our connection
                     Timber.i("Service connection failed")
+                    isConnecting = false
                     isConnected.postValue(false)
+                    pendingConnectCallbacks.clear()  // Clear failed callbacks
                 }
             }
 
@@ -111,19 +123,41 @@ class MediaServiceConnection
 
         fun disconnect() {
             Timber.i("Disconnecting MediaServiceConnection")
+            isConnecting = false
+            pendingConnectCallbacks.clear()
             isConnected.postValue(false)
             mediaControllerCallback.onConnected = {}
             mediaController?.unregisterCallback(mediaControllerCallback)
             mediaBrowser.disconnect()
         }
-
+    
         fun connect() {
+            if (mediaBrowser.isConnected) {
+                Timber.d("Already connected")
+                return
+            }
+            if (isConnecting) {
+                Timber.d("Connection already in progress, ignoring duplicate connect()")
+                return
+            }
+            isConnecting = true
             mediaBrowser.connect()
         }
-
+    
         fun connect(onConnected: () -> Unit?) {
-            mediaBrowser.connect()
+            if (mediaBrowser.isConnected) {
+                Timber.d("Already connected, executing callback immediately")
+                onConnected.invoke()
+                return
+            }
+            if (isConnecting) {
+                Timber.d("Connection in progress, queueing callback")
+                pendingConnectCallbacks.add(onConnected)
+                return
+            }
+            isConnecting = true
             mediaControllerCallback.onConnected = onConnected
+            mediaBrowser.connect()
         }
     }
 

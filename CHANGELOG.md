@@ -51,8 +51,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Unified Library View**: See audiobooks from ALL your connected libraries in a single view
+  - Library, Home, and Collections screens now aggregate content from all accounts/libraries
+  - Search finds audiobooks across all libraries
+  - "Recently Listened" and "Recently Added" show books from all libraries
 - Automatic changelog generation in GitHub release workflow
 - CHANGELOG.md file to track all notable changes to the project
+
+### Changed
+- Library sync now automatically syncs ALL connected libraries
+- Playback progress syncs to the correct Plex server based on the audiobook's library
+- Removed library switching options from Settings (no longer needed with unified view)
+- Removed "Switch Library" menu from Library and Home screens
+
+### Removed
+- "Change Library" preference from Settings
+- "Change Server" preference from Settings
+- "Change User" preference from Settings
+- Library selector menu items
 
 ### Fixed
 - Fixed server connections accumulating over time - server list now refreshes every 24 hours (every startup in debug builds) and replaces stale connections instead of merging
