@@ -665,6 +665,13 @@ class MediaPlayerService :
     ) {
         Timber.d("[AndroidAuto] onLoadChildren: parentId=$parentId")
 
+        // Handle error/message items - these are not browsable, return empty
+        if (parentId.startsWith("__error_") || parentId.startsWith("__message_")) {
+            Timber.d("[AndroidAuto] Message item requested, returning empty (not browsable)")
+            result.sendResult(mutableListOf())
+            return
+        }
+
         if (parentId == CHRONICLE_MEDIA_EMPTY_ROOT || !prefsRepo.allowAuto) {
             Timber.d("[AndroidAuto] Returning empty result (empty root or auto disabled)")
             result.sendResult(mutableListOf())
@@ -677,6 +684,53 @@ class MediaPlayerService :
                 withContext(Dispatchers.IO) {
                     when (parentId) {
                         CHRONICLE_MEDIA_ROOT_ID -> {
+                            // Check login state and display appropriate message if not fully logged in
+                            val loginState = plexLoginRepo.loginEvent.value?.peekContent()
+                            if (loginState != LOGGED_IN_FULLY) {
+                                Timber.w("[AndroidAuto] Not logged in fully, showing message. State: $loginState")
+                                val errorMessage =
+                                    when (loginState) {
+                                        NOT_LOGGED_IN -> {
+                                            makeMessageItem(
+                                                title = getString(R.string.auto_access_error_not_logged_in),
+                                                subtitle = "Open the Chronicle app on your phone to log in",
+                                                iconRes = R.drawable.ic_lock_white_24dp,
+                                                mediaId = "__error_not_logged_in__",
+                                            )
+                                        }
+                                        LOGGED_IN_NO_USER_CHOSEN -> {
+                                            makeMessageItem(
+                                                title = getString(R.string.auto_access_error_no_user_chosen),
+                                                iconRes = R.drawable.ic_error_outline_white,
+                                                mediaId = "__error_no_user__",
+                                            )
+                                        }
+                                        LOGGED_IN_NO_SERVER_CHOSEN -> {
+                                            makeMessageItem(
+                                                title = getString(R.string.auto_access_error_no_server_chosen),
+                                                iconRes = R.drawable.ic_error_outline_white,
+                                                mediaId = "__error_no_server__",
+                                            )
+                                        }
+                                        LOGGED_IN_NO_LIBRARY_CHOSEN -> {
+                                            makeMessageItem(
+                                                title = getString(R.string.auto_access_error_no_library_chosen),
+                                                iconRes = R.drawable.ic_error_outline_white,
+                                                mediaId = "__error_no_library__",
+                                            )
+                                        }
+                                        else -> {
+                                            makeMessageItem(
+                                                title = "Please open Chronicle app to complete setup",
+                                                iconRes = R.drawable.ic_error_outline_white,
+                                                mediaId = "__error_unknown__",
+                                            )
+                                        }
+                                    }
+                                result.sendResult(mutableListOf(errorMessage))
+                                return@withContext
+                            }
+
                             Timber.d("[AndroidAuto] Loading root categories")
                             result.sendResult(
                                 (
@@ -842,37 +896,14 @@ class MediaPlayerService :
                 )
                 BrowserRoot(CHRONICLE_MEDIA_EMPTY_ROOT, extras)
             }
-            plexLoginRepo.loginEvent.value?.peekContent() == NOT_LOGGED_IN -> {
-                Timber.w("[AndroidAuto] Access denied - not logged in")
-                setSessionCustomErrorMessage(
-                    getString(R.string.auto_access_error_not_logged_in),
-                )
-                BrowserRoot(CHRONICLE_MEDIA_EMPTY_ROOT, extras)
-            }
-            plexLoginRepo.loginEvent.value?.peekContent() == LOGGED_IN_NO_USER_CHOSEN -> {
-                Timber.w("[AndroidAuto] Access denied - no user chosen")
-                setSessionCustomErrorMessage(
-                    getString(R.string.auto_access_error_no_user_chosen),
-                )
-                BrowserRoot(CHRONICLE_MEDIA_EMPTY_ROOT, extras)
-            }
-            plexLoginRepo.loginEvent.value?.peekContent() == LOGGED_IN_NO_SERVER_CHOSEN -> {
-                Timber.w("[AndroidAuto] Access denied - no server chosen")
-                setSessionCustomErrorMessage(
-                    getString(R.string.auto_access_error_no_server_chosen),
-                )
-                BrowserRoot(CHRONICLE_MEDIA_EMPTY_ROOT, extras)
-            }
-            plexLoginRepo.loginEvent.value?.peekContent() == LOGGED_IN_NO_LIBRARY_CHOSEN -> {
-                Timber.w("[AndroidAuto] Access denied - no library chosen")
-                setSessionCustomErrorMessage(
-                    getString(R.string.auto_access_error_no_library_chosen),
-                )
-                BrowserRoot(CHRONICLE_MEDIA_EMPTY_ROOT, extras)
-            }
             else -> {
-                Timber.d("[AndroidAuto] Access granted")
-                setSessionCustomErrorMessage(null)
+                // Return normal root even if not logged in - onLoadChildren() will display appropriate message
+                if (plexLoginRepo.loginEvent.value?.peekContent() != LOGGED_IN_FULLY) {
+                    Timber.w("[AndroidAuto] Not fully logged in - will show message in browse tree")
+                } else {
+                    Timber.d("[AndroidAuto] Access granted")
+                    setSessionCustomErrorMessage(null)
+                }
                 BrowserRoot(CHRONICLE_MEDIA_ROOT_ID, extras)
             }
         }
