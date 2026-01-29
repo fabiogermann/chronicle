@@ -79,10 +79,29 @@
             android:layout_marginLeft="@dimen/margin_normal"
             android:lines="1"
             android:text="@{audiobook.author}"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/library_name"
             app:layout_constraintLeft_toRightOf="@id/book_cover_img"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/title"
+            app:layout_constraintVertical_chainStyle="packed"
             tools:text="Author name" />
+
+        <TextView
+            android:id="@+id/library_name"
+            libraryIdToName="@{audiobook.libraryId}"
+            style="@style/TextAppearance.Body2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/margin_normal"
+            android:lines="1"
+            android:textSize="11sp"
+            android:alpha="0.7"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/book_cover_img"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/author"
+            app:layout_constraintVertical_chainStyle="packed"
+            tools:text="Audiobooks"
+            tools:visibility="visible" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

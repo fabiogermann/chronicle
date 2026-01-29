@@ -111,6 +111,7 @@ class AccountHeaderViewHolder private constructor(
         binding.libraryCount = item.libraryCount
         binding.isExpanded = item.isExpanded
         binding.root.setOnClickListener { onAccountClick(item.account) }
+        binding.expandButton.setOnClickListener { onAccountClick(item.account) }
         binding.removeButton.setOnClickListener { onRemoveClick(item.account) }
         binding.executePendingBindings()
     }

@@ -149,19 +149,22 @@ class LibrarySyncRepository
                 credentialsJson
             }
             
-            // Get server connections from plex.tv
-            Timber.d("syncLibrary: Fetching server connections for ${library.serverName} (serverId: ${library.serverId})")
-            val connections = getServerConnections(library.serverId, authToken)
-            if (connections.isEmpty()) {
-                Timber.e("syncLibrary: No server connections found for ${library.serverName}")
+            // Get server connections and access token from plex.tv
+            Timber.d("syncLibrary: Fetching server info for ${library.serverName} (serverId: ${library.serverId})")
+            val serverInfo = getServerInfo(library.serverId, authToken)
+            if (serverInfo == null) {
+                Timber.e("syncLibrary: No server info found for ${library.serverName}")
                 return
             }
             
             Timber.i("syncLibrary: Configuring PlexConfig for library '${library.name}' on server '${library.serverName}'")
-            Timber.d("syncLibrary: Found ${connections.size} server connections: ${connections.map { "${it.uri} (local=${it.local})" }}")
+            Timber.d("syncLibrary: Found ${serverInfo.connections.size} server connections: ${serverInfo.connections.map { "${it.uri} (local=${it.local})" }}")
+            Timber.d("syncLibrary: Using server accessToken for API requests")
             
-            // Configure PlexConfig with this library's server and credentials
-            val connectionSuccess = plexConfig.updateServerForSync(connections, authToken)
+            // Configure PlexConfig with this library's server and the server's access token
+            // CRITICAL: Use the server's accessToken (from resources), not the user's auth token
+            // This is required for managed users on shared servers
+            val connectionSuccess = plexConfig.updateServerForSync(serverInfo.connections, serverInfo.accessToken)
             if (!connectionSuccess) {
                 Timber.e("syncLibrary: Failed to connect to server for library ${library.name}")
                 return
@@ -180,8 +183,16 @@ class LibrarySyncRepository
                 id = numericLibraryId
             )
             val previousLibrary = plexPrefsRepo.library
+            val previousServer = plexPrefsRepo.server
             
             try {
+                // CRITICAL: Temporarily clear server to force PlexInterceptor to use accountAuthToken
+                // This ensures the correct user token is used when syncing libraries
+                // from different users on the same server. The interceptor prioritizes
+                // server.accessToken over accountAuthToken, so we must clear it to prevent
+                // credential leakage between users.
+                plexPrefsRepo.server = null
+                
                 // Temporarily set the current library context
                 plexPrefsRepo.library = plexLibrary
                 Timber.d("syncLibrary: Set library context to ${library.name} (ID: $numericLibraryId)")
@@ -202,6 +213,14 @@ class LibrarySyncRepository
     
                 Timber.i("Successfully synced library: ${library.name} from server: ${library.serverName}")
             } finally {
+                // Restore previous server state
+                plexPrefsRepo.server = previousServer
+                if (previousServer != null) {
+                    Timber.d("syncLibrary: Restored previous server: ${previousServer.name}")
+                } else {
+                    Timber.d("syncLibrary: Cleared server (was null)")
+                }
+                
                 // Restore previous library context (if any)
                 plexPrefsRepo.library = previousLibrary
                 if (previousLibrary != null) {
@@ -213,15 +232,23 @@ class LibrarySyncRepository
         }
     
         /**
-         * Fetches server connections from plex.tv for a specific server.
-         * @param serverId The Plex server's clientIdentifier
-         * @param authToken The user's auth token
-         * @return List of available connections for the server
+         * Data class to hold server connection info and access token.
          */
-        private suspend fun getServerConnections(
+        private data class ServerInfo(
+            val connections: List<Connection>,
+            val accessToken: String,
+        )
+    
+        /**
+         * Fetches server info (connections and access token) from plex.tv for a specific server.
+         * @param serverId The Plex server's clientIdentifier
+         * @param authToken The user's auth token (for plex.tv API)
+         * @return ServerInfo containing connections and the server's access token, or null if not found
+         */
+        private suspend fun getServerInfo(
             serverId: String,
             authToken: String,
-        ): List<Connection> {
+        ): ServerInfo? {
             return try {
                 withTimeoutOrNull(5000L) {
                     // Temporarily set auth token for the resources call
@@ -235,22 +262,26 @@ class LibrarySyncRepository
                             .filter { it.serverId == serverId }
                         
                         if (servers.isNotEmpty()) {
-                            servers.first().connections
+                            val server = servers.first()
+                            ServerInfo(
+                                connections = server.connections,
+                                accessToken = server.accessToken,
+                            )
                         } else {
                             Timber.w("No servers found with serverId: $serverId")
-                            emptyList()
+                            null
                         }
                     } finally {
-                        // Restore previous token (will be overwritten by updateServerForSync anyway)
+                        // Restore previous token
                         plexPrefsRepo.accountAuthToken = previousToken
                     }
                 } ?: run {
-                    Timber.w("Timeout fetching server connections for $serverId")
-                    emptyList()
+                    Timber.w("Timeout fetching server info for $serverId")
+                    null
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to fetch server connections for $serverId")
-                emptyList()
+                Timber.e(e, "Failed to fetch server info for $serverId")
+                null
             }
         }
 

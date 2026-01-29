@@ -21,7 +21,7 @@
         android:background="?attr/selectableItemBackground"
         android:clickable="true"
         android:focusable="true"
-        android:paddingLeft="76dp"
+        android:paddingLeft="16dp"
         android:paddingTop="12dp"
         android:paddingRight="16dp"
         android:paddingBottom="12dp">
@@ -37,16 +37,28 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Library color indicator (circular) -->
+        <View
+            android:id="@+id/library_color_indicator"
+            libraryColor="@{library}"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginLeft="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <!-- Library name -->
         <TextView
             android:id="@+id/library_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="12dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@{library.name}"
             android:textAppearance="@style/TextAppearance.Body1"
-            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/library_color_indicator"
             app:layout_constraintRight_toLeftOf="@id/item_count"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Audiobooks" />

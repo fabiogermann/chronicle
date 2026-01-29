@@ -499,7 +499,7 @@ For reported and confirmed bugs a test recreating the scenario is required. The 
 - **Ktlint failures:** Run `./gradlew ktlintFormat` before committing
 - **Missing keystore:** Copy [`keystore.properties.example`](keystore.properties.example) to `keystore.properties` for release builds
 - **Room schema errors:** Delete `app/schemas/` and rebuild to regenerate
-
+- **failing tests:** Rerun the tests with `--stacktrace` to get more details on the cause of the issue
 ### Runtime Issues
 - **Playback fails:** Check `X-Plex-Client-Profile-Extra` header in [`PlexInterceptor`](app/src/main/java/local/oss/chronicle/data/sources/plex/PlexInterceptor.kt)
 - **Authentication errors:** Verify token is valid and server URL is correct in [`PlexConfig`](app/src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt)
