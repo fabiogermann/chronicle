@@ -85,7 +85,14 @@ data class PlaybackState(
         get() {
             if (chapters.isEmpty()) return null
             val bookPos = bookPositionMs
-            return chapters.lastOrNull { it.startTimeOffset <= bookPos }
+            
+            // First check if we're exactly at a chapter boundary
+            val exactMatch = chapters.find { it.startTimeOffset == bookPos }
+            if (exactMatch != null) return exactMatch
+            
+            // Otherwise find the last chapter whose start is before our position
+            return chapters.lastOrNull { it.startTimeOffset <= bookPos && bookPos < it.endTimeOffset }
+                ?: chapters.lastOrNull { it.startTimeOffset <= bookPos }
                 ?: chapters.firstOrNull()
         }
 
@@ -96,6 +103,16 @@ data class PlaybackState(
         get() {
             if (chapters.isEmpty()) return -1
             val bookPos = bookPositionMs
+            
+            // First check if we're exactly at a chapter boundary
+            val exactMatchIndex = chapters.indexOfFirst { it.startTimeOffset == bookPos }
+            if (exactMatchIndex >= 0) return exactMatchIndex
+            
+            // Otherwise find the last chapter whose start is before our position and end is after
+            val inRangeIndex = chapters.indexOfLast { it.startTimeOffset <= bookPos && bookPos < it.endTimeOffset }
+            if (inRangeIndex >= 0) return inRangeIndex
+            
+            // Fallback to last chapter whose start is before our position
             return chapters.indexOfLast { it.startTimeOffset <= bookPos }
                 .takeIf { it >= 0 } ?: 0
         }

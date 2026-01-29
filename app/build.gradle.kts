@@ -202,3 +202,8 @@ dependencies {
 tasks.matching { it.name.contains("DebugAndroidTest") && !it.name.contains("Lint") }.configureEach {
     enabled = false
 }
+
+// Disable OSS licenses tasks that are causing issues
+tasks.matching { it.name.contains("OssLicenses") }.configureEach {
+    enabled = false
+}
