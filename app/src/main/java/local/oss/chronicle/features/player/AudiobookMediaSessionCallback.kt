@@ -61,6 +61,7 @@ class AudiobookMediaSessionCallback
         private val progressUpdater: ProgressUpdater,
         private val playbackUrlResolver: local.oss.chronicle.data.sources.plex.PlaybackUrlResolver,
         private val playbackStateController: PlaybackStateController,
+        private val coroutineExceptionHandler: CoroutineExceptionHandler,
         defaultPlayer: ExoPlayer,
     ) : MediaSessionCompat.Callback() {
         // Default to ExoPlayer to prevent having a nullable field
@@ -136,13 +137,15 @@ class AudiobookMediaSessionCallback
             extras: Bundle?,
         ) {
             Timber.i("[AndroidAuto] Prepare from search: $query")
-            try {
-                handleSearch(query, false)
-            } catch (e: Exception) {
-                Timber.e(e, "[AndroidAuto] Error in onPrepareFromSearch")
+            serviceScope.launch(coroutineExceptionHandler) {
+                try {
+                    handleSearchSuspend(query, false)
+                } catch (e: Exception) {
+                    Timber.e(e, "[AndroidAuto] Error in onPrepareFromSearch")
+                }
             }
         }
-
+    
         override fun onPlayFromSearch(
             query: String?,
             extras: Bundle?,
@@ -152,9 +155,9 @@ class AudiobookMediaSessionCallback
             // Pre-flight authentication check
             if (!checkAuthenticationOrError()) return
             
-            serviceScope.launch {
+            serviceScope.launch(coroutineExceptionHandler) {
                 try {
-                    handleSearch(query, true)
+                    handleSearchSuspend(query, true)
                 } catch (e: Exception) {
                     Timber.e(e, "[AndroidAuto] Error in onPlayFromSearch")
                     onSetPlaybackError(
@@ -164,71 +167,68 @@ class AudiobookMediaSessionCallback
                 }
             }
         }
-
-        private fun handleSearch(
+    
+        private suspend fun handleSearchSuspend(
             query: String?,
             playWhenReady: Boolean,
         ) {
             if (query.isNullOrEmpty()) {
                 // take most recently played book, start that
-                serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
-                    try {
-                        val mostRecentlyPlayed = bookRepository.getMostRecentlyPlayed()
-                        val bookToPlay =
-                            if (mostRecentlyPlayed == EMPTY_AUDIOBOOK) {
-                                bookRepository.getRandomBookAsync()
-                            } else {
-                                mostRecentlyPlayed
-                            }
-
-                        if (bookToPlay == EMPTY_AUDIOBOOK) {
-                            Timber.w("[AndroidAuto] No book available for empty search query")
-                            onSetPlaybackError(
-                                android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_NOT_AVAILABLE_IN_REGION,
-                                appContext.getString(local.oss.chronicle.R.string.auto_error_library_empty)
-                            )
-                            return@launch
-                        }
-
-                        if (playWhenReady) {
-                            onPlayFromMediaId(bookToPlay.id.toString(), null)
-                        } else {
-                            onPrepareFromMediaId(bookToPlay.id.toString(), null)
-                        }
-                    } catch (e: Exception) {
-                        Timber.e(e, "[AndroidAuto] Error handling empty search query")
-                        onSetPlaybackError(
-                            android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_APP_ERROR,
-                            appContext.getString(local.oss.chronicle.R.string.auto_error_playback_failed)
-                        )
-                    }
-                }
-                return
-            }
-            serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
                 try {
-                    val matchingBooks = bookRepository.searchAsync(query)
-                    if (matchingBooks.isNotEmpty()) {
-                        val result = matchingBooks.first().id.toString()
-                        if (playWhenReady) {
-                            onPlayFromMediaId(result, null)
+                    val mostRecentlyPlayed = bookRepository.getMostRecentlyPlayed()
+                    val bookToPlay =
+                        if (mostRecentlyPlayed == EMPTY_AUDIOBOOK) {
+                            bookRepository.getRandomBookAsync()
                         } else {
-                            onPrepareFromMediaId(result, null)
+                            mostRecentlyPlayed
                         }
-                    } else {
-                        Timber.w("[AndroidAuto] No matching books found for query: $query")
+    
+                    if (bookToPlay == EMPTY_AUDIOBOOK) {
+                        Timber.w("[AndroidAuto] No book available for empty search query")
                         onSetPlaybackError(
                             android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_NOT_AVAILABLE_IN_REGION,
-                            appContext.getString(local.oss.chronicle.R.string.auto_error_no_results_for_query, query)
+                            appContext.getString(local.oss.chronicle.R.string.auto_error_library_empty)
                         )
+                        return
+                    }
+    
+                    if (playWhenReady) {
+                        onPlayFromMediaId(bookToPlay.id.toString(), null)
+                    } else {
+                        onPrepareFromMediaId(bookToPlay.id.toString(), null)
                     }
                 } catch (e: Exception) {
-                    Timber.e(e, "[AndroidAuto] Error searching for query: $query")
+                    Timber.e(e, "[AndroidAuto] Error handling empty search query")
                     onSetPlaybackError(
                         android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_APP_ERROR,
                         appContext.getString(local.oss.chronicle.R.string.auto_error_playback_failed)
                     )
                 }
+                return
+            }
+            
+            try {
+                val matchingBooks = bookRepository.searchAsync(query)
+                if (matchingBooks.isNotEmpty()) {
+                    val result = matchingBooks.first().id.toString()
+                    if (playWhenReady) {
+                        onPlayFromMediaId(result, null)
+                    } else {
+                        onPrepareFromMediaId(result, null)
+                    }
+                } else {
+                    Timber.w("[AndroidAuto] No matching books found for query: $query")
+                    onSetPlaybackError(
+                        android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_NOT_AVAILABLE_IN_REGION,
+                        appContext.getString(local.oss.chronicle.R.string.auto_error_no_results_for_query, query)
+                    )
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "[AndroidAuto] Error searching for query: $query")
+                onSetPlaybackError(
+                    android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                    appContext.getString(local.oss.chronicle.R.string.auto_error_playback_failed)
+                )
             }
         }
 

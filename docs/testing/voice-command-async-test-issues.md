@@ -1,8 +1,10 @@
 # Voice Command Async Test Issues
 
+## Status: ✅ RESOLVED (2026-01-31)
+
 ## Overview
 
-Two voice command error handling tests are currently disabled due to complex nested coroutine timing issues that make them unreliable in unit test environments.
+Two voice command error handling tests were previously disabled due to complex nested coroutine timing issues. **This issue has been resolved** by refactoring the coroutine architecture to be more testable.
 
 ## Affected Tests
 
@@ -153,17 +155,92 @@ class AudiobookMediaSessionCallbackIntegrationTest {
 }
 ```
 
-## Workaround: Disabled Tests
+## Resolution (2026-01-31)
 
-The tests are currently disabled with `@Ignore` annotation to allow CI/CD to pass while preserving the test logic for future fixes:
+### Fix Applied: Combination of Option 1 + Option 2
 
+The issue was resolved by implementing a hybrid approach:
+
+#### 1. Injected Exception Handler (Option 1)
+Made the `CoroutineExceptionHandler` injectable instead of using global `Injector.get()`:
+
+**Production Code ([`AudiobookMediaSessionCallback.kt`](../app/src/main/java/local/oss/chronicle/features/player/AudiobookMediaSessionCallback.kt)):**
 ```kotlin
-@Ignore("Flaky due to nested coroutines with Injector.get().unhandledExceptionHandler() - see docs/testing/voice-command-async-test-issues.md")
-@Test
-fun `onPlayFromSearch shows error when no results found for specific query`() = runTest {
+class AudiobookMediaSessionCallback @Inject constructor(
+    // ... other params
+    private val coroutineExceptionHandler: CoroutineExceptionHandler,
+    // ...
+) : MediaSessionCompat.Callback() {
+    
+    override fun onPlayFromSearch(query: String?, extras: Bundle?) {
+        serviceScope.launch(coroutineExceptionHandler) {  // Use injected handler
+            try {
+                handleSearchSuspend(query, true)
+            } catch (e: Exception) {
+                // Error handling
+            }
+        }
+    }
+}
+```
+
+**Dependency Injection:**
+- AppComponent already provided `unhandledExceptionHandler()` from [`AppModule`](../app/src/main/java/local/oss/chronicle/injection/modules/AppModule.kt)
+- ServiceComponent inherits this from AppComponent (no duplicate needed in ServiceModule)
+
+**Test Code ([`AudiobookMediaSessionCallbackTest.kt`](../app/src/test/java/local/oss/chronicle/features/player/AudiobookMediaSessionCallbackTest.kt)):**
+```kotlin
+@Before
+fun setup() {
+    testExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Timber.e(throwable, "Test coroutine exception")
+    }
+    
+    callback = AudiobookMediaSessionCallback(
+        // ... other params
+        coroutineExceptionHandler = testExceptionHandler,
+        // ...
+    )
+}
+```
+
+#### 2. Flattened Coroutine Structure (Option 2)
+Refactored `handleSearch()` from a regular function with nested `serviceScope.launch()` calls to a `suspend` function:
+
+**Before:**
+```kotlin
+private fun handleSearch(query: String?, playWhenReady: Boolean) {
+    serviceScope.launch {  // outer
+        serviceScope.launch(Injector.get().unhandledExceptionHandler()) {  // inner (problem!)
+            // search logic
+        }
+    }
+}
+```
+
+**After:**
+```kotlin
+private suspend fun handleSearchSuspend(query: String?, playWhenReady: Boolean) {
+    // Direct suspend calls - no nested launches
+    val matchingBooks = bookRepository.searchAsync(query)
     // ...
 }
 ```
+
+### Why This Works
+
+1. **Single coroutine launch**: Only one `launch` in `onPlayFromSearch()`, no nesting
+2. **Testable exception handler**: Tests can provide a simple handler that doesn't interfere with assertions
+3. **Predictable timing**: With `TestScope` and flat suspend functions, `advanceUntilIdle()` reliably completes all work
+4. **Correct error codes**: Exceptions now propagate correctly through the single try-catch, reporting the intended error codes
+
+### Test Results
+
+Both previously-disabled tests now pass:
+- ✅ `onPlayFromSearch shows error when no results found for specific query`
+- ✅ `onPlayFromSearch shows library empty error on fallback failure`
+
+All other existing tests continue to pass (21 tests total in AudiobookMediaSessionCallbackTest).
 
 ## Related Documentation
 
@@ -171,12 +248,21 @@ fun `onPlayFromSearch shows error when no results found for specific query`() = 
 - [`docs/features/playback.md`](../features/playback.md) - Playback feature documentation
 - [`AGENT.md`](../../AGENT.md) - Testing approach and patterns
 
+## Lessons Learned
+
+1. **Avoid global singletons in unit tests**: `Injector.get()` calls make tests brittle and hard to control
+2. **Inject dependencies**: Even infrastructure like exception handlers should be injectable for testability
+3. **Flat > Nested**: Nested `launch` calls complicate testing. Prefer flat suspend functions
+4. **Test-driven refactoring**: The test failure revealed a legitimate architectural smell (double-nesting)
+5. **Dagger inheritance**: AppComponent dependencies are automatically available to child components (ServiceComponent)
+
 ## Timeline
 
 - **2026-01-31**: Tests disabled due to async timing issues
-- **Target fix date**: Next refactoring sprint when coroutine architecture is reviewed
+- **2026-01-31**: Issue resolved via injected exception handler + flattened coroutine structure
+- **Status**: ✅ All tests passing
 
 ---
 
-**Last Updated:** 2026-01-31  
-**Status:** Tests disabled pending architectural improvements to exception handling
+**Last Updated:** 2026-01-31
+**Status:** ✅ Resolved - Tests re-enabled and passing

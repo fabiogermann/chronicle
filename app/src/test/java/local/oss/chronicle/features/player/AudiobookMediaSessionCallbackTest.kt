@@ -18,6 +18,7 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,9 +42,9 @@ import local.oss.chronicle.util.Event
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import timber.log.Timber
 
 /**
  * Tests for AudiobookMediaSessionCallback.onSeekTo() to ensure correct handling
@@ -120,6 +121,7 @@ class AudiobookMediaSessionCallbackTest {
 
     private lateinit var testScope: TestScope
     private lateinit var callback: AudiobookMediaSessionCallback
+    private lateinit var testExceptionHandler: CoroutineExceptionHandler
 
     @Before
     fun setup() {
@@ -129,6 +131,11 @@ class AudiobookMediaSessionCallbackTest {
         // Setup appContext string resource mocks
         every { appContext.getString(any()) } returns "Mock error message"
         every { appContext.getString(any(), any()) } returns "Mock error message with args"
+
+        // Create test exception handler that logs but doesn't crash
+        testExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+            Timber.e(throwable, "Test coroutine exception")
+        }
 
         callback =
             AudiobookMediaSessionCallback(
@@ -151,6 +158,7 @@ class AudiobookMediaSessionCallbackTest {
                 progressUpdater = progressUpdater,
                 playbackUrlResolver = playbackUrlResolver,
                 playbackStateController = playbackStateController,
+                coroutineExceptionHandler = testExceptionHandler,
                 defaultPlayer = defaultPlayer,
             )
 
@@ -496,7 +504,6 @@ class AudiobookMediaSessionCallbackTest {
         }
     }
 
-    @Ignore("Flaky due to nested coroutines with Injector.get().unhandledExceptionHandler() - see docs/testing/voice-command-async-test-issues.md")
     @Test
     fun `onPlayFromSearch shows error when no results found for specific query`() = runTest {
         // Given: User is fully logged in but no books match the query
@@ -521,7 +528,6 @@ class AudiobookMediaSessionCallbackTest {
         }
     }
 
-    @Ignore("Flaky due to nested coroutines with Injector.get().unhandledExceptionHandler() - see docs/testing/voice-command-async-test-issues.md")
     @Test
     fun `onPlayFromSearch shows library empty error on fallback failure`() = runTest {
         // Given: User is fully logged in, empty query, no recently played, empty library
