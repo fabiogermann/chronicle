@@ -3,6 +3,7 @@
 [versions]
 agp = "8.13.2"
 androidxTest = "1.6.1" # 1.7.0 causes KSP/Dagger compatibility issues
+androidxTestCore = "1.5.0"
 androidxTestExt = "1.2.2"
 annotation = "1.8.2" # 1.9.0 causes KSP/Dagger compatibility issues
 appcompat = "1.7.0"
@@ -33,6 +34,7 @@ ossPlugin = "0.10.9"
 playPublisher = "3.9.1"
 result = "1.1.18"
 retrofit = "2.11.0"
+robolectric = "4.11.1"
 room = "2.7.0"
 seismic = "1.0.3"
 swiperefresh = "1.2.0"
@@ -42,6 +44,7 @@ work = "2.9.1" # 2.10.0 causes KSP/Dagger compatibility issues
 [libraries]
 annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
 androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "coreTesting" }
+androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidxTestCore" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExt" }
 androidx-test-ext-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
 androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidxTest" }
@@ -79,6 +82,7 @@ oss-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", v
 result = { group = "com.michael-bull.kotlin-result", name = "kotlin-result", version.ref = "result" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit-converter = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
