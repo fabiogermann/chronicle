@@ -22,6 +22,8 @@ import local.oss.chronicle.data.local.IBookRepository
 import local.oss.chronicle.data.local.ITrackRepository
 import local.oss.chronicle.data.local.PrefsRepo
 import local.oss.chronicle.data.model.*
+import local.oss.chronicle.data.sources.plex.IPlexLoginRepo
+import local.oss.chronicle.data.sources.plex.IPlexLoginRepo.LoginState.*
 import local.oss.chronicle.data.sources.plex.PlexConfig
 import local.oss.chronicle.data.sources.plex.PlexPrefsRepo
 import local.oss.chronicle.data.sources.plex.getMediaItemUri
@@ -43,6 +45,7 @@ class AudiobookMediaSessionCallback
         private val plexPrefsRepo: PlexPrefsRepo,
         private val prefsRepo: PrefsRepo,
         private val plexConfig: PlexConfig,
+        private val plexLoginRepo: IPlexLoginRepo,
         private val mediaController: MediaControllerCompat,
         private val dataSourceFactory: DefaultHttpDataSource.Factory,
         private val trackRepository: ITrackRepository,
@@ -51,6 +54,7 @@ class AudiobookMediaSessionCallback
         private val trackListStateManager: TrackListStateManager,
         private val foregroundServiceController: ForegroundServiceController,
         private val serviceController: ServiceController,
+        private val errorReporter: IPlaybackErrorReporter,
         private val mediaSession: MediaSessionCompat,
         private val appContext: Context,
         private val currentlyPlaying: CurrentlyPlaying,
@@ -65,6 +69,66 @@ class AudiobookMediaSessionCallback
         companion object {
             const val ACTION_SEEK = "seek"
             const val OFFSET_MS = "offset"
+            
+            // Timeout for resuming from empty state
+            private const val RESUME_TIMEOUT_MILLIS = 10_000L  // 10 seconds
+        }
+
+        /**
+         * Checks if the user is authenticated and in the LOGGED_IN_FULLY state.
+         * If not, sets an appropriate error via MediaPlayerService and returns false.
+         *
+         * @return true if authentication is valid, false otherwise
+         */
+        private fun checkAuthenticationOrError(): Boolean {
+            val loginState = plexLoginRepo.loginEvent.value?.peekContent()
+            
+            return when (loginState) {
+                NOT_LOGGED_IN -> {
+                    onSetPlaybackError(
+                        android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_AUTHENTICATION_EXPIRED,
+                        appContext.getString(local.oss.chronicle.R.string.auto_access_error_not_logged_in)
+                    )
+                    false
+                }
+                LOGGED_IN_NO_SERVER_CHOSEN -> {
+                    onSetPlaybackError(
+                        android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_NOT_SUPPORTED,
+                        appContext.getString(local.oss.chronicle.R.string.auto_access_error_no_server_chosen)
+                    )
+                    false
+                }
+                LOGGED_IN_NO_USER_CHOSEN -> {
+                    onSetPlaybackError(
+                        android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_NOT_SUPPORTED,
+                        appContext.getString(local.oss.chronicle.R.string.auto_access_error_no_user_chosen)
+                    )
+                    false
+                }
+                LOGGED_IN_NO_LIBRARY_CHOSEN -> {
+                    onSetPlaybackError(
+                        android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_NOT_SUPPORTED,
+                        appContext.getString(local.oss.chronicle.R.string.auto_access_error_no_library_chosen)
+                    )
+                    false
+                }
+                LOGGED_IN_FULLY -> true
+                else -> {
+                    onSetPlaybackError(
+                        android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                        "Please open Chronicle app to complete setup"
+                    )
+                    false
+                }
+            }
+        }
+
+        /**
+         * Sets a playback error via the IPlaybackErrorReporter interface.
+         * This method bridges the callback to the service's error handling.
+         */
+        private fun onSetPlaybackError(errorCode: Int, message: String) {
+            errorReporter.setPlaybackStateError(errorCode, message)
         }
 
         override fun onPrepareFromSearch(
@@ -84,10 +148,20 @@ class AudiobookMediaSessionCallback
             extras: Bundle?,
         ) {
             Timber.i("[AndroidAuto] Play from search: $query")
-            try {
-                handleSearch(query, true)
-            } catch (e: Exception) {
-                Timber.e(e, "[AndroidAuto] Error in onPlayFromSearch")
+            
+            // Pre-flight authentication check
+            if (!checkAuthenticationOrError()) return
+            
+            serviceScope.launch {
+                try {
+                    handleSearch(query, true)
+                } catch (e: Exception) {
+                    Timber.e(e, "[AndroidAuto] Error in onPlayFromSearch")
+                    onSetPlaybackError(
+                        android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                        appContext.getString(local.oss.chronicle.R.string.auto_error_playback_failed)
+                    )
+                }
             }
         }
 
@@ -109,6 +183,10 @@ class AudiobookMediaSessionCallback
 
                         if (bookToPlay == EMPTY_AUDIOBOOK) {
                             Timber.w("[AndroidAuto] No book available for empty search query")
+                            onSetPlaybackError(
+                                android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_NOT_AVAILABLE_IN_REGION,
+                                appContext.getString(local.oss.chronicle.R.string.auto_error_library_empty)
+                            )
                             return@launch
                         }
 
@@ -119,6 +197,10 @@ class AudiobookMediaSessionCallback
                         }
                     } catch (e: Exception) {
                         Timber.e(e, "[AndroidAuto] Error handling empty search query")
+                        onSetPlaybackError(
+                            android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                            appContext.getString(local.oss.chronicle.R.string.auto_error_playback_failed)
+                        )
                     }
                 }
                 return
@@ -135,9 +217,17 @@ class AudiobookMediaSessionCallback
                         }
                     } else {
                         Timber.w("[AndroidAuto] No matching books found for query: $query")
+                        onSetPlaybackError(
+                            android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_NOT_AVAILABLE_IN_REGION,
+                            appContext.getString(local.oss.chronicle.R.string.auto_error_no_results_for_query, query)
+                        )
                     }
                 } catch (e: Exception) {
                     Timber.e(e, "[AndroidAuto] Error searching for query: $query")
+                    onSetPlaybackError(
+                        android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                        appContext.getString(local.oss.chronicle.R.string.auto_error_playback_failed)
+                    )
                 }
             }
         }
@@ -222,6 +312,9 @@ class AudiobookMediaSessionCallback
         }
 
         override fun onPlay() {
+            // Pre-flight authentication check
+            if (!checkAuthenticationOrError()) return
+            
             // Check if session is inactive. If so, we are resuming a session right here, so play
             // the most recently played book
             if (!mediaController.playbackState.isPrepared) {
@@ -282,14 +375,25 @@ class AudiobookMediaSessionCallback
             extras: Bundle?,
         ) {
             try {
+                // Pre-flight authentication check
+                if (!checkAuthenticationOrError()) return
+                
                 if (bookId.isNullOrEmpty()) {
                     Timber.e("[AndroidAuto] onPlayFromMediaId called with null/empty bookId")
+                    onSetPlaybackError(
+                        android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                        appContext.getString(local.oss.chronicle.R.string.auto_error_audiobook_not_available)
+                    )
                     return
                 }
                 Timber.i("[AndroidAuto] Playing media from ID: $bookId")
                 playBook(bookId, extras ?: Bundle(), true)
             } catch (e: Exception) {
                 Timber.e(e, "[AndroidAuto] Error in onPlayFromMediaId for bookId=$bookId")
+                onSetPlaybackError(
+                    android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                    appContext.getString(local.oss.chronicle.R.string.auto_error_playback_failed)
+                )
             }
         }
 
@@ -532,32 +636,62 @@ class AudiobookMediaSessionCallback
          * refreshing data.
          */
         private fun resumePlayFromEmpty(playWhenReady: Boolean) {
-            val connectedObserver =
-                object : Observer<Boolean> {
-                    override fun onChanged(isConnected: Boolean) {
-                        // Don't try starting playback until we've connected to a server
-                        if (!isConnected) {
-                            return
-                        }
-
-                        // Only run these resume methods once after reconnecting
-                        plexConfig.isConnected.removeObserver(this)
-
-                        serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
-                            val mostRecentBook = bookRepository.getMostRecentlyPlayed()
-                            if (mostRecentBook == EMPTY_AUDIOBOOK) {
-                                return@launch
+            serviceScope.launch {
+                try {
+                    // Wait for connection with timeout
+                    withTimeout(RESUME_TIMEOUT_MILLIS) {
+                        suspendCancellableCoroutine<Unit> { continuation ->
+                            val connectedObserver = object : Observer<Boolean> {
+                                override fun onChanged(isConnected: Boolean) {
+                                    // Don't try starting playback until we've connected to a server
+                                    if (!isConnected) {
+                                        return
+                                    }
+                                    
+                                    // Only run these resume methods once after reconnecting
+                                    plexConfig.isConnected.removeObserver(this)
+                                    
+                                    serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
+                                        val mostRecentBook = bookRepository.getMostRecentlyPlayed()
+                                        if (mostRecentBook == EMPTY_AUDIOBOOK) {
+                                            onSetPlaybackError(
+                                                android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                                                appContext.getString(local.oss.chronicle.R.string.auto_error_library_empty)
+                                            )
+                                            return@launch
+                                        }
+                                        if (playWhenReady) {
+                                            onPlayFromMediaId(mostRecentBook.id.toString(), null)
+                                        } else {
+                                            onPrepareFromMediaId(mostRecentBook.id.toString(), null)
+                                        }
+                                    }
+                                    
+                                    continuation.resume(Unit) { }
+                                }
                             }
-                            if (playWhenReady) {
-                                onPlayFromMediaId(mostRecentBook.id.toString(), null)
-                            } else {
-                                onPrepareFromMediaId(mostRecentBook.id.toString(), null)
+                            
+                            plexConfig.isConnected.observeForever(connectedObserver)
+                            
+                            continuation.invokeOnCancellation {
+                                plexConfig.isConnected.removeObserver(connectedObserver)
                             }
                         }
                     }
+                } catch (e: TimeoutCancellationException) {
+                    Timber.w("[AndroidAuto] resumePlayFromEmpty timed out after ${RESUME_TIMEOUT_MILLIS}ms")
+                    onSetPlaybackError(
+                        android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                        appContext.getString(local.oss.chronicle.R.string.auto_error_connection_timeout)
+                    )
+                } catch (e: Exception) {
+                    Timber.e(e, "[AndroidAuto] Error in resumePlayFromEmpty")
+                    onSetPlaybackError(
+                        android.support.v4.media.session.PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                        appContext.getString(local.oss.chronicle.R.string.auto_error_playback_failed)
+                    )
                 }
-
-            plexConfig.isConnected.observeForever(connectedObserver)
+            }
         }
 
         // Kill the playback service when stop() is called, so Service can be recreated when needed

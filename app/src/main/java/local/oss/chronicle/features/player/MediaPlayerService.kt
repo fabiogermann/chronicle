@@ -67,6 +67,7 @@ class MediaPlayerService :
     MediaBrowserServiceCompat(),
     ForegroundServiceController,
     ServiceController,
+    IPlaybackErrorReporter,
     SleepTimer.SleepTimerBroadcaster,
     local.oss.chronicle.features.currentlyplaying.OnChapterChangeListener {
     val serviceJob: CompletableJob = SupervisorJob()
@@ -210,6 +211,7 @@ class MediaPlayerService :
     var currentPlayer: Player? = null
 
     private var sessionErrorMessage: String? = null
+    private var isErrorState: Boolean = false
     private var sessionCustomActions: List<PlaybackStateCompat.CustomAction> = emptyList()
     private val timelineWindow = Timeline.Window()
 
@@ -292,8 +294,56 @@ class MediaPlayerService :
     }
 
     private fun setSessionCustomErrorMessage(message: String?) {
-        sessionErrorMessage = message
-        updateSessionPlaybackState()
+        if (message != null) {
+            // When setting error message, also set STATE_ERROR
+            setPlaybackStateError(PlaybackStateCompat.ERROR_CODE_APP_ERROR, message)
+        } else {
+            // Clear error state
+            sessionErrorMessage = null
+            isErrorState = false
+            updateSessionPlaybackState()
+        }
+    }
+
+    /**
+     * Sets the MediaSession playback state to STATE_ERROR with appropriate error code and message.
+     * This ensures Android Auto displays the error to the user instead of failing silently.
+     *
+     * @param errorCode PlaybackStateCompat error code (e.g., ERROR_CODE_AUTHENTICATION_EXPIRED)
+     * @param errorMessage User-facing error message to display in Android Auto
+     */
+    override fun setPlaybackStateError(errorCode: Int, errorMessage: String) {
+        Timber.e("[AndroidAuto] Setting error state: code=$errorCode, message=$errorMessage")
+        
+        // Stop current playback when entering error state
+        currentPlayer?.playWhenReady = false
+        
+        isErrorState = true
+        sessionErrorMessage = errorMessage
+        
+        val errorState = PlaybackStateCompat.Builder()
+            .setActions(basePlaybackActions())
+            .setState(
+                PlaybackStateCompat.STATE_ERROR,
+                PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN,
+                0f
+            )
+            .setErrorMessage(errorCode, errorMessage)
+            .build()
+        
+        mediaSession.setPlaybackState(errorState)
+    }
+
+    /**
+     * Clears the error state when playback starts successfully.
+     */
+    override fun clearPlaybackError() {
+        if (isErrorState) {
+            Timber.d("[AndroidAuto] Clearing error state")
+            isErrorState = false
+            sessionErrorMessage = null
+            updateSessionPlaybackState()
+        }
     }
 
     override fun broadcastUpdate(
@@ -411,6 +461,18 @@ class MediaPlayerService :
     }
 
     private fun buildPlaybackState(player: Player): PlaybackStateCompat {
+        // If in error state, return error PlaybackState
+        if (isErrorState && sessionErrorMessage != null) {
+            val builder =
+                PlaybackStateCompat.Builder()
+                    .setActions(basePlaybackActions())
+                    .setState(PlaybackStateCompat.STATE_ERROR, 0L, 0f)
+                    .setErrorMessage(PlaybackStateCompat.ERROR_CODE_APP_ERROR, sessionErrorMessage)
+            
+            sessionCustomActions.forEach(builder::addCustomAction)
+            return builder.build()
+        }
+
         val playbackState = mapPlayerState(player)
         val playbackSpeed = player.playbackParameters.speed
 

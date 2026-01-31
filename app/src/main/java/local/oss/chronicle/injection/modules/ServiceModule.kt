@@ -59,6 +59,10 @@ class ServiceModule(private val service: MediaPlayerService) {
 
     @Provides
     @ServiceScope
+    fun errorReporter(): IPlaybackErrorReporter = service
+
+    @Provides
+    @ServiceScope
     fun serviceJob(): CompletableJob = service.serviceJob
 
     @Provides

@@ -32,6 +32,7 @@ keystore-base64.txt
 # play store credentials
 play-store-credentials.json
 play-credentials.json
+google-services.json
 
 # etc
 .externalNativeBuild
