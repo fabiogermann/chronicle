@@ -64,8 +64,8 @@ class ConnectionReResolutionTest {
             connections =
                 listOf(
                     Connection(uri = lanUri, local = true),
-                    Connection(uri = wanUri, local = false),
-                    Connection(uri = relayUri, local = false),
+                    Connection(uri = wanUri, local = false, relay = false),
+                    Connection(uri = relayUri, local = false, relay = true),
                 ),
             chosenConnectionUri = lanUri,
             lastConnectionCheckAt = null,
@@ -261,5 +261,72 @@ class ConnectionReResolutionTest {
             assertThat(r1.serverUrl).isEqualTo(wanUri)
             assertThat(r2.serverUrl).isEqualTo(wanUri)
             assertThat(r3.serverUrl).isEqualTo(wanUri)
+        }
+
+    // -----------------------------------------------------------------------------------------
+    // Fix #4: relay deprioritization through the resolver
+    //
+    // The resolver delegates to ConnectionProber, which is responsible for tier-aware probing.
+    // From the resolver's perspective we only need to verify the prober's chosen URI flows
+    // through to the persisted Library row exactly as it does for LAN/WAN.
+    // -----------------------------------------------------------------------------------------
+
+    @Test
+    fun `resolve picks relay URI and persists it when prober returns relay as last resort`() =
+        runTest {
+            // Given: A library with LAN + WAN + Relay; LAN and WAN unreachable per the prober,
+            // so the prober returns the relay URI.
+            val stale =
+                library.copy(
+                    lastConnectionCheckAt = System.currentTimeMillis() - (60 * 60 * 1000L),
+                )
+            coEvery { libraryRepository.getLibraryById(libraryId) } returns stale
+            coEvery { libraryRepository.getServerConnection(libraryId) } returns
+                ServerConnection(lanUri, authToken)
+            coEvery {
+                connectionProber.probe(stale.connections!!, authToken)
+            } returns relayUri
+
+            // When: Resolving
+            val result = resolver.resolve(libraryId)
+
+            // Then: Relay URI is selected and persisted to the Library row.
+            assertThat(result.serverUrl).isEqualTo(relayUri)
+            assertThat(result.authToken).isEqualTo(authToken)
+            coVerify { libraryRepository.updateLibrary(match { it.chosenConnectionUri == relayUri }) }
+        }
+
+    @Test
+    fun `resolve handles legacy-shaped persisted connections without relay field`() =
+        runTest {
+            // Given: A library row whose `connections` JSON was written by fix #1, i.e. only
+            // `uri` + `local`. Fix #4 added `relay`/`protocol`/etc. with defaults; legacy rows
+            // must still load and the picker should treat them as direct WAN (relay = false).
+            val legacyConnections =
+                listOf(
+                    // These are constructed with only uri/local, matching what the legacy JSON
+                    // deserializes into. The defaulted `relay` field is false.
+                    Connection(uri = lanUri, local = true),
+                    Connection(uri = wanUri, local = false),
+                )
+            val stale =
+                library.copy(
+                    connections = legacyConnections,
+                    lastConnectionCheckAt = System.currentTimeMillis() - (60 * 60 * 1000L),
+                )
+            coEvery { libraryRepository.getLibraryById(libraryId) } returns stale
+            coEvery { libraryRepository.getServerConnection(libraryId) } returns
+                ServerConnection(lanUri, authToken)
+            coEvery { connectionProber.probe(legacyConnections, authToken) } returns wanUri
+
+            // When
+            val result = resolver.resolve(libraryId)
+
+            // Then: probe was called with the legacy list (relay defaulted to false; no crash),
+            // and the picker selected the WAN URI without surprises.
+            coVerify(exactly = 1) { connectionProber.probe(legacyConnections, authToken) }
+            assertThat(result.serverUrl).isEqualTo(wanUri)
+            // Sanity: the legacy connections have relay=false by default.
+            assertThat(legacyConnections.all { !it.relay }).isTrue()
         }
 }

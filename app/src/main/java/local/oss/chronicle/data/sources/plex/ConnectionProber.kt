@@ -19,11 +19,14 @@ import javax.inject.Singleton
  * error or a network change), so that the app can fail over from a LAN URI to a WAN URI when
  * the user leaves their home network.
  *
+ * Fix #4 (relay deprioritization): the prober now races connections **per tier** in priority
+ * order — LAN, then direct WAN, then Plex Relay. A lower tier is only opened if every connection
+ * in the previous tier failed. This mirrors the official Plex client and prevents the
+ * bandwidth-limited (~2 Mbps) relay from being picked when a direct WAN connection is reachable.
+ *
  * Notes:
  *  - Uses Plex's `/identity` endpoint, which does not require auth, so the global
  *    [PlexMediaService] (which carries the device's auth token via [PlexInterceptor]) is fine.
- *  - Local connections are tried in parallel with remote ones but sorted first so that, all else
- *    equal, a reachable LAN connection wins the race when on the home network.
  *  - Each individual attempt has a short timeout so an unreachable connection doesn't block the
  *    others; the whole probe is also bounded by [PROBE_TIMEOUT_MS].
  */
@@ -34,13 +37,14 @@ open class ConnectionProber
         private val plexMediaServiceProvider: Provider<PlexMediaService>,
     ) {
         companion object {
-            /** Wall-clock cap for the whole probe (all connections combined). */
+            /** Wall-clock cap for the whole probe (all tiers combined). */
             const val PROBE_TIMEOUT_MS: Long = 10_000L
         }
 
         /**
-         * Race [connections] via `/identity` and return the URI of the first one to succeed,
-         * or `null` if none did within [PROBE_TIMEOUT_MS].
+         * Tier-aware probe via `/identity`. Returns the URI of the first connection in the
+         * highest-priority reachable tier, or `null` if every candidate fails within
+         * [PROBE_TIMEOUT_MS].
          *
          * @param connections The candidate server URIs (LAN, WAN, relay, ...).
          * @param authToken   The auth token to use for the probe. Currently unused because
@@ -57,49 +61,76 @@ open class ConnectionProber
                 return null
             }
 
-            // Prefer LAN connections in the ordering (same heuristic as legacy chooseViableConnections),
-            // but race all of them so off-network we still find WAN/relay quickly.
-            val ordered = connections.sortedByDescending { it.local }
+            val tiers = connections.groupBy { it.priority }.toSortedMap()
             Timber.d(
-                "ConnectionProber: probing ${ordered.size} candidates: ${ordered.map { "${it.uri}(local=${it.local})" }}",
+                "ConnectionProber: probing ${connections.size} candidates across " +
+                    "${tiers.size} tier(s): ${connections.map { "${it.uri}(local=${it.local},relay=${it.relay})" }}",
             )
 
             val plexMediaService = plexMediaServiceProvider.get()
 
             return withTimeoutOrNull(PROBE_TIMEOUT_MS) {
-                coroutineScope {
-                    val deferred =
-                        ordered.map { conn ->
-                            async {
-                                try {
-                                    val response = plexMediaService.checkServer(conn.uri)
-                                    if (response.isSuccessful) {
-                                        Timber.d("ConnectionProber: ${conn.uri} OK")
-                                        conn.uri
-                                    } else {
-                                        Timber.d(
-                                            "ConnectionProber: ${conn.uri} failed (${response.code()} ${response.message()})",
-                                        )
-                                        null
-                                    }
-                                } catch (t: Throwable) {
-                                    Timber.d("ConnectionProber: ${conn.uri} threw ${t.javaClass.simpleName}: ${t.message}")
-                                    null
-                                }
-                            }
+                for ((tier, tierConnections) in tiers) {
+                    val tierName =
+                        when (tier) {
+                            Connection.PRIORITY_LAN -> "LAN"
+                            Connection.PRIORITY_DIRECT_WAN -> "direct WAN"
+                            else -> "relay"
                         }
-
-                    // Return as soon as any one succeeds. Walk results in declared (local-first) order
-                    // so that when both LAN and WAN come back roughly at the same time the LAN wins.
-                    val results = deferred.awaitAll()
-                    val winner = results.firstOrNull { it != null }
-                    if (winner == null) {
-                        Timber.w("ConnectionProber: all ${ordered.size} candidates failed")
-                    } else {
-                        Timber.i("ConnectionProber: selected $winner")
+                    val winner = raceTier(tierConnections, plexMediaService, tierName)
+                    if (winner != null) {
+                        if (tier == Connection.PRIORITY_RELAY) {
+                            Timber.w(
+                                "Falling back to Plex Relay ($winner) " +
+                                    "— bandwidth limited to ~2 Mbps; LAN and direct WAN both unreachable",
+                            )
+                        }
+                        Timber.i("ConnectionProber: selected $winner (tier=$tierName)")
+                        return@withTimeoutOrNull winner
                     }
-                    winner
+                    Timber.d("ConnectionProber: tier $tierName exhausted; trying next tier")
                 }
+                Timber.w("ConnectionProber: all ${connections.size} candidates across all tiers failed")
+                null
             }
         }
+
+        /**
+         * Races all connections in a single tier in parallel. Returns the URI of the first one
+         * to succeed, or `null` if every candidate in the tier failed.
+         */
+        private suspend fun raceTier(
+            tierConnections: List<Connection>,
+            plexMediaService: PlexMediaService,
+            tierName: String,
+        ): String? =
+            coroutineScope {
+                Timber.d("ConnectionProber: probing $tierName tier (${tierConnections.size} candidate(s))")
+                val deferred =
+                    tierConnections.map { conn ->
+                        async {
+                            try {
+                                val response = plexMediaService.checkServer(conn.uri)
+                                if (response.isSuccessful) {
+                                    Timber.d("ConnectionProber: ${conn.uri} OK")
+                                    conn.uri
+                                } else {
+                                    Timber.d(
+                                        "ConnectionProber: ${conn.uri} failed (${response.code()} ${response.message()})",
+                                    )
+                                    null
+                                }
+                            } catch (t: Throwable) {
+                                Timber.d("ConnectionProber: ${conn.uri} threw ${t.javaClass.simpleName}: ${t.message}")
+                                null
+                            }
+                        }
+                    }
+
+                // Wait for the whole tier to complete then return the first success in declared
+                // order. Declared order matches the input list order, which preserves caller
+                // intent for any future intra-tier tie-breaking.
+                val results = deferred.awaitAll()
+                results.firstOrNull { it != null }
+            }
     }
