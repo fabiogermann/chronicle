@@ -156,10 +156,26 @@ class PlaybackUrlResolver
                     !cached.isExpired(URL_CACHE_MAX_AGE_MS) &&
                     cached.libraryId == libraryId
                 ) {
-                    Timber.d(
-                        "Using cached streaming URL for track ${track.id} from library $libraryId (age: ${System.currentTimeMillis() - cached.resolvedAt}ms)",
-                    )
-                    return cached.url
+                    // Off-network playback fix: if the library's chosen server URL changed since
+                    // the cache entry was written (e.g. failover from LAN to WAN), the cached
+                    // streaming URL is no longer reachable. Re-resolve.
+                    val currentServerUrlForLibrary =
+                        try {
+                            serverConnectionResolver.resolve(libraryId).serverUrl
+                        } catch (t: Throwable) {
+                            null
+                        }
+                    if (currentServerUrlForLibrary != null && currentServerUrlForLibrary != cached.serverUrl) {
+                        Timber.d(
+                            "Cached URL for track ${track.id} was bound to ${cached.serverUrl} " +
+                                "but library now resolves to $currentServerUrlForLibrary; refreshing",
+                        )
+                    } else {
+                        Timber.d(
+                            "Using cached streaming URL for track ${track.id} from library $libraryId (age: ${System.currentTimeMillis() - cached.resolvedAt}ms)",
+                        )
+                        return cached.url
+                    }
                 } else if (cached != null && cached.isExpired(URL_CACHE_MAX_AGE_MS)) {
                     Timber.d("Cached URL for track ${track.id} expired, refreshing")
                 } else if (cached != null && cached.libraryId != libraryId) {

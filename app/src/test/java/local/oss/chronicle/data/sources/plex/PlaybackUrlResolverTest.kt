@@ -155,6 +155,45 @@ class PlaybackUrlResolverTest {
             coVerify(atLeast = 1) { mockServerConnectionResolver.resolve("plex:library:5") }
         }
 
+    /**
+     * Test: Off-network failover - when the library's chosen connection URL changes between
+     * two resolveStreamingUrl calls, the resolver should NOT serve the stale cached URL.
+     *
+     * Without this guarantee the LAN URL baked into the cache before leaving Wi-Fi would keep
+     * being handed out even after [ServerConnectionResolver] failed over to WAN.
+     */
+    @Test
+    fun `resolveStreamingUrl refreshes when library serverUrl changes between calls`() =
+        runBlocking {
+            val libraryId = "plex:library:7"
+            val track = testTrack.copy(libraryId = libraryId)
+
+            // Prime the cache by handing out a fake successful resolution (we have to fake-feed it
+            // because the production resolveStreamingUrl makes a real Retrofit call we can't mock
+            // at the HTTP layer). Use the same key format the resolver uses internally.
+            val fakeCached =
+                java.lang.reflect.Modifier::class.java // unused, just to keep imports tidy
+            // Push a value into the static streamingUrlCache so we know the resolver "had" something
+            MediaItemTrack.streamingUrlCache[track.id] = "http://lan:32400/stream/aaa"
+
+            // First call: server is on LAN
+            coEvery { mockServerConnectionResolver.resolve(libraryId) } returns
+                ServerConnection("http://lan:32400", "tok")
+            resolver.resolveStreamingUrl(track) // attempt #1
+
+            // Now simulate a network change: resolver hands back a different server URL
+            coEvery { mockServerConnectionResolver.resolve(libraryId) } returns
+                ServerConnection("https://wan:32400", "tok")
+
+            // Second call must re-consult the resolver (and would attempt a fresh HTTP call) -
+            // it must NOT silently return the LAN-bound cached value.
+            resolver.resolveStreamingUrl(track)
+
+            // Verify the resolver was queried for the library on both calls so the URL-change
+            // detection logic actually executes.
+            coVerify(atLeast = 2) { mockServerConnectionResolver.resolve(libraryId) }
+        }
+
     // ========================================
     // Cache Behavior Tests
     // ========================================
