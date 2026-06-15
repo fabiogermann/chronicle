@@ -6,6 +6,7 @@ import androidx.room.TypeConverter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.adapter
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import local.oss.chronicle.data.sources.plex.model.Connection
 import timber.log.Timber
 
@@ -67,7 +68,16 @@ class AccountTypeConverters {
     }
 
     companion object {
-        private val moshi: Moshi by lazy { Moshi.Builder().build() }
+        // Build Moshi with the reflective Kotlin factory so `@JsonClass(generateAdapter = true)`
+        // data classes (e.g. [Connection]) round-trip without codegen. The app-wide Moshi in
+        // `AppModule.moshi()` is configured the same way; mirror it here so the JSON written by
+        // this Room TypeConverter is byte-compatible with anything serialized by the network
+        // layer.
+        private val moshi: Moshi by lazy {
+            Moshi.Builder()
+                .add(KotlinJsonAdapterFactory())
+                .build()
+        }
 
         @OptIn(ExperimentalStdlibApi::class)
         private val connectionListAdapter by lazy {
