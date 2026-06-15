@@ -23,10 +23,10 @@ android {
 
     defaultConfig {
         applicationId = "local.oss.chronicle"
-        minSdk = 33
+        minSdk = 30
         targetSdk = 36
         versionCode = 62
-        versionName = "0.61.2"
+        versionName = "0.62.0"
 
         testInstrumentationRunner = "local.oss.chronicle.application.ChronicleTestRunner"
     }
@@ -109,6 +109,15 @@ android {
         }
         getByName("androidTest") {
             java.srcDir("src/testShared/java")
+        }
+    }
+}
+
+afterEvaluate {
+    tasks.matching { it.name.endsWith("OssLicensesCleanUp") }.configureEach {
+        val dependencyTaskName = name.replace("LicensesCleanUp", "DependencyTask")
+        tasks.findByName(dependencyTaskName)?.let { dependencyTask ->
+            dependsOn(dependencyTask)
         }
     }
 }
