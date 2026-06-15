@@ -235,6 +235,21 @@ class MediaPlayerService :
     @Inject
     lateinit var localBroadcastManager: LocalBroadcastManager
 
+    @Inject
+    lateinit var connectionRefreshCoordinator: ConnectionRefreshCoordinator
+
+    @Inject
+    lateinit var playbackUrlResolver: PlaybackUrlResolver
+
+    @Inject
+    lateinit var plexDataSourceFactory: PlexHttpDataSourceFactory
+
+    /**
+     * Recovery handler for network-y playback errors (fix #3). Built lazily after Dagger injection
+     * because it needs access to the injected fields + [serviceScope] + [currentPlayer].
+     */
+    private val recoveryHandler: PlaybackErrorRecoveryHandler by lazy { buildRecoveryHandler() }
+
     var currentPlayer: Player? = null
 
     private var sessionErrorMessage: String? = null
@@ -1093,9 +1108,12 @@ class MediaPlayerService :
         object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
                 Timber.e("Exoplayer playback error: $error")
-                val errorIntent = Intent(ACTION_PLAYBACK_ERROR)
-                errorIntent.putExtra(PLAYBACK_ERROR_MESSAGE, error.message)
-                localBroadcastManager.sendBroadcast(errorIntent)
+                // Fix #3: delegate to the recovery handler. It broadcasts ACTION_PLAYBACK_ERROR
+                // itself (with EXTRA_IS_RECOVERING reflecting whether it intends to attempt
+                // recovery), so we no longer broadcast here. The handler will also send
+                // ACTION_PLAYBACK_RECOVERED on success or a follow-up ACTION_PLAYBACK_ERROR with
+                // EXTRA_IS_RECOVERING=false if recovery fails.
+                recoveryHandler.handleError(error)
                 setSessionCustomErrorMessage(error.message)
                 updateSessionPlaybackState()
             }
@@ -1177,6 +1195,11 @@ class MediaPlayerService :
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState != Player.STATE_IDLE) {
                     setSessionCustomErrorMessage(null)
+                }
+                if (playbackState == Player.STATE_READY) {
+                    // Fix #3: a successful track start clears the retry budget so the next
+                    // off-network handover can attempt recovery again from scratch.
+                    recoveryHandler.onPlayerReady()
                 }
                 updateSessionPlaybackState()
                 if (playbackState != Player.STATE_ENDED) {
@@ -1263,6 +1286,92 @@ class MediaPlayerService :
             @Suppress("DEPRECATION")
             stopForeground(removeNotification)
         }
+    }
+
+    /**
+     * Constructs the [PlaybackErrorRecoveryHandler] used by `onPlayerError`. Built lazily so that
+     * Dagger injection has run and [currentPlayer] is wired before any field is dereferenced.
+     *
+     * The [PlaybackErrorRecoveryHandler.PlayerHandle] adapts the parts of the current ExoPlayer
+     * the handler needs; the [PlaybackErrorRecoveryHandler.MediaSourceRebuilder] reads the active
+     * track from [trackRepository], regenerates its streaming URL through the now-refreshed
+     * [PlaybackUrlResolver] / [ServerConnectionResolver] chain, and wraps it in a
+     * [androidx.media3.exoplayer.source.ProgressiveMediaSource] built with the same
+     * [PlexHttpDataSourceFactory] the original playback used.
+     */
+    private fun buildRecoveryHandler(): PlaybackErrorRecoveryHandler {
+        val playerHandle =
+            object : PlaybackErrorRecoveryHandler.PlayerHandle {
+                override fun getCurrentMediaItem(): MediaItem? = currentPlayer?.currentMediaItem
+
+                override fun getCurrentPosition(): Long = currentPlayer?.currentPosition ?: 0L
+
+                override fun getPlayWhenReady(): Boolean = currentPlayer?.playWhenReady ?: false
+
+                override fun setMediaSource(
+                    mediaSource: androidx.media3.exoplayer.source.MediaSource,
+                    resetPosition: Boolean,
+                ) {
+                    (currentPlayer as? ExoPlayer)?.setMediaSource(mediaSource, resetPosition)
+                }
+
+                override fun seekTo(positionMs: Long) {
+                    currentPlayer?.seekTo(positionMs)
+                }
+
+                override fun setPlayWhenReady(playWhenReady: Boolean) {
+                    currentPlayer?.playWhenReady = playWhenReady
+                }
+
+                override fun prepare() {
+                    currentPlayer?.prepare()
+                }
+            }
+
+        val rebuilder =
+            PlaybackErrorRecoveryHandler.MediaSourceRebuilder { _ ->
+                val trackId = mediaController.metadata?.id
+                if (trackId.isNullOrEmpty() || trackId == TRACK_NOT_FOUND) {
+                    Timber.w("[PlaybackRecovery] rebuild: no current trackId; aborting")
+                    return@MediaSourceRebuilder null
+                }
+                val track =
+                    withContext(Dispatchers.IO) {
+                        trackRepository.getTrackAsync(trackId)
+                    }
+                if (track == null) {
+                    Timber.w("[PlaybackRecovery] rebuild: trackId=$trackId not found in repository")
+                    return@MediaSourceRebuilder null
+                }
+                // getTrackSource() consults MediaItemTrack.streamingUrlCache first (cleared by the
+                // refresh routine just above) and otherwise calls serverConnectionResolver.resolve
+                // which now points at the freshly-probed connection.
+                val freshUrl = track.getTrackSource()
+                Timber.i("[PlaybackRecovery] Rebuilding MediaSource for track=$trackId url=$freshUrl")
+
+                // Re-pin the library context on the data source factory so the per-library token
+                // cache is refreshed (resolve() may have updated it).
+                plexDataSourceFactory.currentLibraryId = track.libraryId
+
+                val dataSourceFactory =
+                    androidx.media3.datasource.DefaultDataSource.Factory(applicationContext, plexDataSourceFactory)
+                androidx.media3.exoplayer.source.ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(
+                        MediaItem.Builder()
+                            .setMediaId(track.id)
+                            .setUri(freshUrl)
+                            .build(),
+                    )
+            }
+
+        return PlaybackErrorRecoveryHandler(
+            connectionRefreshCoordinator = connectionRefreshCoordinator,
+            playbackUrlResolver = playbackUrlResolver,
+            localBroadcastManager = localBroadcastManager,
+            scope = serviceScope,
+            playerHandle = playerHandle,
+            mediaSourceRebuilder = rebuilder,
+        )
     }
 
     /**
