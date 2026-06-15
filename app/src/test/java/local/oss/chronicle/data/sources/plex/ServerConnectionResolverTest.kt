@@ -38,6 +38,9 @@ class ServerConnectionResolverTest {
     @Mock
     private lateinit var mockPlexPrefsRepo: PlexPrefsRepo
 
+    @Mock
+    private lateinit var mockConnectionProber: ConnectionProber
+
     private lateinit var resolver: ServerConnectionResolver
 
     private val testLibraryId1 = "plex:library:1"
@@ -68,6 +71,7 @@ class ServerConnectionResolverTest {
                 mockCredentialManager,
                 mockPlexConfig,
                 mockPlexPrefsRepo,
+                mockConnectionProber,
             )
     }
 
