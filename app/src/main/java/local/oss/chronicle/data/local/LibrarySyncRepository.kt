@@ -159,8 +159,11 @@ class LibrarySyncRepository
          * Syncs a single library with its own server and account credentials.
          * Configures PlexConfig to use the library's server URL and account's auth token
          * before syncing to ensure correct data is retrieved.
+         *
+         * Visible for testing - this is the unit under test for the off-network playback fix
+         * (persisting the full Connection list on the library row).
          */
-        private suspend fun syncLibrary(library: Library) {
+        internal suspend fun syncLibrary(library: Library) {
             Timber.d("syncLibrary: Starting sync for library: ${library.name}")
             Timber.d("syncLibrary: Library details - ID: ${library.id}, AccountID: ${library.accountId}, ServerID: ${library.serverId}")
 
@@ -213,15 +216,23 @@ class LibrarySyncRepository
 
             Timber.i("syncLibrary: Successfully configured PlexConfig - URL: ${plexConfig.url}")
 
-            // Update library entity with server connection details for library-aware playback
-            // This allows ServerConnectionResolver to route playback requests to the correct server
+            // Update library entity with server connection details for library-aware playback.
+            // This allows ServerConnectionResolver to route playback requests to the correct
+            // server AND to re-probe the persisted Connection list when the user leaves the
+            // home network (off-network playback fix).
             val updatedLibrary =
                 library.copy(
                     serverUrl = plexConfig.url,
                     authToken = authToken,
+                    connections = serverInfo.connections.takeIf { it.isNotEmpty() },
+                    chosenConnectionUri = plexConfig.url.takeIf { serverInfo.connections.isNotEmpty() },
+                    lastConnectionCheckAt =
+                        if (serverInfo.connections.isNotEmpty()) System.currentTimeMillis() else library.lastConnectionCheckAt,
                 )
             libraryRepository.updateLibrary(updatedLibrary)
-            Timber.d("syncLibrary: Updated library with serverUrl=${plexConfig.url} for library-aware playback")
+            Timber.d(
+                "syncLibrary: Updated library with serverUrl=${plexConfig.url} and ${serverInfo.connections.size} persisted connections",
+            )
 
             // CRITICAL: Set the library context for repositories to use
             // The repositories use plexPrefsRepo.library to determine which library to sync

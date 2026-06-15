@@ -394,4 +394,109 @@ class PlexConfigConnectionTest {
             // URL should not change when connection fails
             assertEquals("URL should remain unchanged on failure", originalUrl, plexConfig.url)
         }
+
+    // ---------------------------------------------------------------------------------------
+    // Fix #4: relay deprioritization
+    //
+    // Plex Relay (relay=true) is a bandwidth-limited (~2 Mbps) tunnel through plex.tv. The
+    // picker must prefer a reachable direct WAN connection over relay, and only fall back to
+    // relay if both LAN and direct WAN are unreachable.
+    // ---------------------------------------------------------------------------------------
+
+    private val lanUri = "http://192.168.1.100:32400"
+    private val wanUri = "https://5-6-7-8.abcdef.plex.direct:32400"
+    private val relayUri = "https://1-2-3-4.abcdef.plex.direct:8443"
+
+    private fun setLanWanRelayConnections() {
+        plexConfig.setPotentialConnections(
+            listOf(
+                local.oss.chronicle.data.sources.plex.model.Connection(
+                    uri = lanUri,
+                    local = true,
+                    relay = false,
+                ),
+                local.oss.chronicle.data.sources.plex.model.Connection(
+                    uri = wanUri,
+                    local = false,
+                    relay = false,
+                ),
+                local.oss.chronicle.data.sources.plex.model.Connection(
+                    uri = relayUri,
+                    local = false,
+                    relay = true,
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun `picker prefers direct WAN over relay when LAN unreachable and both WAN+relay reachable`() =
+        runTest {
+            // Given: LAN unreachable, WAN reachable, relay reachable
+            setLanWanRelayConnections()
+            val ok = Response.success(mockk<PlexMediaContainer>())
+            coEvery { plexMediaService.checkServer(lanUri) } throws SocketTimeoutException("LAN down")
+            coEvery { plexMediaService.checkServer(wanUri) } returns ok
+            coEvery { plexMediaService.checkServer(relayUri) } returns ok
+
+            // When
+            val result = plexConfig.connectToServerWithRetry(plexMediaService)
+
+            // Then: direct WAN wins, relay never returned
+            assertTrue("Connection should succeed", result)
+            assertEquals("URL should be direct WAN, not relay", wanUri, plexConfig.url)
+        }
+
+    @Test
+    fun `picker falls back to relay when LAN and direct WAN are both unreachable`() =
+        runTest {
+            // Given: only relay is reachable
+            setLanWanRelayConnections()
+            val ok = Response.success(mockk<PlexMediaContainer>())
+            coEvery { plexMediaService.checkServer(lanUri) } throws SocketTimeoutException("LAN down")
+            coEvery { plexMediaService.checkServer(wanUri) } throws SocketTimeoutException("WAN down")
+            coEvery { plexMediaService.checkServer(relayUri) } returns ok
+
+            // When
+            val result = plexConfig.connectToServerWithRetry(plexMediaService)
+
+            // Then: relay used as last resort
+            assertTrue("Connection should succeed via relay", result)
+            assertEquals("URL should be relay", relayUri, plexConfig.url)
+        }
+
+    @Test
+    fun `picker prefers LAN over WAN and relay when all three are reachable`() =
+        runTest {
+            // Given: every tier reachable
+            setLanWanRelayConnections()
+            val ok = Response.success(mockk<PlexMediaContainer>())
+            coEvery { plexMediaService.checkServer(any()) } returns ok
+
+            // When
+            val result = plexConfig.connectToServerWithRetry(plexMediaService)
+
+            // Then: LAN wins
+            assertTrue("Connection should succeed", result)
+            assertEquals("URL should be LAN", lanUri, plexConfig.url)
+        }
+
+    @Test
+    fun `picker only probes relay tier when all higher tiers have failed`() =
+        runTest {
+            // Given: LAN unreachable, WAN reachable, relay also "reachable" (would succeed if probed)
+            setLanWanRelayConnections()
+            val ok = Response.success(mockk<PlexMediaContainer>())
+            coEvery { plexMediaService.checkServer(lanUri) } throws SocketTimeoutException("LAN down")
+            coEvery { plexMediaService.checkServer(wanUri) } returns ok
+            coEvery { plexMediaService.checkServer(relayUri) } returns ok
+
+            // When
+            plexConfig.connectToServerWithRetry(plexMediaService)
+
+            // Then: relay must not have been probed at all — direct WAN was reachable, so relay
+            // tier never opened. This is the official Plex client behavior and saves bandwidth /
+            // the user's relay quota.
+            coVerify(exactly = 0) { plexMediaService.checkServer(relayUri) }
+        }
 }

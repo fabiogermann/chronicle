@@ -9,6 +9,7 @@ import local.oss.chronicle.data.local.TrackRepository
 import local.oss.chronicle.data.model.Account
 import local.oss.chronicle.data.model.Library
 import local.oss.chronicle.data.model.ProviderType
+import local.oss.chronicle.data.sources.plex.model.Connection
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -84,6 +85,12 @@ class AccountManager
          * @param userAuthToken User's authentication token
          * @param serverAccessToken Server access token (for shared servers)
          * @param serverUrl Server URL for this library (used for playback)
+         * @param connections The full list of [Connection]s discovered for the server at login
+         *   time. Persisted on the [Library] row so that
+         *   [local.oss.chronicle.data.sources.plex.ServerConnectionResolver] can re-probe and
+         *   fail over to a different URI when the user leaves their home network. Defaults to an
+         *   empty list for backwards compatibility, but real callers should always pass the full
+         *   list from the discovery response.
          * @return Pair of (Account, Library)
          */
         suspend fun addPlexAccountWithLibrary(
@@ -98,6 +105,7 @@ class AccountManager
             userAuthToken: String,
             serverAccessToken: String,
             serverUrl: String,
+            connections: List<Connection> = emptyList(),
         ): Pair<Account, Library> {
             // Generate account ID using user UUID
             val accountId = "plex:account:$userUuid"
@@ -135,6 +143,9 @@ class AccountManager
                     isActive = false, // Set via switch
                     serverUrl = serverUrl,
                     authToken = serverAccessToken, // Store server access token for library-aware playback
+                    connections = connections.takeIf { it.isNotEmpty() },
+                    chosenConnectionUri = serverUrl.takeIf { connections.isNotEmpty() },
+                    lastConnectionCheckAt = if (connections.isNotEmpty()) now else null,
                 )
 
             // Save library

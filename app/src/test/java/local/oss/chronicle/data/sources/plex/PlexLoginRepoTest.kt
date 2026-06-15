@@ -9,6 +9,7 @@ import local.oss.chronicle.features.account.AccountManager
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -169,6 +170,85 @@ class PlexLoginRepoTest {
                 "Auth token should be stored on successful response",
                 validToken,
                 plexPrefsRepo.accountAuthToken,
+            )
+        }
+
+    @Test
+    fun `chooseLibrary forwards the full server Connection list to AccountManager`() =
+        kotlinx.coroutines.test.runTest {
+            // Given: A fully-authenticated state with a known server / user / library
+            val connections =
+                listOf(
+                    local.oss.chronicle.data.sources.plex.model.Connection(
+                        uri = "http://192.168.1.50:32400",
+                        local = true,
+                    ),
+                    local.oss.chronicle.data.sources.plex.model.Connection(
+                        uri = "https://wan.plex.direct:32400",
+                        local = false,
+                    ),
+                )
+            val server =
+                local.oss.chronicle.data.model.ServerModel(
+                    name = "Home",
+                    connections = connections,
+                    serverId = "server-uuid",
+                    accessToken = "server-token",
+                    owned = true,
+                )
+            val user =
+                local.oss.chronicle.data.sources.plex.model.PlexUser(
+                    uuid = "user-uuid",
+                    username = "tester",
+                    title = "Tester",
+                    thumb = "",
+                    authToken = "user-token",
+                )
+            val library =
+                local.oss.chronicle.data.model.PlexLibrary(
+                    name = "Audiobooks",
+                    type = local.oss.chronicle.data.sources.plex.model.MediaType.ARTIST,
+                    id = "3",
+                )
+            plexPrefsRepo.accountAuthToken = "account-token"
+            plexPrefsRepo.user = user
+            plexPrefsRepo.server = server
+
+            // The login flow's updateServerForSync resolves to the LAN URI
+            coEvery { plexConfig.updateServerForSync(connections, "server-token") } returns true
+            io.mockk.every { plexConfig.url } returns "http://192.168.1.50:32400"
+
+            // When: User picks the library at the end of OAuth
+            plexLoginRepo.chooseLibrary(library)
+            // chooseLibrary launches into Dispatchers.IO; busy-wait for the verification to settle.
+            val deadline = System.currentTimeMillis() + 5000
+            var verified = false
+            while (System.currentTimeMillis() < deadline && !verified) {
+                try {
+                    io.mockk.coVerify {
+                        accountManager.addPlexAccountWithLibrary(
+                            userUuid = "user-uuid",
+                            username = "tester",
+                            userThumb = "",
+                            serverId = "server-uuid",
+                            serverName = "Home",
+                            libraryId = "3",
+                            libraryName = "Audiobooks",
+                            libraryType = "artist",
+                            userAuthToken = "user-token",
+                            serverAccessToken = "server-token",
+                            serverUrl = "http://192.168.1.50:32400",
+                            connections = connections,
+                        )
+                    }
+                    verified = true
+                } catch (e: AssertionError) {
+                    Thread.sleep(25)
+                }
+            }
+            assertTrue(
+                "AccountManager.addPlexAccountWithLibrary was not called with the full Connection list",
+                verified,
             )
         }
 }

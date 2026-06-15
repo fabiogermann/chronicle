@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import local.oss.chronicle.data.sources.plex.model.Connection
 
 /**
  * Represents a media library within an account.
@@ -60,4 +61,32 @@ data class Library(
      */
     @ColumnInfo(name = "authToken")
     val authToken: String? = null,
+    /**
+     * The full list of server [Connection]s discovered for this library's server (LAN + WAN + relay).
+     *
+     * This is persisted so that the app can re-probe and pick a different connection (e.g. WAN)
+     * when the previously chosen URI becomes unreachable - typically when the user leaves their
+     * home Wi-Fi. Without this, the app would only ever know about whatever URL was active at
+     * login/sync time and playback would fail off-network.
+     *
+     * Stored as JSON via [AccountTypeConverters].
+     */
+    @ColumnInfo(name = "connections")
+    val connections: List<Connection>? = null,
+    /**
+     * The URI of the currently selected (last successfully probed) [Connection] from [connections].
+     *
+     * This is a hint for the resolver - it does not replace [serverUrl], which still holds the
+     * last-known-good URL for legacy callers. When [connections] is non-empty the resolver re-probes
+     * the list whenever this choice is stale.
+     */
+    @ColumnInfo(name = "chosenConnectionUri")
+    val chosenConnectionUri: String? = null,
+    /**
+     * Timestamp (epoch millis) of the last successful connection probe.
+     * Used by [local.oss.chronicle.data.sources.plex.ServerConnectionResolver] to decide whether
+     * the persisted choice is still considered fresh or needs re-probing.
+     */
+    @ColumnInfo(name = "lastConnectionCheckAt")
+    val lastConnectionCheckAt: Long? = null,
 )

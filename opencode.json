@@ -1,0 +1,14 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "mobile-mcp": {
+      "type": "local",
+      "command": [
+        "sh",
+        "-c",
+        "MOBILEMCP_DISABLE_TELEMETRY=1 npx @mobilenext/mobile-mcp@latest"
+      ],
+      "enabled": true
+    }
+  }
+}

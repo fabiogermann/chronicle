@@ -60,6 +60,15 @@ interface LibraryDao {
     @Query("SELECT * FROM libraries")
     fun getAllLibraries(): Flow<List<Library>>
 
+    /**
+     * One-shot snapshot of every library row.
+     *
+     * Used by [local.oss.chronicle.data.sources.plex.ConnectionRefreshCoordinator] to iterate the
+     * library set on a network change without subscribing to a [Flow] (we just want today's IDs).
+     */
+    @Query("SELECT * FROM libraries")
+    suspend fun getAllLibrariesSnapshot(): List<Library>
+
     @Query("SELECT * FROM libraries WHERE accountId = :accountId")
     fun getLibrariesForAccount(accountId: String): Flow<List<Library>>
 
