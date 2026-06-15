@@ -14,6 +14,8 @@ import local.oss.chronicle.data.sources.plex.PlexConfig.ConnectionResult.Failure
 import local.oss.chronicle.data.sources.plex.PlexConfig.ConnectionResult.Success
 import local.oss.chronicle.data.sources.plex.PlexConfig.ConnectionState.*
 import local.oss.chronicle.data.sources.plex.model.Connection
+import local.oss.chronicle.util.NetworkMonitor
+import local.oss.chronicle.util.NetworkState
 import local.oss.chronicle.util.RetryConfig
 import local.oss.chronicle.util.RetryResult
 import local.oss.chronicle.util.getImage
@@ -44,21 +46,27 @@ class PlexConfig
     constructor(
         private val plexPrefsRepo: PlexPrefsRepo,
         private val scopedPlexServiceFactoryProvider: Provider<ScopedPlexServiceFactory>,
+        private val networkMonitor: NetworkMonitor,
     ) {
         companion object {
             /**
-             * Per-tier timeout for connection probing.
-             * LAN tier gets this budget; if it fails within this window the WAN tier starts.
-             * This must be less than the OkHttp socket timeout (15s in AppModule) so coroutine
-             * cancellation fires before OkHttp's own timeout.
+             * Per-tier timeout for LAN connection probing.
+             * Short because LAN addresses fail immediately when not on the same network.
+             * Must be less than OkHttp socket timeout (15s) so coroutine cancellation fires first.
              */
-            const val CONNECTION_TIMEOUT_MS = 5_000L // 5 seconds per tier
+            const val CONNECTION_TIMEOUT_MS = 3_000L // 3 seconds for LAN tier
+
+            /**
+             * Per-tier timeout for WAN/relay connection probing.
+             * Slightly longer than LAN — direct WAN can have higher RTT on mobile.
+             */
+            const val CONNECTION_TIMEOUT_WAN_MS = 4_000L // 4 seconds for WAN/relay tiers
 
             /**
              * Overall timeout for the full tiered probe (LAN + WAN + relay).
-             * 3 tiers × 5s per tier + small buffer = 20s total cap.
+             * LAN(3s) + WAN(4s) + relay(4s) + small buffer = 15s total cap.
              */
-            const val MAX_CONNECTION_TIME_MS = 20_000L // 20 seconds total
+            const val MAX_CONNECTION_TIME_MS = 15_000L // 15 seconds total
 
             const val PLACEHOLDER_URL = "http://placeholder.com"
         }
@@ -369,7 +377,14 @@ class PlexConfig
         @InternalCoroutinesApi
         fun connectToServerWithRetryAndState(plexMediaService: PlexMediaService) {
             prevConnectToServerJob?.cancel("Killing previous connection attempt")
-            _connectionState.postValue(CONNECTING)
+            // Use setValue (synchronous) so the CONNECTING state is immediately visible to any
+            // observer that attaches later — postValue would be deferred and could be missed
+            // if the calling thread is main (which it is from ViewModel.init).
+            if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+                _connectionState.value = CONNECTING
+            } else {
+                _connectionState.postValue(CONNECTING)
+            }
             prevConnectToServerJob =
                 Job().also {
                     val context = CoroutineScope(it + Dispatchers.Main)
@@ -564,7 +579,29 @@ class PlexConfig
         @OptIn(ExperimentalCoroutinesApi::class)
         private suspend fun chooseViableConnections(plexMediaService: PlexMediaService): ConnectionResult {
             val timeoutFailureReason = "Connection timed out"
-            val connections = connectionSet.sortedWith(Connection.PRIORITY_COMPARATOR)
+            val allConnections = connectionSet.sortedWith(Connection.PRIORITY_COMPARATOR)
+
+            // Skip LAN candidates when the phone is on cellular without a VPN — a private LAN
+            // address (10.x, 192.168.x, etc.) is unreachable on cellular and would just waste the
+            // full per-tier timeout before falling through to WAN.
+            val networkState = networkMonitor.currentState
+            val canReachLan =
+                networkState is NetworkState.Connected &&
+                    (networkState.isWifi || networkState.isVpn)
+            val connections =
+                if (canReachLan) {
+                    allConnections
+                } else {
+                    val skipped = allConnections.filter { it.local }
+                    if (skipped.isNotEmpty()) {
+                        Timber.i(
+                            "Network is cellular-only (no VPN) — skipping ${skipped.size} LAN candidate(s): " +
+                                skipped.joinToString { it.uri },
+                        )
+                    }
+                    allConnections.filter { !it.local }
+                }
+
             Timber.d(
                 "URL_DEBUG: Testing ${connections.size} connections (tiered): " +
                     connections.map { "${it.uri} (local=${it.local}, relay=${it.relay})" },
@@ -614,11 +651,15 @@ class PlexConfig
 
                     // Each tier gets its own per-tier timeout so a dead LAN address can't
                     // consume the entire budget and prevent WAN/relay from being tried.
+                    // LAN gets a shorter budget (3s) since it fails fast when unreachable;
+                    // WAN/relay get a longer budget (4s) to handle higher RTT.
+                    val tierTimeoutMs =
+                        if (tier == Connection.PRIORITY_LAN) CONNECTION_TIMEOUT_MS else CONNECTION_TIMEOUT_WAN_MS
                     val tierResult =
-                        withTimeoutOrNull(CONNECTION_TIMEOUT_MS) {
+                        withTimeoutOrNull(tierTimeoutMs) {
                             raceTier(tierConnections, plexMediaService, unknownFailureReason)
                         } ?: run {
-                            Timber.i("Tier $tierName timed out after ${CONNECTION_TIMEOUT_MS}ms; trying next tier")
+                            Timber.i("Tier $tierName timed out after ${tierTimeoutMs}ms; trying next tier")
                             Failure(timeoutFailureReason) as ConnectionResult
                         }
                     if (tierResult is Success) {

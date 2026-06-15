@@ -23,6 +23,8 @@ sealed class NetworkState {
         val isWifi: Boolean = false,
         val isCellular: Boolean = false,
         val isMetered: Boolean = true,
+        /** True when a VPN transport is active (user is tunnelled — LAN addresses may be reachable). */
+        val isVpn: Boolean = false,
     ) : NetworkState()
 
     /** Network is not available */
@@ -112,6 +114,7 @@ class NetworkMonitor
                         isWifi = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI),
                         isCellular = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR),
                         isMetered = !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED),
+                        isVpn = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN),
                     )
                 } else {
                     NetworkState.Disconnected
