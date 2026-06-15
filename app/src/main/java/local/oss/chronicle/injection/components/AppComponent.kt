@@ -92,6 +92,8 @@ interface AppComponent {
 
     fun serverConnectionResolver(): ServerConnectionResolver
 
+    fun connectionRefreshCoordinator(): ConnectionRefreshCoordinator
+
     fun progressReporter(): PlexProgressReporter
 
     fun scopedPlexServiceFactory(): ScopedPlexServiceFactory

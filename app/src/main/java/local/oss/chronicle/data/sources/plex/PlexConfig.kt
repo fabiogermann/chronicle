@@ -539,25 +539,40 @@ class PlexConfig
         /**
          * Attempts to connect to all [Connection]s in [connectionSet] via [PlexMediaService.checkServer].
          *
-         * On the first successful connection, return a [ConnectionResult.Success] with
-         *   [ConnectionResult.Success.url] from the [Connection.uri]
+         * Probes connections in **tiered priority order**:
+         *   1. LAN ([Connection.local] = true)
+         *   2. Direct WAN ([Connection.local] = false, [Connection.relay] = false)
+         *   3. Plex Relay ([Connection.relay] = true) — last resort, ~2 Mbps bandwidth cap
          *
-         * If all connections fail: return a [Failure] as soon as all connections have completed
+         * Within each tier the candidates race in parallel (lowest-RTT wins). A lower tier is
+         * only opened if every connection in the previous tier failed. This mirrors the
+         * official Plex client and avoids unnecessarily burning the user's relay quota / forcing
+         * high-bitrate streams down a 2 Mbps tunnel when a direct WAN connection is reachable.
          *
-         * If no connections are made within 10 seconds, return a [ConnectionResult.Failure].
+         * If all tiers exhaust without a success, returns [Failure]. The whole probe is bounded
+         * by [CONNECTION_TIMEOUT_MS]; if it elapses, returns a "Connection timed out" [Failure].
          */
         @InternalCoroutinesApi
         @OptIn(ExperimentalCoroutinesApi::class)
         private suspend fun chooseViableConnections(plexMediaService: PlexMediaService): ConnectionResult {
             val timeoutFailureReason = "Connection timed out"
-            val connections = connectionSet.sortedByDescending { it.local }
-            Timber.d("URL_DEBUG: Testing ${connections.size} connections: ${connections.map { "${it.uri} (local=${it.local})" }}")
+            val connections = connectionSet.sortedWith(Connection.PRIORITY_COMPARATOR)
+            Timber.d(
+                "URL_DEBUG: Testing ${connections.size} connections (tiered): " +
+                    connections.map { "${it.uri} (local=${it.local}, relay=${it.relay})" },
+            )
 
             //  If there's only one connection, don't catch exceptions - let them propagate for proper retry handling
             if (connections.size == 1) {
                 val conn = connections.first()
-                Timber.d("URL_DEBUG: Testing single connection: ${conn.uri} (local=${conn.local})")
+                Timber.d("URL_DEBUG: Testing single connection: ${conn.uri} (local=${conn.local}, relay=${conn.relay})")
                 Timber.i("Testing single connection: ${conn.uri}")
+                if (conn.relay) {
+                    Timber.w(
+                        "Falling back to Plex Relay for server ${plexPrefsRepo.server?.name ?: "?"} " +
+                            "— bandwidth limited to ~2 Mbps (relay is the only known connection)",
+                    )
+                }
                 return withTimeoutOrNull(CONNECTION_TIMEOUT_MS) {
                     val result = plexMediaService.checkServer(conn.uri)
                     if (result.isSuccessful) {
@@ -573,64 +588,124 @@ class PlexConfig
                 }
             }
 
-            // Multiple connections - catch exceptions and try all
+            // Multiple connections - tier them by priority and race within each tier.
+            val tiers = connections.groupBy { it.priority }.toSortedMap()
             return withTimeoutOrNull(CONNECTION_TIMEOUT_MS) {
                 val unknownFailureReason = "Failed for unknown reason"
                 Timber.i("Choosing viable connection from: $connectionSet")
+
+                var lastFailure: Failure? = null
+                for ((tier, tierConnections) in tiers) {
+                    val tierName =
+                        when (tier) {
+                            Connection.PRIORITY_LAN -> "LAN"
+                            Connection.PRIORITY_DIRECT_WAN -> "direct WAN"
+                            else -> "relay"
+                        }
+                    Timber.i("Probing $tierName tier with ${tierConnections.size} candidate(s)")
+
+                    val tierResult = raceTier(tierConnections, plexMediaService, unknownFailureReason)
+                    if (tierResult is Success) {
+                        if (tier == Connection.PRIORITY_RELAY) {
+                            Timber.w(
+                                "Falling back to Plex Relay for server ${plexPrefsRepo.server?.name ?: "?"} " +
+                                    "— bandwidth limited to ~2 Mbps; LAN and direct WAN both unreachable",
+                            )
+                        }
+                        Timber.d("URL_DEBUG: SELECTED URL (tier=$tierName): ${tierResult.url}")
+                        return@withTimeoutOrNull tierResult
+                    }
+                    lastFailure = tierResult as Failure
+                    Timber.i("Tier $tierName exhausted: ${tierResult.reason}; trying next tier")
+                }
+
+                Timber.i("All tiers exhausted; last failure: ${lastFailure?.reason}")
+                lastFailure ?: Failure(unknownFailureReason)
+            } ?: Failure(timeoutFailureReason)
+        }
+
+        /**
+         * Races a single tier of connections in parallel. Returns the first [Success], or a
+         * [Failure] aggregating the tier's losers if every candidate fails.
+         */
+        @OptIn(ExperimentalCoroutinesApi::class)
+        private suspend fun raceTier(
+            tierConnections: List<Connection>,
+            plexMediaService: PlexMediaService,
+            unknownFailureReason: String,
+        ): ConnectionResult =
+            coroutineScope {
                 val deferredConnections =
-                    connections.map { conn ->
+                    tierConnections.map { conn ->
                         async {
                             Timber.i("Testing connection: ${conn.uri}")
                             try {
                                 val result = plexMediaService.checkServer(conn.uri)
                                 if (result.isSuccessful) {
-                                    Timber.d("URL_DEBUG: Connection test SUCCESS: ${conn.uri} (local=${conn.local})")
-                                    return@async Success(conn.uri)
+                                    Timber.d(
+                                        "URL_DEBUG: Connection test SUCCESS: ${conn.uri} " +
+                                            "(local=${conn.local}, relay=${conn.relay})",
+                                    )
+                                    Success(conn.uri)
                                 } else {
-                                    Timber.d("URL_DEBUG: Connection test FAILED: ${conn.uri} (local=${conn.local}) - ${result.message()}")
-                                    return@async Failure(result.message() ?: unknownFailureReason)
+                                    Timber.d(
+                                        "URL_DEBUG: Connection test FAILED: ${conn.uri} " +
+                                            "(local=${conn.local}, relay=${conn.relay}) - ${result.message()}",
+                                    )
+                                    Failure(result.message() ?: unknownFailureReason)
                                 }
                             } catch (e: Throwable) {
-                                Timber.d("URL_DEBUG: Connection test EXCEPTION: ${conn.uri} (local=${conn.local}) - ${e.message}")
-                                // Preserve original exception for proper retry handling
-                                return@async Failure(e.localizedMessage ?: unknownFailureReason, e)
+                                Timber.d(
+                                    "URL_DEBUG: Connection test EXCEPTION: ${conn.uri} " +
+                                        "(local=${conn.local}, relay=${conn.relay}) - ${e.message}",
+                                )
+                                Failure(e.localizedMessage ?: unknownFailureReason, e)
                             }
                         }
                     }
 
-                while (deferredConnections.any { it.isActive }) {
-                    Timber.i("Connections: $deferredConnections")
-                    deferredConnections.forEach { deferred ->
+                /**
+                 * Returns the first completed [Success] in the tier, or `null` if none has
+                 * completed yet. Walks the list in declared order so the lowest-RTT connection
+                 * that wins the race is the one that finished first.
+                 */
+                fun firstCompletedSuccess(): Success? {
+                    for (deferred in deferredConnections) {
                         if (deferred.isCompleted) {
                             val completed = deferred.getCompleted()
-                            if (completed is Success) {
-                                Timber.d("URL_DEBUG: SELECTED URL (first success): ${completed.url}")
-                                Timber.i("Returning connection $completed")
-                                deferredConnections.forEach { it.cancel("Sibling completed, killing connection attempt: $it") }
-                                return@withTimeoutOrNull completed
-                            }
+                            if (completed is Success) return completed
                         }
                     }
+                    return null
+                }
+
+                // Check for an immediate winner (in case async ran synchronously before we polled).
+                firstCompletedSuccess()?.let { winner ->
+                    deferredConnections.forEach { it.cancel("Tier sibling won: $winner") }
+                    return@coroutineScope winner
+                }
+
+                while (deferredConnections.any { it.isActive }) {
                     delay(500)
-                }
-
-                // Check if the final completed job was a success
-                Timber.i("Connections: $deferredConnections")
-                deferredConnections.forEach { deferred ->
-                    if (deferred.isCompleted && deferred.getCompleted() is Success) {
-                        val success = deferred.getCompleted() as Success
-                        Timber.d("URL_DEBUG: SELECTED URL (final check): ${success.url}")
-                        Timber.i("Returning final completed connection ${deferred.getCompleted()}")
-                        return@withTimeoutOrNull deferred.getCompleted()
-                    } else {
-                        if (deferred.isCompleted) {
-                            Timber.i("Connection failed: ${(deferred.getCompleted() as Failure).reason}")
-                        }
+                    firstCompletedSuccess()?.let { winner ->
+                        deferredConnections.forEach { it.cancel("Tier sibling won: $winner") }
+                        return@coroutineScope winner
                     }
                 }
 
-                Timber.i("Returning connection ${Failure(unknownFailureReason)}")
-                Failure(unknownFailureReason)
-            } ?: Failure(timeoutFailureReason)
-        }
+                // Final sweep after every candidate has completed.
+                firstCompletedSuccess()?.let { return@coroutineScope it }
+
+                // All in tier failed. Return the most informative failure.
+                val firstFailureWithException =
+                    deferredConnections.firstOrNull {
+                        it.isCompleted && (it.getCompleted() as? Failure)?.originalException != null
+                    }
+                if (firstFailureWithException != null) {
+                    return@coroutineScope firstFailureWithException.getCompleted() as Failure
+                }
+                val anyFailure =
+                    deferredConnections.firstOrNull { it.isCompleted }?.getCompleted() as? Failure
+                anyFailure ?: Failure(unknownFailureReason)
+            }
     }

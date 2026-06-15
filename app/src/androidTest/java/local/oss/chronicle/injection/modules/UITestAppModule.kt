@@ -71,6 +71,10 @@ class UITestAppModule(private val context: Context) {
 
     @Provides
     @Singleton
+    fun provideTrackDatabase(): TrackDatabase = getTrackDatabase(context)
+
+    @Provides
+    @Singleton
     fun provideTrackRepo(trackRepository: TrackRepository): ITrackRepository = spyk(trackRepository)
 
     @Provides
@@ -79,11 +83,31 @@ class UITestAppModule(private val context: Context) {
 
     @Provides
     @Singleton
+    fun provideBookDatabase(): BookDatabase = getBookDatabase(context)
+
+    @Provides
+    @Singleton
     fun provideBookRepo(bookRepository: BookRepository): IBookRepository = spyk(bookRepository)
 
     @Provides
     @Singleton
+    fun provideChapterRepo(chapterRepository: ChapterRepository): IChapterRepository = chapterRepository
+
+    @Provides
+    @Singleton
+    fun provideChapterDao(): ChapterDao = getChapterDatabase(context).chapterDao
+
+    @Provides
+    @Singleton
     fun provideCollectionsDao(): CollectionsDao = getCollectionsDatabase(context).collectionsDao
+
+    @Provides
+    @Singleton
+    fun provideAccountDao(): AccountDao = AccountDatabase.createInMemoryDatabase(context).accountDao()
+
+    @Provides
+    @Singleton
+    fun provideLibraryDao(): LibraryDao = AccountDatabase.createInMemoryDatabase(context).libraryDao()
 
     @Provides
     @Singleton

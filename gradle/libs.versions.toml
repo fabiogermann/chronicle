@@ -1,7 +1,7 @@
 # All entries are alphabetically sorted
 
 [versions]
-agp = "8.13.2"
+agp = "9.2.1"
 androidxTest = "1.6.1" # 1.7.0 causes KSP/Dagger compatibility issues
 androidxTestCore = "1.5.0"
 androidxTestExt = "1.3.0"
@@ -20,9 +20,9 @@ hamcrest = "3.0"
 iapWrapper = "1.7.0" # 1.8.0 causes KSP/Dagger compatibility issues
 inferAnnotation = "0.18.0"
 junit = "4.13.2"
-kotlin = "2.1.0"
+kotlin = "2.2.10"
 kotlinStdlib = "2.1.0"
-ksp = "2.1.0-1.0.29"
+ksp = "2.3.2"
 ktlint = "12.1.2"
 material = "1.12.0" # 1.13.0 causes KSP/Dagger compatibility issues
 media3 = "1.5.0" # 1.6.0 causes KSP/Dagger compatibility issues

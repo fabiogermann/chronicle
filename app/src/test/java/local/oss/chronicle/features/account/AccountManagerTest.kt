@@ -358,6 +358,60 @@ class AccountManagerTest {
         }
 
     @Test
+    fun addPlexAccountWithLibrary_persistsFullConnectionListAndChosenUri(): Unit =
+        runBlocking {
+            // Given: A Plex server with LAN, WAN and relay URIs (as returned by /resources)
+            val connections =
+                listOf(
+                    local.oss.chronicle.data.sources.plex.model.Connection(
+                        uri = "http://192.168.1.100:32400",
+                        local = true,
+                    ),
+                    local.oss.chronicle.data.sources.plex.model.Connection(
+                        uri = "https://wan.plex.direct:32400",
+                        local = false,
+                    ),
+                    local.oss.chronicle.data.sources.plex.model.Connection(
+                        uri = "https://relay.plex.tv:443",
+                        local = false,
+                    ),
+                )
+            val chosen = "http://192.168.1.100:32400"
+
+            // When: A new Plex library is added at the end of the login flow
+            val (_, library) =
+                accountManager.addPlexAccountWithLibrary(
+                    userUuid = "user-uuid",
+                    username = "tester",
+                    userThumb = "",
+                    serverId = "server-id",
+                    serverName = "Home Server",
+                    libraryId = "7",
+                    libraryName = "Audiobooks",
+                    userAuthToken = "user-token",
+                    serverAccessToken = "server-token",
+                    serverUrl = chosen,
+                    connections = connections,
+                )
+
+            // Then: The returned Library carries the full Connection list (so the resolver can
+            // re-probe later) plus a hint of which URI was active at login time.
+            assertThat(library.connections).isEqualTo(connections)
+            assertThat(library.chosenConnectionUri).isEqualTo(chosen)
+            assertThat(library.lastConnectionCheckAt).isNotNull()
+
+            // And: It was persisted with the same payload.
+            verify(libraryRepository).addLibraries(
+                argThat { list ->
+                    list.size == 1 &&
+                        list[0].connections == connections &&
+                        list[0].chosenConnectionUri == chosen &&
+                        list[0].lastConnectionCheckAt != null
+                },
+            )
+        }
+
+    @Test
     fun getAllAccounts_delegatesToRepository() {
         // Given
         val accounts =

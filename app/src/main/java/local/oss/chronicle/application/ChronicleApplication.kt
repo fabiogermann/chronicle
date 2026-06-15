@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
-import android.net.Network
 import android.os.Build
 import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
@@ -74,6 +73,17 @@ open class ChronicleApplication : Application() {
 
     @Inject
     lateinit var legacyAccountMigration: LegacyAccountMigration
+
+    /**
+     * Watches [local.oss.chronicle.util.NetworkMonitor] and runs a connection-cache refresh on
+     * meaningful network transitions (fix #2). Replaces the legacy
+     * `registerDefaultNetworkCallback` callback that used to live in [setupNetwork] — that
+     * callback only called the deprecated [PlexConfig.connectToServer] (no retry) and never
+     * invalidated [ServerConnectionResolver] or [PlaybackUrlResolver], so it failed to recover
+     * from WiFi → cellular handovers.
+     */
+    @Inject
+    lateinit var connectionRefreshCoordinator: ConnectionRefreshCoordinator
 
     override fun onCreate() {
         if (USE_STRICT_MODE && BuildConfig.DEBUG) {
@@ -221,28 +231,20 @@ open class ChronicleApplication : Application() {
         val connectivityManager =
             getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            connectivityManager.registerDefaultNetworkCallback(
-                object :
-                    ConnectivityManager.NetworkCallback() {
-                    override fun onAvailable(network: Network) {
-                        connectToServer()
-                        super.onAvailable(network)
-                    }
-
-                    override fun onLost(network: Network) {
-                        // Prevent from running on ConnectivityThread, because onLost is apparently
-                        // called on ConnectivityThread with no warning
-                        applicationScope.launch {
-                            withContext(Dispatchers.Main) {
-                                plexConfig.connectionHasBeenLost()
-                            }
-                        }
-                        super.onLost(network)
-                    }
-                },
-            )
+            // Fix #2: replace the legacy registerDefaultNetworkCallback path with the
+            // NetworkMonitor-backed ConnectionRefreshCoordinator. The coordinator:
+            //   - reacts to onCapabilitiesChanged (catches WiFi <-> cellular handovers),
+            //   - invalidates ServerConnectionResolver + PlaybackUrlResolver,
+            //   - kicks plexConfig.connectToServerWithRetryAndState (retry-enabled),
+            //   - re-resolves every persisted library proactively,
+            //   - debounces rapid flapping, and
+            //   - fires a one-shot startup refresh if the network is already up.
+            // Touching the unused `connectivityManager` would be wasteful — the coordinator's
+            // internal NetworkMonitor registers its own NetworkCallback.
+            connectionRefreshCoordinator.start(applicationScope)
         } else {
-            // network listener for sdk 24 and below
+            // network listener for sdk 24 and below (dead code at current minSdk but kept for
+            // defensive symmetry — the coordinator is the source of truth for network changes).
             registerReceiver(
                 networkStateListener,
                 IntentFilter().apply {

@@ -58,6 +58,13 @@ class SharedPreferencesPlexPrefsRepoTest {
         val localConnection1 = Connection(uri = "http://192.168.1.100:32400", local = true)
         val localConnection2 = Connection(uri = "http://10.0.0.50:32400", local = true)
         val remoteConnection1 = Connection(uri = "https://external.plex.direct:32400", local = false)
+        // NOTE (fix #4): although this URL string is labelled "relay", SharedPreferences only
+        // persists two flat StringSets keyed by local/remote — the `relay` flag is *not*
+        // preserved here by design. The per-library Room column added in fix #1 (JSON-encoded
+        // List<Connection>) does preserve `relay`; this SharedPrefs surface is only for the
+        // initial pre-login server bootstrap and gets refreshed by the next /resources call.
+        // Relay-only servers are rare in practice, so the brief tier loss on app restart is
+        // acceptable. This test therefore still treats the connection as `relay=false`.
         val remoteConnection2 = Connection(uri = "https://relay.plex.tv:32400", local = false)
 
         val serverModel =

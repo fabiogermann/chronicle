@@ -25,8 +25,8 @@ android {
         applicationId = "local.oss.chronicle"
         minSdk = 30
         targetSdk = 36
-        versionCode = 62
-        versionName = "0.62.0"
+        versionCode = 64
+        versionName = "0.62.1-SNAPSHOT"
 
         testInstrumentationRunner = "local.oss.chronicle.application.ChronicleTestRunner"
     }
@@ -223,6 +223,7 @@ dependencies {
     kspAndroidTest(libs.dagger.compiler)
 
     androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.truth)
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.coroutines.test)
     androidTestImplementation(libs.espresso.core)

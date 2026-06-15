@@ -37,22 +37,18 @@ class BookDatabaseMigrationTest {
             // Insert test data with old schema
             execSQL(
                 """
-                INSERT INTO books (id, title, author, thumb, duration, 
-                    addedAt, updatedAt, lastListenedAt, playbackProgress, 
-                    lastListenedTrackKey, cachedState, favorite, playlistTrackKey)
-                VALUES (12345, 'Test Book', 'Test Author', '/thumb.jpg', 36000000,
-                    1234567890, 1234567890, 1234567890, 50,
-                    67890, 0, 0, 67890)
+                INSERT INTO Audiobook (id, source, title, titleSort, author, thumb, parentId, genre, summary, year, addedAt, updatedAt, lastViewedAt, duration, isCached, progress, favorited, viewedLeafCount, leafCount, viewCount, chapters)
+                VALUES (12345, 0, 'Test Book', 'Test Book', 'Test Author', '/thumb.jpg', 0, '', '', 0, 1234567890, 1234567890, 1234567890, 36000000, 0, 50, 0, 0, 0, 0, '')
             """,
             )
             close()
         }
 
         // Run migration
-        val db = helper.runMigrationsAndValidate(TEST_DB, 9, true, BookDatabase.MIGRATION_8_9)
+        val db = helper.runMigrationsAndValidate(TEST_DB, 9, true, BOOK_MIGRATION_8_9)
 
         // Verify schema changes
-        db.query("PRAGMA table_info(books)").use { cursor ->
+        db.query("PRAGMA table_info(Audiobook)").use { cursor ->
             val columns = mutableMapOf<String, String>()
             while (cursor.moveToNext()) {
                 val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
@@ -74,22 +70,18 @@ class BookDatabaseMigrationTest {
         helper.createDatabase(TEST_DB, 8).apply {
             execSQL(
                 """
-                INSERT INTO books (id, title, author, thumb, duration, 
-                    addedAt, updatedAt, lastListenedAt, playbackProgress, 
-                    lastListenedTrackKey, cachedState, favorite, playlistTrackKey)
-                VALUES (12345, 'Test Book', 'Test Author', '/thumb.jpg', 36000000,
-                    1234567890, 1234567890, 1234567890, 50,
-                    67890, 0, 0, 67890)
+                INSERT INTO Audiobook (id, source, title, titleSort, author, thumb, parentId, genre, summary, year, addedAt, updatedAt, lastViewedAt, duration, isCached, progress, favorited, viewedLeafCount, leafCount, viewCount, chapters)
+                VALUES (12345, 0, 'Test Book', 'Test Book', 'Test Author', '/thumb.jpg', 0, '', '', 0, 1234567890, 1234567890, 1234567890, 36000000, 0, 50, 0, 0, 0, 0, '')
             """,
             )
             close()
         }
 
         // Run migration
-        val db = helper.runMigrationsAndValidate(TEST_DB, 9, true, BookDatabase.MIGRATION_8_9)
+        val db = helper.runMigrationsAndValidate(TEST_DB, 9, true, BOOK_MIGRATION_8_9)
 
         // Verify ID conversion
-        db.query("SELECT id FROM books WHERE title = 'Test Book'").use { cursor ->
+        db.query("SELECT id FROM Audiobook WHERE title = 'Test Book'").use { cursor ->
             assertThat(cursor.moveToFirst()).isTrue()
             val newId = cursor.getString(0)
             assertThat(newId).isEqualTo("plex:12345")
@@ -102,22 +94,18 @@ class BookDatabaseMigrationTest {
         helper.createDatabase(TEST_DB, 8).apply {
             execSQL(
                 """
-                INSERT INTO books (id, title, author, thumb, duration, 
-                    addedAt, updatedAt, lastListenedAt, playbackProgress, 
-                    lastListenedTrackKey, cachedState, favorite, playlistTrackKey)
-                VALUES (12345, 'Test Book', 'Test Author', '/thumb.jpg', 36000000,
-                    1234567890, 1234567890, 1234567890, 50,
-                    67890, 0, 0, 67890)
+                INSERT INTO Audiobook (id, source, title, titleSort, author, thumb, parentId, genre, summary, year, addedAt, updatedAt, lastViewedAt, duration, isCached, progress, favorited, viewedLeafCount, leafCount, viewCount, chapters)
+                VALUES (12345, 0, 'Test Book', 'Test Book', 'Test Author', '/thumb.jpg', 0, '', '', 0, 1234567890, 1234567890, 1234567890, 36000000, 0, 50, 0, 0, 0, 0, '')
             """,
             )
             close()
         }
 
         // Run migration
-        val db = helper.runMigrationsAndValidate(TEST_DB, 9, true, BookDatabase.MIGRATION_8_9)
+        val db = helper.runMigrationsAndValidate(TEST_DB, 9, true, BOOK_MIGRATION_8_9)
 
         // Verify libraryId has a default value (will be updated by LegacyAccountMigration)
-        db.query("SELECT libraryId FROM books WHERE title = 'Test Book'").use { cursor ->
+        db.query("SELECT libraryId FROM Audiobook WHERE title = 'Test Book'").use { cursor ->
             assertThat(cursor.moveToFirst()).isTrue()
             val libraryId = cursor.getString(0)
             // During migration, we set a placeholder that will be updated later
@@ -131,30 +119,24 @@ class BookDatabaseMigrationTest {
         helper.createDatabase(TEST_DB, 8).apply {
             execSQL(
                 """
-                INSERT INTO books (id, title, author, thumb, duration, 
-                    addedAt, updatedAt, lastListenedAt, playbackProgress, 
-                    lastListenedTrackKey, cachedState, favorite, playlistTrackKey)
-                VALUES (111, 'Book One', 'Author One', '/thumb1.jpg', 10000,
-                    1000, 2000, 3000, 25, 1001, 1, 1, 1001)
+                INSERT INTO Audiobook (id, source, title, titleSort, author, thumb, parentId, genre, summary, year, addedAt, updatedAt, lastViewedAt, duration, isCached, progress, favorited, viewedLeafCount, leafCount, viewCount, chapters)
+                VALUES (111, 0, 'Book One', 'Book One', 'Author One', '/thumb1.jpg', 0, '', '', 0, 1000, 2000, 3000, 10000, 0, 25, 1, 0, 0, 0, '')
             """,
             )
             execSQL(
                 """
-                INSERT INTO books (id, title, author, thumb, duration, 
-                    addedAt, updatedAt, lastListenedAt, playbackProgress, 
-                    lastListenedTrackKey, cachedState, favorite, playlistTrackKey)
-                VALUES (222, 'Book Two', 'Author Two', '/thumb2.jpg', 20000,
-                    4000, 5000, 6000, 75, 2001, 2, 0, 2001)
+                INSERT INTO Audiobook (id, source, title, titleSort, author, thumb, parentId, genre, summary, year, addedAt, updatedAt, lastViewedAt, duration, isCached, progress, favorited, viewedLeafCount, leafCount, viewCount, chapters)
+                VALUES (222, 0, 'Book Two', 'Book Two', 'Author Two', '/thumb2.jpg', 0, '', '', 0, 4000, 5000, 6000, 20000, 0, 75, 0, 0, 0, 0, '')
             """,
             )
             close()
         }
 
         // Run migration
-        val db = helper.runMigrationsAndValidate(TEST_DB, 9, true, BookDatabase.MIGRATION_8_9)
+        val db = helper.runMigrationsAndValidate(TEST_DB, 9, true, BOOK_MIGRATION_8_9)
 
         // Verify all data preserved
-        db.query("SELECT * FROM books ORDER BY title").use { cursor ->
+        db.query("SELECT * FROM Audiobook ORDER BY title").use { cursor ->
             assertThat(cursor.count).isEqualTo(2)
 
             // First book
@@ -162,14 +144,14 @@ class BookDatabaseMigrationTest {
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("id"))).isEqualTo("plex:111")
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("title"))).isEqualTo("Book One")
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("author"))).isEqualTo("Author One")
-            assertThat(cursor.getLong(cursor.getColumnIndexOrThrow("playbackProgress"))).isEqualTo(25)
-            assertThat(cursor.getInt(cursor.getColumnIndexOrThrow("favorite"))).isEqualTo(1)
+            assertThat(cursor.getLong(cursor.getColumnIndexOrThrow("progress"))).isEqualTo(25)
+            assertThat(cursor.getInt(cursor.getColumnIndexOrThrow("favorited"))).isEqualTo(1)
 
             // Second book
             cursor.moveToNext()
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("id"))).isEqualTo("plex:222")
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("title"))).isEqualTo("Book Two")
-            assertThat(cursor.getLong(cursor.getColumnIndexOrThrow("playbackProgress"))).isEqualTo(75)
+            assertThat(cursor.getLong(cursor.getColumnIndexOrThrow("progress"))).isEqualTo(75)
         }
     }
 
@@ -181,44 +163,12 @@ class BookDatabaseMigrationTest {
         }
 
         // Run migration - should not throw
-        val db = helper.runMigrationsAndValidate(TEST_DB, 9, true, BookDatabase.MIGRATION_8_9)
+        val db = helper.runMigrationsAndValidate(TEST_DB, 9, true, BOOK_MIGRATION_8_9)
 
         // Verify table exists and is empty
-        db.query("SELECT COUNT(*) FROM books").use { cursor ->
+        db.query("SELECT COUNT(*) FROM Audiobook").use { cursor ->
             cursor.moveToFirst()
             assertThat(cursor.getInt(0)).isEqualTo(0)
-        }
-    }
-
-    @Test
-    fun migrate8To9_convertsTrackKeys() {
-        // Create database at version 8
-        helper.createDatabase(TEST_DB, 8).apply {
-            execSQL(
-                """
-                INSERT INTO books (id, title, author, thumb, duration, 
-                    addedAt, updatedAt, lastListenedAt, playbackProgress, 
-                    lastListenedTrackKey, cachedState, favorite, playlistTrackKey)
-                VALUES (12345, 'Test Book', 'Test Author', '/thumb.jpg', 36000000,
-                    1234567890, 1234567890, 1234567890, 50,
-                    67890, 0, 0, 99999)
-            """,
-            )
-            close()
-        }
-
-        // Run migration
-        val db = helper.runMigrationsAndValidate(TEST_DB, 9, true, BookDatabase.MIGRATION_8_9)
-
-        // Verify track key references are also converted to string format
-        db.query("SELECT lastListenedTrackKey, playlistTrackKey FROM books").use { cursor ->
-            cursor.moveToFirst()
-            val lastListenedTrackKey = cursor.getString(0)
-            val playlistTrackKey = cursor.getString(1)
-
-            // Track keys should also be prefixed
-            assertThat(lastListenedTrackKey).isEqualTo("plex:67890")
-            assertThat(playlistTrackKey).isEqualTo("plex:99999")
         }
     }
 }

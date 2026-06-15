@@ -213,6 +213,9 @@ class PlexLoginRepo
                             userAuthToken = userToken,
                             serverAccessToken = server.accessToken,
                             serverUrl = plexConfig.url,
+                            // Persist the full Connection list so the resolver can re-probe and
+                            // fail over off-network (off-network playback fix).
+                            connections = server.connections,
                         )
                         Timber.i("Account saved to database: ${user.uuid}, library: ${plexLibrary.id}")
                         // ✅ Navigate ONLY after save completes

@@ -20,6 +20,13 @@ class LibraryRepository
 
         fun getAllLibraries(): Flow<List<Library>> = libraryDao.getAllLibraries()
 
+        /**
+         * One-shot snapshot of every persisted library. Unlike [getAllLibraries] this does not
+         * subscribe to a Flow — used by [local.oss.chronicle.data.sources.plex.ConnectionRefreshCoordinator]
+         * to enumerate library IDs on a network-change refresh.
+         */
+        suspend fun getAllLibrariesSnapshot(): List<Library> = libraryDao.getAllLibrariesSnapshot()
+
         fun getLibrariesForAccount(accountId: String): Flow<List<Library>> = libraryDao.getLibrariesForAccount(accountId)
 
         fun getLibrariesByServerId(serverId: String): Flow<List<Library>> = libraryDao.getLibrariesByServerId(serverId)
