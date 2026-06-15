@@ -15,7 +15,6 @@ import local.oss.chronicle.util.DoubleLiveData
 import local.oss.chronicle.util.Event
 import local.oss.chronicle.util.postEvent
 import timber.log.Timber
-import java.util.*
 import javax.inject.Inject
 
 @OptIn(InternalCoroutinesApi::class)
@@ -81,15 +80,11 @@ class ChooseLibraryViewModel
             }
 
         init {
-            viewModelScope.launch {
-                // chooseViableConnections must be called here because it won't be called in
-                // ChronicleApplication if we have just logged in
-                try {
-                    plexConfig.connectToServer(plexMediaService)
-                } catch (t: Throwable) {
-                    Timber.i("Failed to return result!")
-                }
-            }
+            // chooseViableConnections must be called here because it won't be called in
+            // ChronicleApplication if we have just logged in.
+            // Use connectToServerWithRetryAndState so WAN/relay connections get retried
+            // (important when the user is not on the same LAN as their Plex server).
+            plexConfig.connectToServerWithRetryAndState(plexMediaService)
             plexConfig.isConnected.observeForever(networkObserver)
         }
 
@@ -111,7 +106,7 @@ class ChooseLibraryViewModel
                     _libraries.postValue(tempLibraries)
                     _loadingStatus.value = LoadingStatus.DONE
                 } catch (e: Throwable) {
-                    Timber.e("Error loading libraries: ${Arrays.toString(e.stackTrace)}")
+                    Timber.e(e, "Error loading libraries")
                     _userMessage.postEvent("Unable to load libraries: ${e.message}")
                     _loadingStatus.value = LoadingStatus.ERROR
                 }
