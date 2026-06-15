@@ -8,6 +8,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -163,7 +164,12 @@ class ScopedPlexServiceFactory
                         .header("X-Plex-Token", authToken)
                         .build()
 
-                chain.proceed(request)
+                try {
+                    chain.proceed(request)
+                } catch (e: java.io.IOException) {
+                    Timber.w(e, "Network error in ScopedPlexServiceFactory interceptor")
+                    throw e
+                }
             }
         }
     }

@@ -82,6 +82,11 @@ class PlexInterceptor(
             }
         }
 
-        return chain.proceed(requestBuilder.build())
+        return try {
+            chain.proceed(requestBuilder.build())
+        } catch (e: java.io.IOException) {
+            Timber.w(e, "Network error in PlexInterceptor for ${interceptedUrl}")
+            throw e
+        }
     }
 }
