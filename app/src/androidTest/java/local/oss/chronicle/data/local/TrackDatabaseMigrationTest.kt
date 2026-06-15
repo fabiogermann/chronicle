@@ -14,7 +14,7 @@ import org.junit.runner.RunWith
  *
  * Migration changes:
  * - id: INTEGER → TEXT (with "plex:" prefix)
- * - parentKey: INTEGER → TEXT (with "plex:" prefix)
+ * - parentServerId → parentKey: INTEGER → TEXT (with "plex:" prefix)
  * - Added libraryId: TEXT (NOT NULL with default)
  */
 @RunWith(AndroidJUnit4::class)
@@ -37,19 +37,18 @@ class TrackDatabaseMigrationTest {
         helper.createDatabase(TEST_DB, 6).apply {
             execSQL(
                 """
-                INSERT INTO tracks (id, parentKey, title, duration, 
-                    trackIndex, discNumber, filePath)
-                VALUES (111, 12345, 'Chapter 1', 300000, 1, 1, '/path/to/file.mp3')
+                INSERT INTO MediaItemTrack (id, serverId, parentServerId, title, playQueueItemID, thumb, `index`, discNumber, duration, media, album, artist, genre, cached, artwork, viewCount, progress, lastViewedAt, updatedAt, size, source)
+                VALUES (111, 111, 12345, 'Chapter 1', 0, NULL, 1, 1, 300000, '', '', '', '', 0, NULL, 0, 0, 0, 0, 0, 0)
             """,
             )
             close()
         }
 
         // Run migration
-        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, TrackDatabase.MIGRATION_6_7)
+        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, MIGRATION_6_7)
 
         // Verify schema changes
-        db.query("PRAGMA table_info(tracks)").use { cursor ->
+        db.query("PRAGMA table_info(MediaItemTrack)").use { cursor ->
             val columns = mutableMapOf<String, String>()
             while (cursor.moveToNext()) {
                 val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
@@ -74,19 +73,18 @@ class TrackDatabaseMigrationTest {
         helper.createDatabase(TEST_DB, 6).apply {
             execSQL(
                 """
-                INSERT INTO tracks (id, parentKey, title, duration, 
-                    trackIndex, discNumber, filePath)
-                VALUES (111, 12345, 'Chapter 1', 300000, 1, 1, '/path/to/file.mp3')
+                INSERT INTO MediaItemTrack (id, serverId, parentServerId, title, playQueueItemID, thumb, `index`, discNumber, duration, media, album, artist, genre, cached, artwork, viewCount, progress, lastViewedAt, updatedAt, size, source)
+                VALUES (111, 111, 12345, 'Chapter 1', 0, NULL, 1, 1, 300000, '', '', '', '', 0, NULL, 0, 0, 0, 0, 0, 0)
             """,
             )
             close()
         }
 
         // Run migration
-        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, TrackDatabase.MIGRATION_6_7)
+        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, MIGRATION_6_7)
 
         // Verify ID and parentKey conversion
-        db.query("SELECT id, parentKey FROM tracks").use { cursor ->
+        db.query("SELECT id, parentKey FROM MediaItemTrack").use { cursor ->
             assertThat(cursor.moveToFirst()).isTrue()
 
             val newId = cursor.getString(0)
@@ -103,22 +101,22 @@ class TrackDatabaseMigrationTest {
         helper.createDatabase(TEST_DB, 6).apply {
             execSQL(
                 """
-                INSERT INTO tracks (id, parentKey, title, duration, 
-                    trackIndex, discNumber, filePath)
-                VALUES (111, 12345, 'Chapter 1', 300000, 1, 1, '/path/to/file.mp3')
+                INSERT INTO MediaItemTrack (id, serverId, parentServerId, title, playQueueItemID, thumb, `index`, discNumber, duration, media, album, artist, genre, cached, artwork, viewCount, progress, lastViewedAt, updatedAt, size, source)
+                VALUES (111, 111, 12345, 'Chapter 1', 0, NULL, 1, 1, 300000, '', '', '', '', 0, NULL, 0, 0, 0, 0, 0, 0)
             """,
             )
             close()
         }
 
         // Run migration
-        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, TrackDatabase.MIGRATION_6_7)
+        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, MIGRATION_6_7)
 
         // Verify libraryId has a default value
-        db.query("SELECT libraryId FROM tracks").use { cursor ->
+        db.query("SELECT libraryId FROM MediaItemTrack").use { cursor ->
             assertThat(cursor.moveToFirst()).isTrue()
             val libraryId = cursor.getString(0)
-            assertThat(libraryId).isEqualTo("legacy:pending")
+            // Migration sets empty string as default (updated later by LegacyAccountMigration)
+            assertThat(libraryId).isEqualTo("")
         }
     }
 
@@ -128,33 +126,30 @@ class TrackDatabaseMigrationTest {
         helper.createDatabase(TEST_DB, 6).apply {
             execSQL(
                 """
-                INSERT INTO tracks (id, parentKey, title, duration, 
-                    trackIndex, discNumber, filePath)
-                VALUES (111, 12345, 'Chapter 1', 300000, 1, 1, '/path/ch1.mp3')
+                INSERT INTO MediaItemTrack (id, serverId, parentServerId, title, playQueueItemID, thumb, `index`, discNumber, duration, media, album, artist, genre, cached, artwork, viewCount, progress, lastViewedAt, updatedAt, size, source)
+                VALUES (111, 111, 12345, 'Chapter 1', 0, NULL, 1, 1, 300000, '', '', '', '', 0, NULL, 0, 0, 0, 0, 0, 0)
             """,
             )
             execSQL(
                 """
-                INSERT INTO tracks (id, parentKey, title, duration, 
-                    trackIndex, discNumber, filePath)
-                VALUES (222, 12345, 'Chapter 2', 400000, 2, 1, '/path/ch2.mp3')
+                INSERT INTO MediaItemTrack (id, serverId, parentServerId, title, playQueueItemID, thumb, `index`, discNumber, duration, media, album, artist, genre, cached, artwork, viewCount, progress, lastViewedAt, updatedAt, size, source)
+                VALUES (222, 222, 12345, 'Chapter 2', 0, NULL, 2, 1, 400000, '', '', '', '', 0, NULL, 0, 0, 0, 0, 0, 0)
             """,
             )
             execSQL(
                 """
-                INSERT INTO tracks (id, parentKey, title, duration, 
-                    trackIndex, discNumber, filePath)
-                VALUES (333, 67890, 'Intro', 60000, 1, 1, '/path/intro.mp3')
+                INSERT INTO MediaItemTrack (id, serverId, parentServerId, title, playQueueItemID, thumb, `index`, discNumber, duration, media, album, artist, genre, cached, artwork, viewCount, progress, lastViewedAt, updatedAt, size, source)
+                VALUES (333, 333, 67890, 'Intro', 0, NULL, 1, 1, 60000, '', '', '', '', 0, NULL, 0, 0, 0, 0, 0, 0)
             """,
             )
             close()
         }
 
         // Run migration
-        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, TrackDatabase.MIGRATION_6_7)
+        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, MIGRATION_6_7)
 
         // Verify all data preserved
-        db.query("SELECT * FROM tracks ORDER BY id").use { cursor ->
+        db.query("SELECT * FROM MediaItemTrack ORDER BY id").use { cursor ->
             assertThat(cursor.count).isEqualTo(3)
 
             // First track
@@ -163,7 +158,7 @@ class TrackDatabaseMigrationTest {
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("parentKey"))).isEqualTo("plex:12345")
             assertThat(cursor.getString(cursor.getColumnIndexOrThrow("title"))).isEqualTo("Chapter 1")
             assertThat(cursor.getLong(cursor.getColumnIndexOrThrow("duration"))).isEqualTo(300000)
-            assertThat(cursor.getInt(cursor.getColumnIndexOrThrow("trackIndex"))).isEqualTo(1)
+            assertThat(cursor.getInt(cursor.getColumnIndexOrThrow("index"))).isEqualTo(1)
 
             // Second track
             cursor.moveToNext()
@@ -186,10 +181,10 @@ class TrackDatabaseMigrationTest {
         }
 
         // Run migration - should not throw
-        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, TrackDatabase.MIGRATION_6_7)
+        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, MIGRATION_6_7)
 
         // Verify table exists and is empty
-        db.query("SELECT COUNT(*) FROM tracks").use { cursor ->
+        db.query("SELECT COUNT(*) FROM MediaItemTrack").use { cursor ->
             cursor.moveToFirst()
             assertThat(cursor.getInt(0)).isEqualTo(0)
         }
@@ -197,23 +192,22 @@ class TrackDatabaseMigrationTest {
 
     @Test
     fun migrate6To7_preservesNullFilePaths() {
-        // Create database at version 6 with null filePath
+        // Create database at version 6 with null thumb (no filePath column in this schema)
         helper.createDatabase(TEST_DB, 6).apply {
             execSQL(
                 """
-                INSERT INTO tracks (id, parentKey, title, duration, 
-                    trackIndex, discNumber, filePath)
-                VALUES (111, 12345, 'Streaming Chapter', 300000, 1, 1, NULL)
+                INSERT INTO MediaItemTrack (id, serverId, parentServerId, title, playQueueItemID, thumb, `index`, discNumber, duration, media, album, artist, genre, cached, artwork, viewCount, progress, lastViewedAt, updatedAt, size, source)
+                VALUES (111, 111, 12345, 'Streaming Chapter', 0, NULL, 1, 1, 300000, '', '', '', '', 0, NULL, 0, 0, 0, 0, 0, 0)
             """,
             )
             close()
         }
 
         // Run migration
-        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, TrackDatabase.MIGRATION_6_7)
+        val db = helper.runMigrationsAndValidate(TEST_DB, 7, true, MIGRATION_6_7)
 
-        // Verify null filePath preserved
-        db.query("SELECT filePath FROM tracks WHERE id = 'plex:111'").use { cursor ->
+        // Verify null thumb preserved
+        db.query("SELECT thumb FROM MediaItemTrack WHERE id = 'plex:111'").use { cursor ->
             assertThat(cursor.moveToFirst()).isTrue()
             assertThat(cursor.isNull(0)).isTrue()
         }

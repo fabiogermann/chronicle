@@ -214,6 +214,7 @@ dependencies {
     kspAndroidTest(libs.dagger.compiler)
 
     androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.truth)
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.coroutines.test)
     androidTestImplementation(libs.espresso.core)
