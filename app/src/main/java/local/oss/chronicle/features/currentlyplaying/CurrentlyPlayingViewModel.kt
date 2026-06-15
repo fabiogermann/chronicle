@@ -212,7 +212,12 @@ class CurrentlyPlayingViewModel(
             )
         }
 
-    var isSliding = false
+    private var _isSliding = false
+    val isSliding get() = _isSliding
+
+    fun startSliding() {
+        _isSliding = true
+    }
 
     private var _isSleepTimerActive = MutableLiveData(false)
     val isSleepTimerActive: LiveData<Boolean>
@@ -831,6 +836,10 @@ class CurrentlyPlayingViewModel(
                 val chapterRelativePosition = (percentProgress * chapterDuration).toLong()
                 mediaServiceConnection.transportControls?.seekTo(chapterRelativePosition)
             }
+        }
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(1500L)
+            _isSliding = false
         }
     }
 

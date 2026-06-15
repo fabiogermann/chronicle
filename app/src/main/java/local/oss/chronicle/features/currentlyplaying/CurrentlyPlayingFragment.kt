@@ -96,15 +96,23 @@ class CurrentlyPlayingFragment : Fragment() {
         binding.chapterProgressSeekbar.addOnSliderTouchListener(
             object : Slider.OnSliderTouchListener {
                 override fun onStartTrackingTouch(slider: Slider) {
-                    viewModel.isSliding = true
+                    viewModel.startSliding()
                 }
 
                 override fun onStopTrackingTouch(slider: Slider) {
-                    viewModel.isSliding = false
                     viewModel.seekTo(slider.value.toDouble() / slider.valueTo)
                 }
             },
         )
+
+        binding.chapterProgressSeekbar.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) {
+                binding.chapterProgress.text = DateUtils.formatElapsedTime(
+                    StringBuilder(),
+                    value.toLong() / 1000,
+                )
+            }
+        }
 
         binding.chapterProgressSeekbar.setLabelFormatter { value: Float ->
             DateUtils.formatElapsedTime(
