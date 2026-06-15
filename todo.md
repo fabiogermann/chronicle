@@ -52,6 +52,16 @@ Low priority
        - [ ] Filterable by all known Plex fields (genre, release date, author, etc.)
             - [ ] UI for this will be tricky...
        - [ ] Folder view + author view + collections view
+ - [ ] Collections improvements (existing Collections tab works via Plex server-side collections;
+        the items below are optional enhancements — no code changes needed for basic grouping):
+     - [ ] [Flavour C] Bidirectional discoverability: books should show which collections they
+            belong to on the book detail screen (chip row "In collections: Mistborn" linking to
+            the collection). Requires: add includeCollections=1 to 3 album endpoints in PlexService,
+            add Audiobook.collectionTags column + BookDatabase v9→v10 migration, render chips in
+            AudiobookDetailsFragment.
+     - [ ] [Flavour B] Make Collections more discoverable: either (a) always show the Collections
+            bottom-nav tab even when empty (one-line change + empty-state screen), or (b) add a
+            "Collections" carousel to the Home screen similar to "Recently Listened".
  - [ ] Add more narrator to audiobook page: narrator
  - [ ] Better tablet/landscape support
  - [ ] Next/previous chapter buttons in "currently playing" screen?
