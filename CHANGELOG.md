@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.62.0] - 2026-06-15
+
+- chore: bump version to 0.61.2-SNAPSHOT and update CHANGELOG.md (c4b3ad9)
+- fix: issue with offline playback (80e353d)
+- fix: offline playback (e3815f2)
+- build: upgrade to Gradle 9.4.1, AGP 9.2.1, Kotlin 2.2.10 (fd67e2d)
+- fix(test): add missing Dagger bindings and fix migration tests in UITestAppModule (2bd610e)
+- Merge pull request #14 from fabiogermann/feat/fix-uitest-dagger-bindings (b95be24)
+- feat(connection): persist full connection list per library and re-probe on resolve (270e8f2)
+- feat(connection): persist Connection list on login + sync; refresh playback URLs on failover (939c159)
+- feat(network): add ConnectionRefreshCoordinator for network-change cache invalidation (f1bdb01)
+- feat(network): wire ConnectionRefreshCoordinator into ChronicleApplication.setupNetwork (064c086)
+- refactor(player): add PlaybackErrorRecoveryHandler with TDD tests (eb47182)
+- feat(player): recover from network playback errors via ConnectionRefreshCoordinator (12a977d)
+- feat(connection): parse relay/IPv6/protocol/address/port on Connection model (af30e04)
+- feat(connection): deprioritize Plex Relay connections behind direct WAN (d0e6e93)
+- chore: added mcp config (f584aa5)
+- Merge pull request #17 from fabiogermann/feat/off-network-playback (aff8caf)
+- chore: bump version to 0.62.0 (versionCode 63) (7010297)
+
 ## [0.61.1] - 2026-03-21
 
 - 01 - phase 1 (e366b7d)
