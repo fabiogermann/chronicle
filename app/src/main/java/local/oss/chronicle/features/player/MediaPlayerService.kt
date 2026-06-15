@@ -146,6 +146,22 @@ class MediaPlayerService :
         const val PLAYBACK_ERROR_MESSAGE = "playback error message"
 
         /**
+         * Boolean extra on [ACTION_PLAYBACK_ERROR] indicating the error is being recovered from
+         * (fix #3). When `true`, UI should show a transient "Reconnecting…" state; on success a
+         * [ACTION_PLAYBACK_RECOVERED] broadcast follows, on failure the same
+         * [ACTION_PLAYBACK_ERROR] action is re-sent with this extra set to `false`. Defaults to
+         * `false` for receivers that don't read it (backwards-compatible).
+         */
+        const val EXTRA_IS_RECOVERING = "playback error is recovering"
+
+        /**
+         * Broadcast sent by [PlaybackErrorRecoveryHandler] after a recoverable network failure has
+         * been successfully recovered (cache flushed, player re-prepared). UI can dismiss the
+         * "Reconnecting…" affordance on receipt.
+         */
+        const val ACTION_PLAYBACK_RECOVERED = "playback recovered action intent"
+
+        /**
          * Key for storing absolute track position in PlaybackStateCompat extras.
          * This is used to avoid confusion with chapter-relative position stored in PlaybackStateCompat.position
          */
