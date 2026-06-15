@@ -46,11 +46,19 @@ class PlexConfig
         private val scopedPlexServiceFactoryProvider: Provider<ScopedPlexServiceFactory>,
     ) {
         companion object {
-            /** Timeout for individual connection attempt (reduced from 15s) */
-            const val CONNECTION_TIMEOUT_MS = 10_000L // 10 seconds per attempt
+            /**
+             * Per-tier timeout for connection probing.
+             * LAN tier gets this budget; if it fails within this window the WAN tier starts.
+             * This must be less than the OkHttp socket timeout (15s in AppModule) so coroutine
+             * cancellation fires before OkHttp's own timeout.
+             */
+            const val CONNECTION_TIMEOUT_MS = 5_000L // 5 seconds per tier
 
-            /** Maximum total connection time with retries */
-            const val MAX_CONNECTION_TIME_MS = 30_000L // 30 seconds total
+            /**
+             * Overall timeout for the full tiered probe (LAN + WAN + relay).
+             * 3 tiers × 5s per tier + small buffer = 20s total cap.
+             */
+            const val MAX_CONNECTION_TIME_MS = 20_000L // 20 seconds total
 
             const val PLACEHOLDER_URL = "http://placeholder.com"
         }
@@ -590,7 +598,7 @@ class PlexConfig
 
             // Multiple connections - tier them by priority and race within each tier.
             val tiers = connections.groupBy { it.priority }.toSortedMap()
-            return withTimeoutOrNull(CONNECTION_TIMEOUT_MS) {
+            return withTimeoutOrNull(MAX_CONNECTION_TIME_MS) {
                 val unknownFailureReason = "Failed for unknown reason"
                 Timber.i("Choosing viable connection from: $connectionSet")
 
@@ -604,7 +612,15 @@ class PlexConfig
                         }
                     Timber.i("Probing $tierName tier with ${tierConnections.size} candidate(s)")
 
-                    val tierResult = raceTier(tierConnections, plexMediaService, unknownFailureReason)
+                    // Each tier gets its own per-tier timeout so a dead LAN address can't
+                    // consume the entire budget and prevent WAN/relay from being tried.
+                    val tierResult =
+                        withTimeoutOrNull(CONNECTION_TIMEOUT_MS) {
+                            raceTier(tierConnections, plexMediaService, unknownFailureReason)
+                        } ?: run {
+                            Timber.i("Tier $tierName timed out after ${CONNECTION_TIMEOUT_MS}ms; trying next tier")
+                            Failure(timeoutFailureReason) as ConnectionResult
+                        }
                     if (tierResult is Success) {
                         if (tier == Connection.PRIORITY_RELAY) {
                             Timber.w(

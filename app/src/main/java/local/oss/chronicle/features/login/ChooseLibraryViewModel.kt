@@ -98,11 +98,16 @@ class ChooseLibraryViewModel
                 try {
                     _loadingStatus.value = LoadingStatus.LOADING
                     val libraryContainer = plexMediaService.retrieveLibraries()
+                    val allDirectories = libraryContainer.plexMediaContainer.plexDirectories
+                    Timber.i(
+                        "Server returned ${allDirectories.size} library sections: " +
+                            allDirectories.joinToString { "'${it.title}' (type=${it.type})" },
+                    )
                     val tempLibraries =
-                        libraryContainer.plexMediaContainer.plexDirectories
+                        allDirectories
                             .filter { it.type == ARTIST.typeString }
                             .map { it.asLibrary() }
-                    Timber.i("Libraries: $tempLibraries")
+                    Timber.i("Libraries fetched from server: ${tempLibraries.size} — $tempLibraries")
                     _libraries.postValue(tempLibraries)
                     _loadingStatus.value = LoadingStatus.DONE
                 } catch (e: Throwable) {
