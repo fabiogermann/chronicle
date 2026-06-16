@@ -46,7 +46,7 @@ class PlexConfigConnectionTest {
 
         plexPrefsRepo = mockk(relaxed = true)
         plexMediaService = mockk(relaxed = true)
-        plexConfig = PlexConfig(plexPrefsRepo, mockk(relaxed = true))
+        plexConfig = PlexConfig(plexPrefsRepo, mockk(relaxed = true), mockk(relaxed = true))
         // Setup test connections
         plexConfig.setPotentialConnections(
             listOf(
