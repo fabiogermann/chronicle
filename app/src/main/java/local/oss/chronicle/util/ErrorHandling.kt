@@ -52,10 +52,9 @@ fun Throwable.toChronicleError(): ChronicleError {
                 isRecoverable = true,
             )
         is java.io.IOException ->
-            ChronicleError.NetworkError(
-                message = this.message ?: "Network error",
+            ChronicleError.StorageError(
+                message = this.message ?: "Storage error",
                 cause = this,
-                isRecoverable = true,
             )
         else ->
             ChronicleError.UnknownError(
