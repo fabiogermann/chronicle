@@ -50,11 +50,17 @@ class PlexConfig
     ) {
         companion object {
             /**
-             * Per-tier timeout for LAN connection probing.
-             * Short because LAN addresses fail immediately when not on the same network.
+             * General per-connection timeout used as the public constant.
+             * Applies to single-connection probes and as the baseline for WAN/relay tiers.
              * Must be less than OkHttp socket timeout (15s) so coroutine cancellation fires first.
              */
-            const val CONNECTION_TIMEOUT_MS = 3_000L // 3 seconds for LAN tier
+            const val CONNECTION_TIMEOUT_MS = 10_000L // 10 seconds
+
+            /**
+             * Per-tier timeout for LAN connection probing.
+             * Shorter than WAN because LAN addresses fail fast when not on the same network.
+             */
+            private const val CONNECTION_TIMEOUT_LAN_MS = 3_000L // 3 seconds for LAN tier
 
             /**
              * Per-tier timeout for WAN/relay connection probing.
@@ -64,9 +70,8 @@ class PlexConfig
 
             /**
              * Overall timeout for the full tiered probe (LAN + WAN + relay).
-             * LAN(3s) + WAN(4s) + relay(4s) + small buffer = 15s total cap.
              */
-            const val MAX_CONNECTION_TIME_MS = 15_000L // 15 seconds total
+            const val MAX_CONNECTION_TIME_MS = 30_000L // 30 seconds total
 
             const val PLACEHOLDER_URL = "http://placeholder.com"
         }
@@ -377,14 +382,11 @@ class PlexConfig
         @InternalCoroutinesApi
         fun connectToServerWithRetryAndState(plexMediaService: PlexMediaService) {
             prevConnectToServerJob?.cancel("Killing previous connection attempt")
-            // Use setValue (synchronous) so the CONNECTING state is immediately visible to any
-            // observer that attaches later — postValue would be deferred and could be missed
-            // if the calling thread is main (which it is from ViewModel.init).
-            if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
-                _connectionState.value = CONNECTING
-            } else {
-                _connectionState.postValue(CONNECTING)
-            }
+            // postValue is safe to call from any thread; on the main thread it behaves
+            // identically to setValue because LiveData coalesces updates on the main looper.
+            // Using postValue avoids the Looper.myLooper() call which is not available in
+            // unit tests running without an Android environment.
+            _connectionState.postValue(CONNECTING)
             prevConnectToServerJob =
                 Job().also {
                     val context = CoroutineScope(it + Dispatchers.Main)
@@ -581,13 +583,17 @@ class PlexConfig
             val timeoutFailureReason = "Connection timed out"
             val allConnections = connectionSet.sortedWith(Connection.PRIORITY_COMPARATOR)
 
-            // Skip LAN candidates when the phone is on cellular without a VPN — a private LAN
-            // address (10.x, 192.168.x, etc.) is unreachable on cellular and would just waste the
-            // full per-tier timeout before falling through to WAN.
+            // Skip LAN candidates only when we know the phone is on cellular without a VPN —
+            // a private LAN address (10.x, 192.168.x, etc.) is unreachable on cellular and
+            // would waste the full per-tier timeout before falling through to WAN.
+            // When state is Unknown, or Connected without explicit cellular flag, allow LAN probing.
             val networkState = networkMonitor.currentState
-            val canReachLan =
+            val isCellularOnly =
                 networkState is NetworkState.Connected &&
-                    (networkState.isWifi || networkState.isVpn)
+                    networkState.isCellular &&
+                    !networkState.isWifi &&
+                    !networkState.isVpn
+            val canReachLan = !isCellularOnly
             val connections =
                 if (canReachLan) {
                     allConnections
@@ -618,18 +624,13 @@ class PlexConfig
                             "— bandwidth limited to ~2 Mbps (relay is the only known connection)",
                     )
                 }
-                return withTimeoutOrNull(CONNECTION_TIMEOUT_MS) {
-                    val result = plexMediaService.checkServer(conn.uri)
-                    if (result.isSuccessful) {
-                        Timber.d("URL_DEBUG: Single connection test SUCCESS: ${conn.uri}")
-                        Success(conn.uri)
-                    } else {
-                        Timber.d("URL_DEBUG: Single connection test FAILED: ${conn.uri} - ${result.message()}")
-                        Failure(result.message() ?: "Failed for unknown reason")
-                    }
-                } ?: run {
-                    Timber.d("URL_DEBUG: Single connection test TIMEOUT: ${conn.uri}")
-                    Failure(timeoutFailureReason)
+                val result = plexMediaService.checkServer(conn.uri)
+                return if (result.isSuccessful) {
+                    Timber.d("URL_DEBUG: Single connection test SUCCESS: ${conn.uri}")
+                    Success(conn.uri)
+                } else {
+                    Timber.d("URL_DEBUG: Single connection test FAILED: ${conn.uri} - ${result.message()}")
+                    Failure(result.message() ?: "Failed for unknown reason")
                 }
             }
 
@@ -654,7 +655,7 @@ class PlexConfig
                     // LAN gets a shorter budget (3s) since it fails fast when unreachable;
                     // WAN/relay get a longer budget (4s) to handle higher RTT.
                     val tierTimeoutMs =
-                        if (tier == Connection.PRIORITY_LAN) CONNECTION_TIMEOUT_MS else CONNECTION_TIMEOUT_WAN_MS
+                        if (tier == Connection.PRIORITY_LAN) CONNECTION_TIMEOUT_LAN_MS else CONNECTION_TIMEOUT_WAN_MS
                     val tierResult =
                         withTimeoutOrNull(tierTimeoutMs) {
                             raceTier(tierConnections, plexMediaService, unknownFailureReason)
