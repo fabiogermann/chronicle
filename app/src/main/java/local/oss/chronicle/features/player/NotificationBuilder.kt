@@ -186,6 +186,39 @@ class NotificationBuilder
          * @return a notification representing the current playback state or null if one already exists
          */
         suspend fun buildNotification(sessionToken: MediaSessionCompat.Token): Notification? {
+            // Only load bitmap when the book changes or the bitmap got recycled
+            val currentBook = currentlyPlaying.book.value
+            if (bookTitleBitmapPair?.first != currentBook.id || bookTitleBitmapPair?.second?.isRecycled != false) {
+                val artUri = currentBook.thumb
+                Timber.i("Loading art uri: $artUri")
+                val largeIcon = plexConfig.getBitmapFromServer(artUri)
+                // ^^^ nullable, but null is expected value for book without artwork ^^^
+                bookTitleBitmapPair = Pair(currentBook.id, largeIcon)
+            }
+            return buildNotificationInternal(sessionToken, bookTitleBitmapPair?.second)
+        }
+
+        /**
+         * Build a notification synchronously WITHOUT performing any network I/O (album art).
+         *
+         * This must be used to promote the service to the foreground within the OS-mandated
+         * window (see [android.app.Service.startForeground]); performing the blocking artwork
+         * fetch first risked a [android.app.ForegroundServiceStartNotAllowedException] /
+         * ForegroundServiceDidNotStartInTimeException when the network was slow or unreachable.
+         * A cached bitmap (if any) is still reused, but no new fetch is triggered.
+         */
+        fun buildNotificationWithoutArt(sessionToken: MediaSessionCompat.Token): Notification {
+            val cachedIcon =
+                bookTitleBitmapPair
+                    ?.takeIf { it.first == currentlyPlaying.book.value.id && it.second?.isRecycled != true }
+                    ?.second
+            return buildNotificationInternal(sessionToken, cachedIcon)
+        }
+
+        private fun buildNotificationInternal(
+            sessionToken: MediaSessionCompat.Token,
+            largeIcon: Bitmap?,
+        ): Notification {
             if (shouldCreateChannel()) {
                 createNowPlayingChannel()
             }
@@ -245,22 +278,13 @@ class NotificationBuilder
                     Pair(currentBook.title, currentBook.author)
                 }
 
-            // Only load bitmap when the book changes or the bitmap got recycled
-            if (bookTitleBitmapPair?.first != currentBook.id || bookTitleBitmapPair?.second?.isRecycled != false) {
-                val artUri = currentBook.thumb
-                Timber.i("Loading art uri: $artUri")
-                val largeIcon = plexConfig.getBitmapFromServer(artUri)
-                // ^^^ nullable, but null is expected value for book without artwork ^^^
-                bookTitleBitmapPair = Pair(currentBook.id, largeIcon)
-            }
-
             return builder.setContentTitle(titles.first)
                 .setContentText(titles.second)
                 .setContentIntent(controller.sessionActivity)
                 .setDeleteIntent(stopPendingIntent)
                 .setOnlyAlertOnce(true)
                 .setSmallIcon(smallIcon)
-                .setLargeIcon(bookTitleBitmapPair?.second)
+                .setLargeIcon(largeIcon)
                 .setStyle(mediaStyle)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .build()

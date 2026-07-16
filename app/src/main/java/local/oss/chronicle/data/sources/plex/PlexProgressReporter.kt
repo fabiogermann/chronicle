@@ -154,8 +154,12 @@ class PlexProgressReporter
                     )
                 }
                 is RetryResult.Failure -> {
+                    // Best-effort: progress will re-sync on the next tick. Do NOT rethrow — a
+                    // rethrown network error (SSL/EOF/ConnectException) here would only be caught
+                    // by the caller's unhandledExceptionHandler and risks crashing any caller that
+                    // launches without one. Consistent with watched()/startMediaSession() below.
                     Timber.e("Failed to sync progress after ${result.attemptsMade} attempts: ${result.error.message}")
-                    throw result.error.cause ?: IOException("Failed to sync progress: ${result.error.message}")
+                    return
                 }
             }
 

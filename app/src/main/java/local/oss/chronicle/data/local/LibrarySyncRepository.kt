@@ -142,7 +142,9 @@ class LibrarySyncRepository
                     Timber.d("Successfully synced library: ${library.name}")
                     // Small delay between libraries to avoid rate limiting
                     delay(500)
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
+                    // Catch Throwable (not just Exception) so an OutOfMemoryError from parsing a
+                    // very large Plex response for one library does not abort syncing the rest.
                     failureCount++
                     Timber.e(e, "Failed to sync library: ${library.name} (ID: ${library.id}, Account: ${library.accountId})")
                     // Continue with next library despite failure

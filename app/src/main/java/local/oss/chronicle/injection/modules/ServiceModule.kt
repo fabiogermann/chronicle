@@ -69,7 +69,20 @@ class ServiceModule(private val service: MediaPlayerService) {
     @Provides
     @ServiceScope
     fun exoPlayer(): ExoPlayer =
-        ExoPlayer.Builder(attributedContext).setLoadControl(
+        ExoPlayer.Builder(attributedContext)
+            // Disable embedded ID3 metadata parsing (e.g. APIC artwork frames). Chronicle fetches
+            // cover art separately via Plex, and cloning large embedded images into MediaMetadata
+            // caused OutOfMemoryError in MediaMetadata.Builder.maybeSetArtworkData.
+            .setMediaSourceFactory(
+                androidx.media3.exoplayer.source.DefaultMediaSourceFactory(
+                    attributedContext,
+                    androidx.media3.extractor.DefaultExtractorsFactory()
+                        .setMp3ExtractorFlags(
+                            androidx.media3.extractor.mp3.Mp3Extractor.FLAG_DISABLE_ID3_METADATA,
+                        ),
+                ),
+            )
+            .setLoadControl(
             // increase buffer size across the board as ExoPlayer defaults are set for video
             DefaultLoadControl.Builder().setBackBuffer(EXOPLAYER_BACK_BUFFER_DURATION_MILLIS, true)
                 .setBufferDurationsMs(

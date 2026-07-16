@@ -50,13 +50,16 @@ fun Player.skipToNext(
     progressUpdater: ProgressUpdater,
 ) {
     Timber.i("Player.skipToNext called")
-    val currentChapterIndex =
-        currentlyPlaying.book.value.chapters.indexOf(
-            currentlyPlaying.chapter.value,
-        )
+    val chapters = currentlyPlaying.book.value.chapters
+    // Defense-in-depth: guard against empty chapter list (e.g. book not yet loaded)
+    if (chapters.isEmpty()) {
+        Timber.w("skipToNext called with empty chapter list, ignoring")
+        return
+    }
+    val currentChapterIndex = chapters.indexOf(currentlyPlaying.chapter.value)
     val nextChapterIndex = currentChapterIndex + 1
-    if (nextChapterIndex < currentlyPlaying.book.value.chapters.size) {
-        val nextChapter = currentlyPlaying.book.value.chapters[nextChapterIndex]
+    if (nextChapterIndex in chapters.indices) {
+        val nextChapter = chapters[nextChapterIndex]
         Timber.d(
             "NEXT CHAPTER: index=$nextChapterIndex id=${nextChapter.id} trackId=${nextChapter.trackId} offset=${nextChapter.startTimeOffset} title=${nextChapter.title}",
         )
@@ -66,6 +69,10 @@ fun Player.skipToNext(
                     it.id == nextChapter.trackId
                 }
         val containingTrackIndex = trackListStateManager.trackList.indexOf(containingTrack)
+        if (containingTrackIndex < 0) {
+            Timber.w("skipToNext could not resolve track for chapter ${nextChapter.id}, ignoring")
+            return
+        }
         seekTo(containingTrackIndex, nextChapter.startTimeOffset + 300)
         progressUpdater.updateProgressWithoutParameters()
     } else {
@@ -87,10 +94,13 @@ fun Player.skipToPrevious(
     progressUpdater: ProgressUpdater,
 ) {
     Timber.i("Player.skipToPrevious called")
-    val currentChapterIndex =
-        currentlyPlaying.book.value.chapters.indexOf(
-            currentlyPlaying.chapter.value,
-        )
+    val chapters = currentlyPlaying.book.value.chapters
+    // Defense-in-depth: guard against empty chapter list (e.g. book not yet loaded)
+    if (chapters.isEmpty()) {
+        Timber.w("skipToPrevious called with empty chapter list, ignoring")
+        return
+    }
+    val currentChapterIndex = chapters.indexOf(currentlyPlaying.chapter.value)
     var previousChapterIndex: Int =
         if ((currentPosition - currentlyPlaying.chapter.value.startTimeOffset) < (SKIP_TO_PREVIOUS_CHAPTER_THRESHOLD_SECONDS * MILLIS_PER_SECOND)) {
             Timber.d("skipToPrevious → skip to previous chapter")
@@ -99,8 +109,10 @@ fun Player.skipToPrevious(
             Timber.d("skipToPrevious → back to start of current chapter")
             currentChapterIndex
         }
-    if (previousChapterIndex < 0) previousChapterIndex = 0
-    val previousChapter = currentlyPlaying.book.value.chapters[previousChapterIndex]
+    // Clamp into valid range: currentChapterIndex may be -1 if the current chapter
+    // is not found, and previousChapterIndex may exceed bounds.
+    previousChapterIndex = previousChapterIndex.coerceIn(0, chapters.lastIndex)
+    val previousChapter = chapters[previousChapterIndex]
     Timber.d(
         "PREVIOUS CHAPTER: index=$previousChapterIndex id=${previousChapter.id} trackId=${previousChapter.trackId} offset=${previousChapter.startTimeOffset} title=${previousChapter.title}",
     )
@@ -110,6 +122,10 @@ fun Player.skipToPrevious(
                 it.id == previousChapter.trackId
             }
     val containingTrackIndex = trackListStateManager.trackList.indexOf(containingTrack)
+    if (containingTrackIndex < 0) {
+        Timber.w("skipToPrevious could not resolve track for chapter ${previousChapter.id}, ignoring")
+        return
+    }
     seekTo(containingTrackIndex, previousChapter.startTimeOffset)
     progressUpdater.updateProgressWithoutParameters()
 }

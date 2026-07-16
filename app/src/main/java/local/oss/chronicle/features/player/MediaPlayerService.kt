@@ -321,10 +321,16 @@ class MediaPlayerService :
         }
 
         // startForeground has to be called within 5 seconds of starting the service or the app
-        // will ANR (on Android 9.0 and above, maybe earlier).
+        // will ANR (on Android 9.0 and above, maybe earlier). Call it SYNCHRONOUSLY with an
+        // art-free notification so we never miss the window behind a blocking network image
+        // fetch, then refresh with artwork asynchronously.
+        startForegroundSafely()
         serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
             val notification = notificationBuilder.buildNotification(mediaSession.sessionToken)
-            startForeground(NOW_PLAYING_NOTIFICATION, notification)
+            if (notification != null) {
+                // Update the existing foreground notification with artwork.
+                startForeground(NOW_PLAYING_NOTIFICATION, notification)
+            }
         }
 
         localBroadcastManager.registerReceiver(
@@ -823,9 +829,15 @@ class MediaPlayerService :
         // we should launch with whatever it is we have, assuming the event isn't the notification
         // itself being removed (KEYCODE_MEDIA_STOP)
         if (ke?.keyCode != KEYCODE_MEDIA_STOP) {
+            // Promote to foreground SYNCHRONOUSLY with an art-free notification to guarantee we
+            // meet the OS deadline, then refresh with artwork asynchronously.
+            startForegroundSafely()
             serviceScope.launch(Injector.get().unhandledExceptionHandler()) {
                 val notification = notificationBuilder.buildNotification(mediaSession.sessionToken)
-                startForeground(NOW_PLAYING_NOTIFICATION, notification)
+                if (notification != null) {
+                    // Update the existing foreground notification with artwork.
+                    startForeground(NOW_PLAYING_NOTIFICATION, notification)
+                }
             }
         }
 
@@ -835,6 +847,24 @@ class MediaPlayerService :
          * from appearing on service restart
          */
         return START_NOT_STICKY
+    }
+
+    /**
+     * Promote the service to the foreground immediately using a notification that requires no
+     * network I/O. This must complete quickly to satisfy the OS foreground-service start deadline
+     * (otherwise [android.app.RemoteServiceException.ForegroundServiceDidNotStartInTimeException]
+     * is thrown). Any failure to start (e.g. background-start restrictions on API 31+) is caught
+     * and logged rather than crashing the process.
+     */
+    private fun startForegroundSafely() {
+        try {
+            val notification = notificationBuilder.buildNotificationWithoutArt(mediaSession.sessionToken)
+            startForeground(NOW_PLAYING_NOTIFICATION, notification)
+        } catch (e: Exception) {
+            // Includes ForegroundServiceStartNotAllowedException (API 31+) and any other
+            // start-time failures. Nothing actionable for the user; avoid crashing.
+            Timber.e(e, "Failed to start foreground service")
+        }
     }
 
     override fun onLoadChildren(

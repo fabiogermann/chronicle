@@ -224,9 +224,17 @@ class TrackRepository
                 // Get/create a scoped PlexMediaService for this server
                 val scopedService = scopedPlexServiceFactory.getOrCreateService(connection)
 
-                return@withContext scopedService.retrieveTracksForAlbum(numericId)
-                    .plexMediaContainer
-                    .asTrackList(libraryId)
+                return@withContext try {
+                    scopedService.retrieveTracksForAlbum(numericId)
+                        .plexMediaContainer
+                        .asTrackList(libraryId)
+                } catch (t: Throwable) {
+                    // Catch Throwable to also handle OutOfMemoryError from Moshi materializing a
+                    // very large track response, plus network IOExceptions (SSL/EOF/ConnectException)
+                    // rethrown by the Plex interceptors. Callers treat an empty list as "no update".
+                    Timber.e(t, "Failed to fetch network tracks for book $bookId (library $libraryId)")
+                    emptyList()
+                }
             }
         }
 
