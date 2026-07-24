@@ -92,9 +92,14 @@ class ChooseUserViewModel(
     }
 
     fun submitPin() {
+        val pin = pinData.value
+        if (user.value?.hasPassword == true && pin.orEmpty().length < PIN_LENGTH) {
+            _pinErrorMessage.postValue("Pin must be $PIN_LENGTH digits")
+            return
+        }
         viewModelScope.launch {
             user.value?.uuid?.let { uuid ->
-                submitPin(uuid, pinData.value)
+                submitPin(uuid, pin)
             }
         }
     }
@@ -137,20 +142,19 @@ class ChooseUserViewModel(
     }
 
     fun setPinData(s: CharSequence) {
-        if (s.length != 4) {
-            _pinErrorMessage.postValue("Too short")
-        } else {
-            _pinErrorMessage.postValue("")
+        // Don't nag about length while the user is still typing; the error is
+        // cleared here and only re-set on an explicit premature submitPin()
+        if (_pinErrorMessage.value != null) {
+            _pinErrorMessage.postValue(null)
         }
-        try {
-            _pinData.value = s.toString()
-        } catch (t: NumberFormatException) {
-            _pinErrorMessage.postValue("Pin must be 0000-9999")
-            Timber.e("Failed to parse pin to int!")
-        }
+        _pinData.value = s.toString()
     }
 
     fun hidePinScreen() {
         _showPin.postValue(false)
+    }
+
+    companion object {
+        private const val PIN_LENGTH = 4
     }
 }

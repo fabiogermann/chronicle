@@ -105,30 +105,54 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:navigationIcon="@drawable/ic_arrow_back_white" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/pin"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            <TextView
+                android:id="@+id/pin_title"
+                style="@style/TextAppearance.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_large"
-                android:hint="@string/pin"
-                app:boxBackgroundColor="@color/colorPrimaryDark"
-                app:boxBackgroundMode="outline"
-                app:boxStrokeColor="@color/material_text_input_layout_outline"
-                app:errorEnabled="true"
-                app:hintTextColor="@color/colorAccent"
+                android:text="@string/enter_pin"
+                app:layout_constraintBottom_toTopOf="@id/pin_subtitle"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/pin_toolbar"
-                app:layout_constraintVertical_chainStyle="packed">
+                app:layout_constraintVertical_chainStyle="packed" />
+
+            <TextView
+                android:id="@+id/pin_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_normal"
+                android:text="@{viewModel.user.title}"
+                android:textColor="@color/textSecondary"
+                app:layout_constraintBottom_toTopOf="@id/pin"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/pin_title"
+                tools:text="fabio.g92" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/pin"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="180dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_large"
+                android:hint="@string/pin"
+                app:boxBackgroundColor="@color/colorPrimary"
+                app:boxBackgroundMode="outline"
+                app:boxStrokeColor="@color/colorAccent"
+                app:errorEnabled="true"
+                app:hintTextColor="@color/colorAccent"
+                app:layout_constraintBottom_toTopOf="@id/pin_submit_frame"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/pin_subtitle">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/pin_edittext"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:ems="4"
                     android:imeOptions="actionDone"
-                    android:inputType="number"
+                    android:inputType="numberPassword"
                     android:maxLength="4"
                     android:textAlignment="center"
                     android:textSize="24sp" />
@@ -136,8 +160,10 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <FrameLayout
+                android:id="@+id/pin_submit_frame"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/pin">

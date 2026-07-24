@@ -1,6 +1,7 @@
 package local.oss.chronicle.features.login
 
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -8,10 +9,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import local.oss.chronicle.application.ChronicleApplication
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo
@@ -117,17 +118,27 @@ class ChooseUserFragment : Fragment() {
             return@setOnEditorActionListener false
         }
 
-        viewModel.pinErrorMessage.observe(
-            viewLifecycleOwner,
-            Observer
-                {
-                    if (!it.isNullOrEmpty()) {
-                        tempBinding.pinEdittext.error = it
-                    } else {
-                        tempBinding.pinEdittext.error = null
-                    }
-                },
-        )
+        viewModel.pinErrorMessage.observe(viewLifecycleOwner) { message ->
+            // Set the error on the TextInputLayout (not the EditText) so it renders
+            // inline below the field instead of a popup that stretches the field
+            tempBinding.pin.error = if (message.isNullOrEmpty()) null else message
+        }
+
+        viewModel.showPin.observe(viewLifecycleOwner) { showPin ->
+            val imm =
+                tempBinding.root.context
+                    .getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            if (showPin) {
+                // Reset stale input and summon the numeric keyboard for the newly visible field
+                tempBinding.pinEdittext.text?.clear()
+                tempBinding.pinEdittext.post {
+                    tempBinding.pinEdittext.requestFocus()
+                    imm.showSoftInput(tempBinding.pinEdittext, InputMethodManager.SHOW_IMPLICIT)
+                }
+            } else {
+                imm.hideSoftInputFromWindow(tempBinding.pinEdittext.windowToken, 0)
+            }
+        }
 
         tempBinding.viewModel = viewModel
         binding = tempBinding

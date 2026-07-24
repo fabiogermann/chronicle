@@ -2,10 +2,11 @@ package local.oss.chronicle.features.login
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.net.toUri
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.facebook.drawee.backends.pipeline.Fresco
+import com.facebook.imagepipeline.request.ImageRequest
 import local.oss.chronicle.data.sources.plex.model.PlexUser
 import local.oss.chronicle.databinding.ListItemUserBinding
 
@@ -27,13 +28,21 @@ class UserListAdapter(val clickListener: UserClickListener) :
 
     class UserViewHolder private constructor(val binding: ListItemUserBinding) :
         RecyclerView.ViewHolder(binding.root) {
-            @Suppress("DEPRECATION")
             fun bind(
                 user: PlexUser,
                 clickListener: UserClickListener,
             ) {
                 binding.user = user
-                binding.userThumb.setImageURI(user.thumb?.toUri())
+                // A null image request renders the XML placeholder (ic_person_white)
+                val imageRequest =
+                    user.thumb
+                        .takeIf { it.isNotEmpty() }
+                        ?.let(ImageRequest::fromUri)
+                binding.userThumb.controller =
+                    Fresco.newDraweeControllerBuilder()
+                        .setImageRequest(imageRequest)
+                        .setOldController(binding.userThumb.controller)
+                        .build()
                 binding.clickListener = clickListener
                 binding.executePendingBindings()
             }
