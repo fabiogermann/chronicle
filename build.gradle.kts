@@ -11,7 +11,8 @@ allprojects {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
     // KAPT configuration for Kotlin 2.x (needed for data binding which doesn't fully support KSP)
-    tasks.matching { it.javaClass.name == "org.jetbrains.kotlin.gradle.tasks.KaptTask" }
+    tasks
+        .matching { it.javaClass.name == "org.jetbrains.kotlin.gradle.tasks.KaptTask" }
         .configureEach {
             try {
                 val kaptArgsMethod = this.javaClass.methods.firstOrNull { m -> m.name == "kaptArgs" }

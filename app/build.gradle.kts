@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
@@ -12,7 +13,7 @@ plugins {
 
 android {
     namespace = "local.oss.chronicle"
-    compileSdk = 36
+    compileSdk = 37
 
     lint {
         abortOnError = false
@@ -25,8 +26,8 @@ android {
         applicationId = "local.oss.chronicle"
         minSdk = 30
         targetSdk = 36
-        versionCode = 67
-        versionName = "0.62.4"
+        versionCode = 68
+        versionName = "0.62.5"
 
         testInstrumentationRunner = "local.oss.chronicle.application.ChronicleTestRunner"
     }
@@ -77,16 +78,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-
-        freeCompilerArgs +=
-            listOf(
-                "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                // Enable Kotlin 2.0+ support for KAPT
-                "-Xallow-unstable-dependencies",
-            )
-    }
     buildFeatures {
         dataBinding = true
         buildConfig = true
@@ -110,6 +101,17 @@ android {
         getByName("androidTest") {
             java.srcDir("src/testShared/java")
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+        freeCompilerArgs.addAll(
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+            // Enable Kotlin 2.0+ support for KAPT
+            "-Xallow-unstable-dependencies",
+        )
     }
 }
 
@@ -173,6 +175,7 @@ dependencies {
     implementation(libs.coroutines)
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.localbroadcastmanager)
     compileOnly(libs.facebook.infer.annotation)
 
     implementation(libs.retrofit)
