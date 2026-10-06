@@ -13,7 +13,7 @@ import android.view.Gravity
 import android.widget.Toast
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.get
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
@@ -387,14 +387,15 @@ class CurrentlyPlayingViewModel(
                 }
 
                 val tracks = trackRepository.loadTracksForAudiobook(bookId, audiobookData.libraryId)
-                if (tracks is Ok) {
+                val loadedTracks = tracks.get()
+                if (loadedTracks != null) {
                     bookRepository.updateTrackData(
                         bookId,
-                        tracks.value.getProgress(),
-                        tracks.value.getDuration(),
-                        tracks.value.size,
+                        loadedTracks.getProgress(),
+                        loadedTracks.getDuration(),
+                        loadedTracks.size,
                     )
-                    bookRepository.syncAudiobook(audiobookData, tracks.value)
+                    bookRepository.syncAudiobook(audiobookData, loadedTracks)
                 }
                 _isLoadingTracks.value = false
             } catch (e: Throwable) {

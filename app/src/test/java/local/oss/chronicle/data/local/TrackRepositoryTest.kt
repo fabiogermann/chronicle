@@ -1,6 +1,5 @@
 package local.oss.chronicle.data.local
 
-import com.github.michaelbull.result.Ok
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -145,7 +144,7 @@ class TrackRepositoryTest {
             val result = trackRepository.loadTracksForAudiobook(testBookId, testLibraryIdA, forceUseNetwork = false)
 
             // Then: Should succeed and use library A's connection
-            assertThat(result).isInstanceOf(Ok::class.java)
+            assertThat(result.isOk).isTrue()
             verify(mockServerConnectionResolver).resolve(testLibraryIdA)
             verify(mockScopedPlexServiceFactory).getOrCreateService(connectionA)
 

@@ -245,7 +245,7 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleNotificationIntent(intent)
     }

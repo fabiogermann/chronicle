@@ -9,7 +9,6 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.BindingAdapter
 import androidx.recyclerview.widget.RecyclerView
 import local.oss.chronicle.data.model.Chapter
-import okhttp3.internal.toHexString
 import timber.log.Timber
 
 @BindingAdapter("chapterList")
@@ -41,7 +40,7 @@ fun bindTintResource(
                 PorterDuff.Mode.SRC_IN,
             )
         } catch (rnf: NotFoundException) {
-            Timber.e("Could not bind tint with res: 0x${colorRes.toHexString()}")
+            Timber.e("Could not bind tint with res: 0x%08X".format(colorRes))
         }
     }
 }

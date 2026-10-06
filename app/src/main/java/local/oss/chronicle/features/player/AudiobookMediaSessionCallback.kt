@@ -12,7 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.media3.common.Player
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
-import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.get
 import kotlinx.coroutines.*
 import local.oss.chronicle.BuildConfig
 import local.oss.chronicle.application.Injector
@@ -923,12 +923,13 @@ class AudiobookMediaSessionCallback
                 withContext(Dispatchers.IO) {
                     trackRepository.loadTracksForAudiobook(bookId, audiobook.libraryId)
                 }
-            if (networkTracks is Ok) {
+            val loadedNetworkTracks = networkTracks.get()
+            if (loadedNetworkTracks != null) {
                 bookRepository.updateTrackData(
                     bookId,
-                    networkTracks.value.getProgress(),
-                    networkTracks.value.getDuration(),
-                    networkTracks.value.size,
+                    loadedNetworkTracks.getProgress(),
+                    loadedNetworkTracks.getDuration(),
+                    loadedNetworkTracks.size,
                 )
                 bookRepository.syncAudiobook(audiobook, tracks)
                 playBook(bookId, extras, playWhenReady)

@@ -8,7 +8,7 @@ import android.text.format.DateUtils
 import android.view.Gravity
 import android.widget.Toast
 import androidx.lifecycle.*
-import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.get
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.combine
 import local.oss.chronicle.R
@@ -326,9 +326,10 @@ class AudiobookDetailsViewModel(
                 }
 
                 val trackRequest = trackRepository.loadTracksForAudiobook(bookId, audiobook.libraryId)
-                if (trackRequest is Ok) {
+                val loadedTracks = trackRequest.get()
+                if (loadedTracks != null) {
                     trackRepository.syncTracksInBook(audiobook.id)
-                    bookRepository.syncAudiobook(audiobook, trackRequest.value)
+                    bookRepository.syncAudiobook(audiobook, loadedTracks)
                 }
                 _isLoadingTracks.value = false
             } catch (e: Throwable) {
