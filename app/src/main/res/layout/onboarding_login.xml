@@ -36,5 +36,18 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/oauth_login" />
+
+        <!-- Manual-linking fallback, shown when the OAuth deep link doesn't fire -->
+        <TextView
+            android:id="@+id/manual_fallback_hint"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="@dimen/margin_normal"
+            android:textIsSelectable="true"
+            android:visibility="gone"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/loading" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

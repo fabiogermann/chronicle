@@ -54,6 +54,13 @@ class PlexAuthCoordinator
 
             /** Authentication timeout (2 minutes in milliseconds) */
             const val TIMEOUT_MS = 120_000L
+
+            /**
+             * How long to poll before flagging that the manual-linking fallback should be
+             * offered. Deep-link return is near-instant when it works, so if the user has
+             * been waiting this long the App Link almost certainly didn't fire.
+             */
+            const val MANUAL_FALLBACK_AFTER_MS = 20_000L
         }
 
         private val _state = MutableStateFlow<PlexAuthState>(PlexAuthState.Idle)
@@ -126,7 +133,7 @@ class PlexAuthCoordinator
                     )
 
                 // Start polling automatically
-                startPolling(oAuthResponse.id)
+                startPolling(oAuthResponse.id, oAuthResponse.code)
             } catch (e: Exception) {
                 Timber.e(e, "Error creating auth PIN")
                 _state.value =
@@ -151,8 +158,9 @@ class PlexAuthCoordinator
          * - Job cancelled via [cancelAuth] or [dispose]
          *
          * @param pinId The PIN identifier to poll
+         * @param pinCode The PIN code for the manual-linking fallback (plex.tv/link)
          */
-        private fun startPolling(pinId: Long) {
+        private fun startPolling(pinId: Long, pinCode: String) {
             startTime = System.currentTimeMillis()
             pollingInterval = POLLING_INTERVAL_MS
 
@@ -161,7 +169,9 @@ class PlexAuthCoordinator
                     // Give UI time to observe WaitingForUser and launch Chrome Custom Tab
                     delay(POLLING_INTERVAL_MS)
 
+                    var pollIteration = 0L
                     while (isActive) {
+                        pollIteration++
                         val elapsed = System.currentTimeMillis() - startTime
 
                         // Check timeout (2 minutes)
@@ -172,8 +182,18 @@ class PlexAuthCoordinator
                             break
                         }
 
-                        // Update state with current elapsed time
-                        _state.value = PlexAuthState.Polling(pinId, elapsed)
+                        // Update state with current elapsed time. Carry the pin code and flag the
+                        // manual fallback once polling has run long enough that the deep link is
+                        // unlikely to fire (broken App Links, e.g. some Vivo/Funtouch devices).
+                        // Use the poll iteration count (not wall-clock) so it's deterministic
+                        // under test virtual time and immune to clock skew.
+                        _state.value =
+                            PlexAuthState.Polling(
+                                pinId = pinId,
+                                elapsedMs = elapsed,
+                                pinCode = pinCode,
+                                shouldShowManualFallback = pollIteration * pollingInterval >= MANUAL_FALLBACK_AFTER_MS,
+                            )
 
                         try {
                             // Poll for token via PlexLoginRepo

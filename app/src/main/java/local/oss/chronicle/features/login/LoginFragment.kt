@@ -117,6 +117,11 @@ class LoginFragment : Fragment() {
     private fun handleAuthState(state: PlexAuthState) {
         Timber.d("Auth state changed: $state")
 
+        // Clear the manual-fallback hint whenever we leave the Polling state
+        if (state !is PlexAuthState.Polling) {
+            binding.manualFallbackHint.visibility = View.GONE
+        }
+
         when (state) {
             is PlexAuthState.Idle -> {
                 // Initial state, no action needed
@@ -137,6 +142,15 @@ class LoginFragment : Fragment() {
             is PlexAuthState.Polling -> {
                 // Show loading indicator while polling
                 binding.loading.visibility = View.VISIBLE
+
+                // If the deep link hasn't fired for a while (broken App Links, e.g. some
+                // Vivo/Funtouch devices), surface the manual-linking fallback so the user
+                // isn't stuck staring at a frozen browser page with no way forward.
+                if (state.shouldShowManualFallback && state.pinCode.isNotEmpty()) {
+                    binding.manualFallbackHint.text =
+                        getString(R.string.login_manual_fallback_hint, state.pinCode)
+                    binding.manualFallbackHint.visibility = View.VISIBLE
+                }
             }
 
             is PlexAuthState.Success -> {

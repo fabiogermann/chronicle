@@ -36,10 +36,17 @@ sealed class PlexAuthState {
      *
      * @property pinId The PIN identifier being polled
      * @property elapsedMs Time elapsed since authentication started (for timeout detection)
+     * @property pinCode The PIN code the user can enter at plex.tv/link if the deep-link
+     *   redirect doesn't fire (e.g. on devices whose App Links are broken, such as some
+     *   Vivo/Funtouch builds). Surfaced so the UI can offer a manual-linking fallback.
+     * @property shouldShowManualFallback True once polling has run long enough that the
+     *   deep link is unlikely to fire — the UI should then offer the manual-linking path.
      */
     data class Polling(
         val pinId: Long,
         val elapsedMs: Long,
+        val pinCode: String = "",
+        val shouldShowManualFallback: Boolean = false,
     ) : PlexAuthState()
 
     /**
