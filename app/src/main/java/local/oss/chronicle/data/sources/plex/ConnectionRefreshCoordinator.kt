@@ -59,6 +59,17 @@ class ConnectionRefreshCoordinator
         private val plexMediaService: PlexMediaService,
         private val libraryRepository: LibraryRepository,
     ) {
+        /**
+         * Optional listener invoked on every meaningful network transition, before the refresh
+         * routine runs. Wired by MediaPlayerService to
+         * [local.oss.chronicle.features.player.PlaybackErrorRecoveryHandler.onNetworkChanged] so a
+         * network change re-arms the playback-error recovery budget — otherwise a Wi-Fi ->
+         * cellular handover can exhaust the budget and leave the player dead until app restart.
+         *
+         * A property (not a constructor param) to avoid a Dagger dependency cycle:
+         * PlaybackErrorRecoveryHandler already depends on this coordinator.
+         */
+        var onNetworkChangedListener: (() -> Unit)? = null
         companion object {
             /**
              * Window over which to coalesce rapid [NetworkState] flapping. WiFi/cellular handovers
@@ -113,6 +124,12 @@ class ConnectionRefreshCoordinator
                             "ConnectionRefreshCoordinator: meaningful network transition $lastTriggerState -> $state, refreshing",
                         )
                         lastTriggerState = state
+                        // Re-arm any listener (playback error recovery budget) before refreshing.
+                        try {
+                            onNetworkChangedListener?.invoke()
+                        } catch (e: Exception) {
+                            Timber.e(e, "ConnectionRefreshCoordinator: onNetworkChangedListener threw")
+                        }
                     }
                     .collect {
                         runRefresh()

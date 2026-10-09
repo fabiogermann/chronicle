@@ -218,6 +218,26 @@ class PlaybackErrorRecoveryHandler(
     }
 
     /**
+     * Re-arms the recovery budget on a network change.
+     *
+     * The budget is intended to bound retries *within a single connectivity state* (e.g. riding
+     * out a brief blip). During a Wi-Fi -> cellular handover both attempts can fire and fail
+     * inside the transition window before the track ever reaches STATE_READY, so the
+     * [onPlayerReady] reset never runs. Without a re-arm, every network error after that is
+     * surfaced as terminal even once connectivity returns — the player stays dead until app
+     * restart (the "won't reconnect after leaving home network" report).
+     *
+     * A network change means the stale connectivity state that exhausted the budget no longer
+     * applies, so it's safe to let recovery try again against the new network.
+     */
+    fun onNetworkChanged() {
+        if (networkRecoveryAttempts > 0) {
+            Timber.i("PlaybackErrorRecoveryHandler: network changed, re-arming recovery budget (was $networkRecoveryAttempts/$MAX_RECOVERY_ATTEMPTS)")
+            networkRecoveryAttempts = 0
+        }
+    }
+
+    /**
      * Classifies [error] as a recoverable network failure. Conservative by design — anything we
      * aren't sure is network-related is treated as terminal so we don't trash the connection cache
      * over a codec/DRM/disk error.

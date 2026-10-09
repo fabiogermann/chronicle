@@ -1394,14 +1394,19 @@ class MediaPlayerService :
                     )
             }
 
-        return PlaybackErrorRecoveryHandler(
-            connectionRefreshCoordinator = connectionRefreshCoordinator,
-            playbackUrlResolver = playbackUrlResolver,
-            localBroadcastManager = localBroadcastManager,
-            scope = serviceScope,
-            playerHandle = playerHandle,
-            mediaSourceRebuilder = rebuilder,
-        )
+        val handler =
+            PlaybackErrorRecoveryHandler(
+                connectionRefreshCoordinator = connectionRefreshCoordinator,
+                playbackUrlResolver = playbackUrlResolver,
+                localBroadcastManager = localBroadcastManager,
+                scope = serviceScope,
+                playerHandle = playerHandle,
+                mediaSourceRebuilder = rebuilder,
+            )
+        // Wire the network-change re-arm so a Wi-Fi -> cellular handover can't permanently
+        // exhaust the recovery budget (leaving the player dead until app restart).
+        connectionRefreshCoordinator.onNetworkChangedListener = handler::onNetworkChanged
+        return handler
     }
 
     /**

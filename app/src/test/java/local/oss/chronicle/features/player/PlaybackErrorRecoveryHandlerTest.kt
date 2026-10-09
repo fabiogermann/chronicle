@@ -156,6 +156,47 @@ class PlaybackErrorRecoveryHandlerTest {
             }
         }
 
+    // -- Scenario 5b: handover must not leave the player permanently dead -----------------------
+    // During a Wi-Fi -> cellular handover both recovery attempts can fire and fail inside the
+    // transition window, before the track ever reaches STATE_READY, so the onPlayerReady reset
+    // never runs. The budget then stays exhausted and every subsequent network error is surfaced
+    // as terminal even after connectivity returns — the user is stuck until app restart.
+    //
+    // The desired behavior: a network change (any refresh of connectivity) re-arms the recovery
+    // budget, because the whole reason it was exhausted (a stale network) no longer applies.
+    @Test
+    fun `budget re-arms after network change so post-handover errors can recover`() =
+        runTest(dispatcher) {
+            // Exhaust the budget with failures (refresh throws -> recovery fails -> no READY reset)
+            coEvery { refreshCoordinator.refresh() } throws IOException("still no route")
+            repeat(PlaybackErrorRecoveryHandler.MAX_RECOVERY_ATTEMPTS) {
+                handler.handleError(networkError())
+            }
+            advanceUntilIdle()
+            coVerify(exactly = PlaybackErrorRecoveryHandler.MAX_RECOVERY_ATTEMPTS) {
+                refreshCoordinator.refresh()
+            }
+
+            // Budget is spent: a further error is surfaced as terminal, no refresh attempted
+            handler.handleError(networkError())
+            advanceUntilIdle()
+            coVerify(exactly = PlaybackErrorRecoveryHandler.MAX_RECOVERY_ATTEMPTS) {
+                refreshCoordinator.refresh()
+            }
+
+            // Network comes back / changes — the budget must be re-armed so the player is not
+            // permanently dead. Simulate by telling the handler the network changed.
+            handler.onNetworkChanged()
+
+            // Now the next error should attempt recovery again (budget was re-armed).
+            coEvery { refreshCoordinator.refresh() } returns Unit
+            handler.handleError(networkError())
+            advanceUntilIdle()
+            coVerify(exactly = PlaybackErrorRecoveryHandler.MAX_RECOVERY_ATTEMPTS + 1) {
+                refreshCoordinator.refresh()
+            }
+        }
+
     // -- Scenario 6 ----------------------------------------------------------------------------
     @Test
     fun `after successful recovery the player is sought to captured position and playWhenReady restored`() =
