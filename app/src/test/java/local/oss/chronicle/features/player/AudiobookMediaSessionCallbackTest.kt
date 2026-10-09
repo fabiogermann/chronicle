@@ -11,6 +11,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
@@ -30,6 +31,7 @@ import local.oss.chronicle.data.model.Audiobook
 import local.oss.chronicle.data.model.Chapter
 import local.oss.chronicle.data.model.EMPTY_AUDIOBOOK
 import local.oss.chronicle.data.model.EMPTY_CHAPTER
+import local.oss.chronicle.data.model.MediaItemTrack
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo.LoginState
 import local.oss.chronicle.data.sources.plex.PlaybackUrlResolver
@@ -784,6 +786,121 @@ class AudiobookMediaSessionCallbackTest {
                 errorReporter.setPlaybackStateError(
                     PlaybackStateCompat.ERROR_CODE_APP_ERROR,
                     match { it.contains("timeout") || it.contains("Connection timeout") },
+                )
+            }
+        }
+
+    // ========================================
+    // Offline resume Tests
+    // ========================================
+
+    @Test
+    fun `resumePlayFromEmpty plays cached book without waiting for connection`() =
+        runTest {
+            // Given: device is offline (isConnected never becomes true), most recent book is cached
+            val isConnectedLiveData = MutableLiveData<Boolean>()
+            isConnectedLiveData.value = false
+            every { plexConfig.isConnected } returns isConnectedLiveData
+
+            val loginEvent = MutableLiveData<Event<LoginState>>()
+            loginEvent.value = Event(LoginState.LOGGED_IN_FULLY)
+            every { plexLoginRepo.loginEvent } returns loginEvent
+
+            val cachedBook =
+                Audiobook(
+                    id = "plex:cached1",
+                    libraryId = "plex:library:1",
+                    source = 1L,
+                    title = "Downloaded Book",
+                    author = "Author Name",
+                    duration = 3600000,
+                    isCached = true,
+                    lastViewedAt = System.currentTimeMillis(),
+                    viewCount = 1,
+                )
+
+            val cachedTrack =
+                MediaItemTrack(
+                    id = "plex:t1",
+                    parentKey = "plex:cached1",
+                    libraryId = "plex:library:1",
+                    title = "Chapter 1",
+                    duration = 1800000L,
+                    media = "/library/parts/1/1/file.mp3",
+                    cached = true,
+                )
+
+            coEvery { bookRepository.getMostRecentlyPlayed() } returns cachedBook
+            coEvery { trackRepository.getTracksForAudiobookAsync("plex:cached1") } returns listOf(cachedTrack)
+            coEvery { bookRepository.getAudiobookAsync("plex:cached1") } returns cachedBook
+
+            val playbackState = mockk<PlaybackStateCompat>()
+            every { playbackState.state } returns PlaybackStateCompat.STATE_NONE
+            every { mediaController.playbackState } returns playbackState
+
+            // When: onPlay triggers resumePlayFromEmpty while offline
+            callback.onPlay()
+
+            // Advance well past the 10s connection timeout
+            testScope.testScheduler.advanceTimeBy(15_000)
+            testScope.testScheduler.advanceUntilIdle()
+
+            // Then: resume resolved the cached book and skipped the connection wait entirely —
+            // NO connection-timeout error was set. (playBook's full run isn't asserted here
+            // because resume passes a plain android Bundle, unmockable in unit tests; the
+            // offline skip itself is what this guards.)
+            coVerify { bookRepository.getMostRecentlyPlayed() }
+            verify(exactly = 0) {
+                errorReporter.setPlaybackStateError(
+                    PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                    match { it.contains("timeout") || it.contains("Connection timeout") },
+                )
+            }
+        }
+
+    @Test
+    fun `resumePlayFromEmpty still waits for connection when most recent book is not cached`() =
+        runTest {
+            // Given: offline, most recent book is NOT downloaded
+            val isConnectedLiveData = MutableLiveData<Boolean>()
+            isConnectedLiveData.value = false
+            every { plexConfig.isConnected } returns isConnectedLiveData
+
+            val loginEvent = MutableLiveData<Event<LoginState>>()
+            loginEvent.value = Event(LoginState.LOGGED_IN_FULLY)
+            every { plexLoginRepo.loginEvent } returns loginEvent
+
+            val streamOnlyBook =
+                Audiobook(
+                    id = "plex:stream1",
+                    libraryId = "plex:library:1",
+                    source = 1L,
+                    title = "Streaming Book",
+                    author = "Author Name",
+                    duration = 3600000,
+                    isCached = false,
+                    lastViewedAt = System.currentTimeMillis(),
+                    viewCount = 1,
+                )
+
+            coEvery { bookRepository.getMostRecentlyPlayed() } returns streamOnlyBook
+
+            val playbackState = mockk<PlaybackStateCompat>()
+            every { playbackState.state } returns PlaybackStateCompat.STATE_NONE
+            every { mediaController.playbackState } returns playbackState
+
+            // When: onPlay triggers resumePlayFromEmpty while offline
+            callback.onPlay()
+
+            // Advance past the connection timeout
+            testScope.testScheduler.advanceTimeBy(11_000)
+            testScope.testScheduler.advanceUntilIdle()
+
+            // Then: timeout error still surfaces — streaming books genuinely need the server
+            verify {
+                errorReporter.setPlaybackStateError(
+                    PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                    any(),
                 )
             }
         }
