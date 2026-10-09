@@ -309,6 +309,16 @@ class AudiobookDetailsViewModel(
         Timber.i("Refreshing tracks!")
         viewModelScope.launch {
             try {
+                // Reconcile the book's cached flags against the filesystem first: a track file
+                // deleted after the startup reconcile leaves a phantom "downloaded" book whose
+                // download button prompts "Uncache?" instead of re-downloading (community bug).
+                // Correcting it here flips the button back to the downloadable state immediately.
+                try {
+                    cachedFileManager.refreshDownloadedStatusForBook(bookId)
+                } catch (e: Throwable) {
+                    Timber.e(e, "Cache-status reconcile failed for $bookId (non-fatal)")
+                }
+
                 // If we're just updating underlying track list, and there are already tracks/chapters
                 // loaded, don't replace chapter view with loading view.
                 //

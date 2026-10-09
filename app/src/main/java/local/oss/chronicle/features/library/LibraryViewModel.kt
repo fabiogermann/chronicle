@@ -305,6 +305,17 @@ class LibraryViewModel(
     }
 
     fun refreshData() {
+        // Reconcile DB cached flags against the filesystem before hitting the network: books
+        // vanish from the offline list (or refuse to re-download) when flags drift from the
+        // files actually on disk, e.g. after the OS cache cleaner deletes a track. The
+        // library lists observe the DB, so correcting the flags updates them immediately.
+        viewModelScope.launch {
+            try {
+                cachedFileManager.refreshTrackDownloadedStatus()
+            } catch (e: Throwable) {
+                Timber.e(e, "Cache-status reconcile failed (non-fatal)")
+            }
+        }
         librarySyncRepository.refreshLibrary()
     }
 

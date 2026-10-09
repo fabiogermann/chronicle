@@ -50,6 +50,14 @@ interface ICachedFileManager {
     suspend fun hasUserCachedTracks(): Boolean
 
     suspend fun refreshTrackDownloadedStatus()
+
+    /**
+     * Reconciles DB cached flags against the filesystem for a single book.
+     * Cheaper than [refreshTrackDownloadedStatus] — call it when the user opens a book's
+     * details page so a stale flag (file deleted after the startup reconcile) is cleared
+     * immediately instead of leaving a phantom "downloaded" book that can't be re-downloaded.
+     */
+    suspend fun refreshDownloadedStatusForBook(bookId: String)
 }
 
 interface SimpleSet<T> {
@@ -72,7 +80,10 @@ class CachedFileManager
         private val plexConfig: PlexConfig,
         private val applicationContext: Context,
     ) : ICachedFileManager {
-        private val externalFileDirs = Injector.get().externalDeviceDirs()
+        // Lazy so construction doesn't touch the Injector singleton (which requires the
+        // Application instance to exist). Only uncacheAllInLibrary() reads this; deferring
+        // keeps every other path (e.g. refreshTrackDownloadedStatus) constructible in unit tests.
+        private val externalFileDirs by lazy { Injector.get().externalDeviceDirs() }
 
         private val scopeManager = ScopedCoroutineManager()
 
@@ -432,6 +443,48 @@ class CachedFileManager
                         book.copy(
                             isCached = isBookCached,
                             chapters = book.chapters.map { it.copy(downloaded = isBookCached) },
+                        ),
+                    )
+                }
+            }
+        }
+
+        /**
+         * Reconciles the cached flags of one book's tracks (and the book itself) against the
+         * files actually present in the cache directory.
+         *
+         * Both stale directions are fixed: a track flagged cached whose file is gone is marked
+         * not-cached (the phantom-download dead-end), and a track whose file is present but
+         * whose flag was lost (e.g. a download-finish listener that never updated the DB) is
+         * marked cached so the book reappears in the offline list.
+         */
+        override suspend fun refreshDownloadedStatusForBook(bookId: String) {
+            withContext(Dispatchers.IO) {
+                val tracks = trackRepository.getTracksForAudiobookAsync(bookId)
+                if (tracks.isEmpty()) return@withContext
+
+                val cacheDir = prefsRepo.cachedMediaDir
+                tracks.forEach { track ->
+                    val fileExists = File(cacheDir, track.getCachedFileName()).exists()
+                    if (track.cached != fileExists) {
+                        Timber.i(
+                            "Reconcile book $bookId: track ${track.id} cached=${track.cached} " +
+                                "but fileExists=$fileExists — correcting",
+                        )
+                        trackRepository.updateCachedStatus(track.id, fileExists)
+                    }
+                }
+
+                // Recompute the book-level flag: cached only when every track's file exists.
+                val allCached =
+                    tracks.all { File(cacheDir, it.getCachedFileName()).exists() }
+                val book = bookRepository.getAudiobookAsync(bookId)
+                if (book != null && book.isCached != allCached) {
+                    Timber.i("Reconcile book $bookId: isCached ${book.isCached} -> $allCached")
+                    bookRepository.update(
+                        book.copy(
+                            isCached = allCached,
+                            chapters = book.chapters.map { it.copy(downloaded = allCached) },
                         ),
                     )
                 }
