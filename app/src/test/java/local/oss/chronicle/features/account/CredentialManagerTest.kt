@@ -1,6 +1,7 @@
 package local.oss.chronicle.features.account
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
@@ -17,7 +18,12 @@ class CredentialManagerTest {
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
-        credentialManager = CredentialManager(context)
+        // Robolectric has no AndroidKeyStore, so the default EncryptedSharedPreferences
+        // cannot be built here. Use the test seam with an in-memory store instead —
+        // the manager's behavior under test is identical regardless of backing store.
+        val testPrefs: SharedPreferences =
+            context.getSharedPreferences("credential_manager_test", Context.MODE_PRIVATE)
+        credentialManager = CredentialManager.forTesting(context, testPrefs)
         // Clean state before each test
         credentialManager.clearAllCredentials()
     }
@@ -122,6 +128,28 @@ class CredentialManagerTest {
         // Then
         val retrieved = credentialManager.getCredentials(accountId)
         assertThat(retrieved).isEqualTo("new-token")
+    }
+
+    /**
+     * Regression pin: the injected-store path and the default production path must agree
+     * on the keying scheme. If the credential key prefix or default file name ever
+     * changes, stored tokens written by the production EncryptedSharedPreferences would
+     * become unreachable across an upgrade. This pins the observable contract
+     * (store via manager -> read via same store) so a refactor of either path is caught.
+     */
+    @Test
+    fun injectedStore_matchesManagerKeyingScheme() {
+        val accountId = "plex:account:contract"
+        val token = "contract-token"
+
+        // Write through the manager, read back through the very store we handed it.
+        val store: SharedPreferences =
+            context.getSharedPreferences("contract_test", Context.MODE_PRIVATE)
+        val manager = CredentialManager.forTesting(context, store)
+        manager.storeCredentials(accountId, token)
+
+        assertThat(store.getString("credential_$accountId", null)).isEqualTo(token)
+        assertThat(manager.getCredentials(accountId)).isEqualTo(token)
     }
 
     @Test

@@ -10,22 +10,29 @@ import javax.inject.Singleton
 /**
  * Manages secure storage of account credentials using EncryptedSharedPreferences.
  *
- * Credentials are encrypted using Android Keystore-backed keys.
+ * Credentials are encrypted using Android Keystore-backed keys, created lazily on first
+ * access. The backing store is built by [createBackingStore]; unit tests (Robolectric
+ * has no AndroidKeyStore) substitute an in-memory store via [forTesting] without
+ * changing the production laziness or Dagger wiring (single @Inject constructor).
  */
 @Singleton
-class CredentialManager
+open class CredentialManager
     @Inject
     constructor(
         private val context: Context,
     ) {
-        private val masterKey by lazy {
-            MasterKey.Builder(context)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build()
-        }
+        private val encryptedPrefs: SharedPreferences by lazy { createBackingStore(context) }
 
-        private val encryptedPrefs: SharedPreferences by lazy {
-            EncryptedSharedPreferences.create(
+        /**
+         * Production default: Keystore-backed EncryptedSharedPreferences, created on
+         * first access (lazy), matching the pre-refactor behavior exactly.
+         */
+        internal open fun createBackingStore(context: Context): SharedPreferences {
+            val masterKey =
+                MasterKey.Builder(context)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build()
+            return EncryptedSharedPreferences.create(
                 context,
                 ENCRYPTED_PREFS_FILE,
                 masterKey,
@@ -86,5 +93,19 @@ class CredentialManager
 
         companion object {
             private const val ENCRYPTED_PREFS_FILE = "chronicle_credentials"
+
+            /**
+             * Test-only factory. Robolectric does not implement the AndroidKeyStore JCA
+             * provider, so this returns a CredentialManager backed by an in-memory
+             * SharedPreferences while keeping the production laziness and constructor
+             * injection path (single @Inject constructor) untouched.
+             */
+            internal fun forTesting(
+                context: Context,
+                store: SharedPreferences,
+            ): CredentialManager =
+                object : CredentialManager(context) {
+                    override fun createBackingStore(context: Context): SharedPreferences = store
+                }
         }
     }
