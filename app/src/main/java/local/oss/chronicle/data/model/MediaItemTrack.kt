@@ -87,13 +87,36 @@ data class MediaItemTrack(
         }
 
         /**
-         * Merges updated local fields with a network copy of the book. Prefers network metadata,
-         * but always preserves local [progress] and [lastViewedAt] to avoid race conditions
-         * where sync operations overwrite in-progress playback.
+         * Merges updated local fields with a network copy of the track. Prefers network metadata.
          *
-         * Always retains [cached] field from local copy.
+         * Progress conflict rule: **last-write-wins by [lastViewedAt]**. Whichever copy was
+         * viewed more recently provides [progress] and [lastViewedAt]. This is what makes
+         * cross-device resume work: if another device played the book and reported progress
+         * to Plex, this device adopts the server's [viewOffset] on the next sync. When the
+         * local copy is newer (e.g. the user is listening right now), local progress is kept,
+         * preserving the original protection against sync operations clobbering in-progress
+         * playback.
          *
-         * Note: Local device is the source of truth for playback progress.
+         * Plex serves [lastViewedAt] in unix **seconds** while the local DB stores epoch
+         * **milliseconds**, so values are normalized before comparing; a raw comparison would
+         * let local timestamps win every time and the server position would never be adopted.
+         *
+         * Two guards against false "server is newer" positives:
+         *
+         * 1. **Self-echo / clock skew**: the newest remote [lastViewedAt] is usually this
+         *    device's own timeline report echoed back, stamped with the *server* clock at
+         *    second resolution. If that clock is even slightly ahead of the device clock, a
+         *    plain comparison would adopt our own older `viewOffset` mid-playback and rewind
+         *    the listener. The server copy must be at least [SERVER_ADOPTION_MARGIN_MS] newer
+         *    to win — enough to reject an echo (seconds of skew), far too small to mask real
+         *    progress made on another device.
+         * 2. **Finished elsewhere**: Plex clears `viewOffset` when a track is scrobbled, so a
+         *    track finished on another device arrives with the newest timestamp and zero
+         *    progress. Adopting that would make resume restart the finished file (see
+         *    [getActiveTrack], which picks the most-recently-viewed track). A zero-progress
+         *    server copy is only adopted when the local copy has no progress of its own.
+         *
+         * Always retains [cached] field from the local copy (it only exists locally).
          */
         fun merge(
             network: MediaItemTrack,
@@ -103,13 +126,65 @@ data class MediaItemTrack(
             Timber.i("Force using network track: $network")
             network.copy(cached = local.cached)
         } else {
-            // Always preserve local progress and lastViewedAt to prevent race conditions
-            network.copy(
-                cached = local.cached,
-                lastViewedAt = local.lastViewedAt,
-                progress = local.progress,
-            )
+            val networkViewedAtMs = plexLastViewedAtToMillis(network.lastViewedAt)
+            if (shouldAdoptServerProgress(networkViewedAtMs, network.progress, local)) {
+                // Server copy is meaningfully newer: adopt the server's position (cross-device
+                // resume), storing the timestamp normalized to milliseconds like the rest of the DB
+                network.copy(cached = local.cached, lastViewedAt = networkViewedAtMs)
+            } else {
+                // Local copy is newer (or same): keep local progress, take network metadata
+                network.copy(
+                    cached = local.cached,
+                    lastViewedAt = local.lastViewedAt,
+                    progress = local.progress,
+                )
+            }
         }
+
+        /**
+         * Decides whether the server's progress should replace the local one during [merge].
+         * See [merge] for the conflict rule and the two guards.
+         */
+        internal fun shouldAdoptServerProgress(
+            networkViewedAtMs: Long,
+            networkProgress: Long,
+            local: MediaItemTrack,
+        ): Boolean {
+            // Guard 2: a track finished elsewhere arrives with viewOffset cleared and the
+            // newest lastViewedAt. Zero progress carries no resume information and would make
+            // the finished file the resume point (getActiveTrack picks by lastViewedAt), so
+            // only adopt it when local has no progress of its own to protect.
+            if (networkProgress <= 0L && local.progress > 0L) {
+                return false
+            }
+            // Guard 1: require a margin over the local timestamp so this device's own echoed
+            // timeline report (server clock, second resolution, possibly skewed ahead) can
+            // never win over fresher local playback state.
+            return networkViewedAtMs - local.lastViewedAt > SERVER_ADOPTION_MARGIN_MS
+        }
+
+        /**
+         * How much newer the server copy must be to win the [merge] conflict. Matches the
+         * granularity of Plex's `lastViewedAt` (1 second) with generous headroom for server
+         * clock skew, while remaining far too small to mask listening done on another device.
+         */
+        const val SERVER_ADOPTION_MARGIN_MS: Long = 60_000L
+
+        /**
+         * Normalizes a Plex `lastViewedAt` value to epoch milliseconds.
+         *
+         * Plex serves unix seconds (e.g. 1591031072 in
+         * docs/example-query-responses/request-album-info.md); the local DB stores epoch
+         * milliseconds. Any value below 10^11 is treated as seconds — epoch milliseconds
+         * only crossed 10^11 in the year 5138, and real timestamps (~1.7×10^12 ms in 2025)
+         * are far above it.
+         */
+        internal fun plexLastViewedAtToMillis(lastViewedAt: Long): Long =
+            if (lastViewedAt in 1 until 100_000_000_000L) {
+                lastViewedAt * 1000L
+            } else {
+                lastViewedAt
+            }
 
         /** Create a [MediaItemTrack] from a Plex model and an index */
         fun fromPlexModel(

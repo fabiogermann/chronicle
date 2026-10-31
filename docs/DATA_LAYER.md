@@ -652,7 +652,16 @@ Progress syncs bidirectionally:
 
 **Remote → Local**: During library sync, `lastViewedAt` and `viewOffset` are merged
 
-**Conflict Resolution**: More recent `lastViewedAt` wins
+**Conflict Resolution**: Last-write-wins by `lastViewedAt` — the more recent copy (after
+normalizing Plex's unix seconds to the local DB's epoch milliseconds) provides `progress` and
+`lastViewedAt`; network metadata is always taken. Two guards keep the rule safe mid-playback
+(see `MediaItemTrack.merge`):
+
+1. **Self-echo / clock skew**: the server copy must be newer by at least
+   `SERVER_ADOPTION_MARGIN_MS` (60 s), so this device's own timeline report — stamped by the
+   server clock at second resolution, possibly skewed ahead — can never rewind local playback.
+2. **Finished elsewhere**: a server copy with zero `viewOffset` (Plex clears it on scrobble) is
+   not adopted over local progress, so resume never restarts a file finished on another device.
 
 ### Download Sync
 

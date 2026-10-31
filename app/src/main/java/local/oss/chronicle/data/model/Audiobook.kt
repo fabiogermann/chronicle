@@ -86,20 +86,25 @@ data class Audiobook(
          *
          * Retains the following local fields only if the local copy is more recent: [lastViewedAt].
          * This is because even if the network copy is more up to date, retaining the most recent
-         * [lastViewedAt] from the local copy is preferred.
+         * [lastViewedAt] from the local copy is preferred. Whichever value is kept is stored in
+         * epoch **milliseconds** like the rest of the local DB: Plex serves `lastViewedAt` in
+         * unix **seconds** (see [MediaItemTrack.plexLastViewedAtToMillis]), and a raw comparison
+         * would let the local millisecond value win every time, so "most recently listened"
+         * (see getMostRecentlyPlayed) would never reflect listening done on another device.
          *
-         * Always retain fields from local copy: [duration], [isCached], [favorited], [chapters],
-         * [source]. We retain [chapters], [duration], and [progress] because they can be calculated
-         * only when all child [MediaItemTrack]'s of the Audiobook are loaded. We retain [duration],
-         * [source], and [isCached] because they are explicitly local values, they do not even exist
-         * on the server.
+         * Always retain fields from local copy: [duration], [progress], [isCached], [favorited],
+         * [chapters], [source]. We retain [chapters], [duration], and [progress] because they
+         * can be calculated only when all child [MediaItemTrack]'s of the Audiobook are loaded.
+         * We retain [duration], [source], and [isCached] because they are explicitly local
+         * values, they do not even exist on the server.
          */
         fun merge(
             network: Audiobook,
             local: Audiobook,
             forceNetwork: Boolean = false,
         ): Audiobook {
-            return if (network.lastViewedAt > local.lastViewedAt || forceNetwork) {
+            val networkViewedAtMs = MediaItemTrack.Companion.plexLastViewedAtToMillis(network.lastViewedAt)
+            return if (networkViewedAtMs > local.lastViewedAt || forceNetwork) {
                 network.copy(
                     duration = local.duration,
                     progress = local.progress,
@@ -107,6 +112,7 @@ data class Audiobook(
                     favorited = local.favorited,
                     chapters = local.chapters,
                     source = local.source,
+                    lastViewedAt = networkViewedAtMs,
                 )
             } else {
                 network.copy(
