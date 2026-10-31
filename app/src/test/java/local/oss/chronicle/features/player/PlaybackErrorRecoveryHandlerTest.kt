@@ -3,7 +3,12 @@ package local.oss.chronicle.features.player
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.test.core.app.ApplicationProvider
+import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -23,9 +28,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.IOException
-import java.net.ConnectException
 import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 
 /**
  * Tests for [PlaybackErrorRecoveryHandler] — the off-network playback recovery seam (fix #3).
@@ -61,8 +64,13 @@ class PlaybackErrorRecoveryHandlerTest {
         playerHandle = mockk(relaxed = true)
         mediaSourceRebuilder = mockk(relaxed = true)
 
-        // Reasonable defaults for the player handle
-        every { playerHandle.getCurrentMediaItem() } returns mockk<MediaItem>(relaxed = true)
+        // Reasonable defaults for the player handle. The queue getters must be stubbed too:
+        // on a relaxed mock, getCurrentMediaItems() would otherwise return an EMPTY list and
+        // every recovery would abort with "no queued media items".
+        val defaultItem = mockk<MediaItem>(relaxed = true)
+        every { playerHandle.getCurrentMediaItem() } returns defaultItem
+        every { playerHandle.getCurrentMediaItems() } returns listOf(defaultItem)
+        every { playerHandle.getCurrentMediaItemIndex() } returns 0
         every { playerHandle.getCurrentPosition() } returns 12345L
         every { playerHandle.getPlayWhenReady() } returns true
 
@@ -199,11 +207,13 @@ class PlaybackErrorRecoveryHandlerTest {
 
     // -- Scenario 6 ----------------------------------------------------------------------------
     @Test
-    fun `after successful recovery the player is sought to captured position and playWhenReady restored`() =
+    fun `after successful recovery the full queue is re-set at the captured index and position and playWhenReady restored`() =
         runTest(dispatcher) {
             val item = mockk<MediaItem>(relaxed = true)
             val newSource = mockk<MediaSource>(relaxed = true)
             every { playerHandle.getCurrentMediaItem() } returns item
+            every { playerHandle.getCurrentMediaItems() } returns listOf(item)
+            every { playerHandle.getCurrentMediaItemIndex() } returns 0
             every { playerHandle.getCurrentPosition() } returns 67890L
             every { playerHandle.getPlayWhenReady() } returns true
             coEvery { mediaSourceRebuilder.rebuild(item) } returns newSource
@@ -212,8 +222,7 @@ class PlaybackErrorRecoveryHandlerTest {
             advanceUntilIdle()
 
             coVerify(exactly = 1) { mediaSourceRebuilder.rebuild(item) }
-            verify(exactly = 1) { playerHandle.setMediaSource(newSource, false) }
-            verify(exactly = 1) { playerHandle.seekTo(67890L) }
+            verify(exactly = 1) { playerHandle.setMediaSources(listOf(newSource), 0, 67890L) }
             verify(exactly = 1) { playerHandle.setPlayWhenReady(true) }
             verify(exactly = 1) { playerHandle.prepare() }
         }
@@ -302,5 +311,164 @@ class PlaybackErrorRecoveryHandlerTest {
             assert(errorBroadcasts.size == 2)
             assert(!errorBroadcasts.last().getBooleanExtra(MediaPlayerService.EXTRA_IS_RECOVERING, true))
             verify(exactly = 0) { playerHandle.prepare() }
+        }
+
+    // -- Scenario 9: a recovery must preserve the WHOLE queue ----------------------------------
+    // Audiobooks are multi-file: a real ExoPlayer holds N MediaItems (one per file of the book).
+    // Rebuilding only the current track and calling setMediaSource(single) REPLACES the whole
+    // queue with that one item, so when the file ends the player goes ENDED and pressing Play
+    // does nothing (the "playback stops mid-book and never resumes" report).
+    //
+    // These tests use a REAL ExoPlayer under Robolectric as the PlayerHandle, so playlist
+    // masking semantics (mediaItemCount / currentMediaItemIndex / currentPosition) are the real
+    // media3 1.11.1 behaviour, not a mock's guess.
+    private inner class ExoPlayerHandle(
+        val player: ExoPlayer,
+    ) : PlaybackErrorRecoveryHandler.PlayerHandle {
+        override fun getCurrentMediaItem(): MediaItem? = if (player.mediaItemCount > 0) player.currentMediaItem else null
+
+        override fun getCurrentPosition(): Long = player.currentPosition
+
+        override fun getPlayWhenReady(): Boolean = player.playWhenReady
+
+        override fun setMediaSource(
+            mediaSource: MediaSource,
+            resetPosition: Boolean,
+        ) {
+            player.setMediaSource(mediaSource, resetPosition)
+        }
+
+        override fun setMediaSources(
+            mediaSources: List<MediaSource>,
+            startIndex: Int,
+            startPositionMs: Long,
+        ) {
+            player.setMediaSources(mediaSources, startIndex, startPositionMs)
+        }
+
+        override fun getCurrentMediaItems(): List<MediaItem> = (0 until player.mediaItemCount).map { player.getMediaItemAt(it) }
+
+        override fun getCurrentMediaItemIndex(): Int = player.currentMediaItemIndex
+
+        override fun seekTo(positionMs: Long) {
+            player.seekTo(positionMs)
+        }
+
+        override fun setPlayWhenReady(playWhenReady: Boolean) {
+            player.playWhenReady = playWhenReady
+        }
+
+        override fun prepare() {
+            player.prepare()
+        }
+    }
+
+    private fun queueItems(count: Int): List<MediaItem> =
+        (0 until count).map {
+            MediaItem
+                .Builder()
+                .setMediaId("plex:track:$it")
+                .setUri("http://192.168.1.100:32400/library/parts/$it/file.mp3")
+                .build()
+        }
+
+    @Test
+    fun `recovery keeps all N queued tracks at the same index and position (real ExoPlayer)`() =
+        runTest(dispatcher) {
+            val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+            val player = ExoPlayer.Builder(appContext).build()
+            try {
+                // Given: a REAL ExoPlayer holding a 3-file book, positioned in the 2nd file.
+                player.setMediaItems(queueItems(3))
+                player.seekTo(1, 45_000L)
+                player.playWhenReady = true
+                assertThat(player.mediaItemCount).isEqualTo(3)
+                assertThat(player.currentMediaItemIndex).isEqualTo(1)
+
+                val handle = ExoPlayerHandle(player)
+                val rebuilder =
+                    PlaybackErrorRecoveryHandler.MediaSourceRebuilder { item ->
+                        // Mirror the service: build a fresh ProgressiveMediaSource per requested item.
+                        if (item == null) {
+                            null
+                        } else {
+                            val ds = DefaultHttpDataSource.Factory()
+                            ProgressiveMediaSource
+                                .Factory(ds)
+                                .createMediaSource(item)
+                        }
+                    }
+                val realHandler =
+                    PlaybackErrorRecoveryHandler(
+                        connectionRefreshCoordinator = refreshCoordinator,
+                        playbackUrlResolver = playbackUrlResolver,
+                        localBroadcastManager = localBroadcastManager,
+                        scope = scope,
+                        playerHandle = handle,
+                        mediaSourceRebuilder = rebuilder,
+                    )
+
+                // When: a network error is recovered.
+                realHandler.handleError(
+                    networkError(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED),
+                )
+                advanceUntilIdle()
+
+                // Then: the player STILL holds all 3 tracks, at the same index and position —
+                // the queue was not collapsed to just the current file.
+                assertThat(player.mediaItemCount).isEqualTo(3)
+                assertThat(player.currentMediaItemIndex).isEqualTo(1)
+                assertThat(player.currentPosition).isEqualTo(45_000L)
+                assertThat(player.playWhenReady).isTrue()
+            } finally {
+                player.release()
+            }
+        }
+
+    @Test
+    fun `recovery re-resolves EVERY queued track URL, not just the current one`() =
+        runTest(dispatcher) {
+            val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+            val player = ExoPlayer.Builder(appContext).build()
+            try {
+                player.setMediaItems(queueItems(3))
+                player.seekTo(0, 10_000L)
+
+                val handle = ExoPlayerHandle(player)
+                val rebuilt = mutableListOf<String>()
+                val rebuilder =
+                    PlaybackErrorRecoveryHandler.MediaSourceRebuilder { item ->
+                        if (item == null) {
+                            null
+                        } else {
+                            rebuilt.add(item.mediaId)
+                            val ds = DefaultHttpDataSource.Factory()
+                            ProgressiveMediaSource
+                                .Factory(ds)
+                                .createMediaSource(item)
+                        }
+                    }
+                val realHandler =
+                    PlaybackErrorRecoveryHandler(
+                        connectionRefreshCoordinator = refreshCoordinator,
+                        playbackUrlResolver = playbackUrlResolver,
+                        localBroadcastManager = localBroadcastManager,
+                        scope = scope,
+                        playerHandle = handle,
+                        mediaSourceRebuilder = rebuilder,
+                    )
+
+                realHandler.handleError(networkError())
+                advanceUntilIdle()
+
+                // Every queued item must have been rebuilt against the refreshed connection —
+                // otherwise the NEXT file in the book still points at the dead LAN URL and
+                // playback dies again at the file boundary.
+                assertThat(rebuilt)
+                    .containsExactly("plex:track:0", "plex:track:1", "plex:track:2")
+                    .inOrder()
+            } finally {
+                player.release()
+            }
         }
 }

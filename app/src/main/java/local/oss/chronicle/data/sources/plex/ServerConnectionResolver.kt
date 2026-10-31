@@ -83,7 +83,9 @@ class ServerConnectionResolver
          * changed, re-evaluate the chosen connection on the next resolve" without having to launch
          * a coroutine themselves.
          */
-        private val pendingReprobe: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+        private val pendingReprobe: MutableSet<String> =
+            java.util.concurrent.ConcurrentHashMap
+                .newKeySet()
 
         /**
          * Monotonic epoch bumped by every [invalidate]`(null)` (global) call. Each library
@@ -101,7 +103,9 @@ class ServerConnectionResolver
          * re-probe on its next [resolve]. Epoch 0 on a fresh instance forces nothing, because no
          * global invalidation has happened yet.
          */
-        private val globalReprobeEpoch = java.util.concurrent.atomic.AtomicLong(0)
+        private val globalReprobeEpoch =
+            java.util.concurrent.atomic
+                .AtomicLong(0)
 
         /** Per-library epoch at which that library last honoured a global invalidation. */
         private val reprobedAtGlobalEpoch = ConcurrentHashMap<String, Long>()

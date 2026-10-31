@@ -1345,6 +1345,23 @@ class MediaPlayerService :
                     (currentPlayer as? ExoPlayer)?.setMediaSource(mediaSource, resetPosition)
                 }
 
+                override fun getCurrentMediaItems(): List<MediaItem> =
+                    currentPlayer?.let { player ->
+                        (0 until player.mediaItemCount).map { player.getMediaItemAt(it) }
+                    } ?: emptyList()
+
+                override fun getCurrentMediaItemIndex(): Int = currentPlayer?.currentMediaItemIndex ?: 0
+
+                override fun setMediaSources(
+                    mediaSources: List<androidx.media3.exoplayer.source.MediaSource>,
+                    startIndex: Int,
+                    startPositionMs: Long,
+                ) {
+                    // Full-queue restore: keeps every file of a multi-file book queued after
+                    // recovery (a single setMediaSource would mask the playlist down to one item).
+                    (currentPlayer as? ExoPlayer)?.setMediaSources(mediaSources, startIndex, startPositionMs)
+                }
+
                 override fun seekTo(positionMs: Long) {
                     currentPlayer?.seekTo(positionMs)
                 }
@@ -1359,10 +1376,14 @@ class MediaPlayerService :
             }
 
         val rebuilder =
-            PlaybackErrorRecoveryHandler.MediaSourceRebuilder { _ ->
-                val trackId = mediaController.metadata?.id
+            PlaybackErrorRecoveryHandler.MediaSourceRebuilder { item ->
+                // The handler rebuilds EVERY queued item (a book is one MediaItem per file), so
+                // resolve the track from the item's own mediaId, falling back to the session
+                // metadata only when the item carries no usable id.
+                val itemTrackId = item?.mediaId?.takeUnless { it.isEmpty() || it == MediaItem.DEFAULT_MEDIA_ID }
+                val trackId = itemTrackId ?: mediaController.metadata?.id
                 if (trackId.isNullOrEmpty() || trackId == TRACK_NOT_FOUND) {
-                    Timber.w("[PlaybackRecovery] rebuild: no current trackId; aborting")
+                    Timber.w("[PlaybackRecovery] rebuild: no trackId for item=$item; aborting")
                     return@MediaSourceRebuilder null
                 }
                 val track =
@@ -1383,15 +1404,18 @@ class MediaPlayerService :
                 // cache is refreshed (resolve() may have updated it).
                 plexDataSourceFactory.currentLibraryId = track.libraryId
 
+                // Preserve the queued item's metadata (tag, artwork, …) so session/notification
+                // state survives the rebuild; only the URI is re-resolved.
+                val rebuiltItem =
+                    (item ?: MediaItem.Builder().setMediaId(track.id).build())
+                        .buildUpon()
+                        .setUri(freshUrl)
+                        .build()
+
                 val dataSourceFactory =
                     androidx.media3.datasource.DefaultDataSource.Factory(applicationContext, plexDataSourceFactory)
                 androidx.media3.exoplayer.source.ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(
-                        MediaItem.Builder()
-                            .setMediaId(track.id)
-                            .setUri(freshUrl)
-                            .build(),
-                    )
+                    .createMediaSource(rebuiltItem)
             }
 
         val handler =

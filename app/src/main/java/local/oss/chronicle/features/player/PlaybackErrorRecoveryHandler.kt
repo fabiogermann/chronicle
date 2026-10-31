@@ -36,10 +36,14 @@ import java.net.UnknownHostException
  *     [PlaybackUrlResolver] cache, re-establishes `PlexConfig.url`, re-probes every library.
  *  4. Defensive: also clear the per-track [local.oss.chronicle.data.model.MediaItemTrack.streamingUrlCache]
  *     via [PlaybackUrlResolver.clearCache] (idempotent — coordinator already did this).
- *  5. Rebuild the [MediaSource] for the captured `MediaItem` via [MediaSourceRebuilder] (the
- *     service injects this because rebuilding requires Plex repos + the `PlexHttpDataSourceFactory`).
- *  6. `player.setMediaSource(newSource, resetPosition=false)`, seek to captured position, restore
- *     `playWhenReady`, and `prepare()`.
+ *  5. Rebuild the [MediaSource]s for the WHOLE queue via [MediaSourceRebuilder] (the service
+ *     injects this because rebuilding requires Plex repos + the `PlexHttpDataSourceFactory`).
+ *     Every queued item must be rebuilt, not just the current one: the other items still point
+ *     at the dead connection and would fail again at the next file boundary.
+ *  6. `player.setMediaSources(sources, currentIndex, currentPosition)`, restore `playWhenReady`,
+ *     and `prepare()`. Re-setting the full list (rather than a single source) is required:
+ *     `setMediaSource(single)` REPLACES the entire playlist, so a recovered multi-file book
+ *     would END after the current file and Play would do nothing.
  *  7. Broadcast [MediaPlayerService.ACTION_PLAYBACK_RECOVERED].
  *
  * **Retry limiting.** [networkRecoveryAttempts] increments before each recovery and is checked
@@ -75,6 +79,11 @@ class PlaybackErrorRecoveryHandler(
     /**
      * Abstraction over the parts of [androidx.media3.common.Player] this handler needs. Extracting
      * an interface lets the unit tests run without a real `ExoPlayer` (which requires a Looper).
+     *
+     * The list-based members have defaults so single-track fakes only implement the legacy
+     * single-source API; the recovery path uses them to rebuild the WHOLE queue, because
+     * [setMediaSource] with a single source replaces the entire playlist (media3 playlist
+     * masking) and would silently drop every other file of a multi-file book.
      */
     interface PlayerHandle {
         fun getCurrentMediaItem(): MediaItem?
@@ -93,6 +102,24 @@ class PlaybackErrorRecoveryHandler(
         fun setPlayWhenReady(playWhenReady: Boolean)
 
         fun prepare()
+
+        /** All queued [MediaItem]s in order (a book is one item per file). */
+        fun getCurrentMediaItems(): List<MediaItem> = listOfNotNull(getCurrentMediaItem())
+
+        /** Index of the item currently loading/playing within [getCurrentMediaItems]. */
+        fun getCurrentMediaItemIndex(): Int = 0
+
+        /** Replaces the whole queue, positioned at [startIndex]/[startPositionMs]. */
+        fun setMediaSources(
+            mediaSources: List<MediaSource>,
+            startIndex: Int,
+            startPositionMs: Long,
+        ) {
+            // Fallback for single-source handles: keep the old behaviour for the current item.
+            val source = mediaSources.getOrNull(startIndex) ?: return
+            setMediaSource(source, false)
+            seekTo(startPositionMs)
+        }
     }
 
     /**
@@ -138,12 +165,13 @@ class PlaybackErrorRecoveryHandler(
         // Capture player state synchronously on the calling (Main) thread before any suspension —
         // by the time refresh() returns the underlying ExoPlayer may have advanced past STATE_IDLE
         // or had its currentMediaItem cleared.
-        val capturedItem = playerHandle.getCurrentMediaItem()
+        val capturedItems = playerHandle.getCurrentMediaItems()
+        val capturedIndex = playerHandle.getCurrentMediaItemIndex()
         val capturedPosition = playerHandle.getCurrentPosition()
         val capturedPlayWhenReady = playerHandle.getPlayWhenReady()
 
         scope.launch {
-            val recovered = runRecovery(capturedItem, capturedPosition, capturedPlayWhenReady)
+            val recovered = runRecovery(capturedItems, capturedIndex, capturedPosition, capturedPlayWhenReady)
             if (recovered) {
                 broadcastRecovered()
             } else {
@@ -156,12 +184,14 @@ class PlaybackErrorRecoveryHandler(
     }
 
     /**
-     * Runs the full recovery sequence: refresh → defensive cache clear → rebuild MediaSource →
-     * restore player state → prepare. Returns `true` on success, `false` if any step failed.
+     * Runs the full recovery sequence: refresh → defensive cache clear → rebuild EVERY queued
+     * MediaSource → restore the full queue at the captured index/position → prepare.
+     * Returns `true` on success, `false` if any step failed.
      */
     @OptIn(InternalCoroutinesApi::class)
     private suspend fun runRecovery(
-        capturedItem: MediaItem?,
+        capturedItems: List<MediaItem>,
+        capturedIndex: Int,
         capturedPosition: Long,
         capturedPlayWhenReady: Boolean,
     ): Boolean {
@@ -182,21 +212,34 @@ class PlaybackErrorRecoveryHandler(
             Timber.w(e, "PlaybackErrorRecoveryHandler: defensive clearCache() failed (non-fatal)")
         }
 
-        val newSource =
-            try {
-                mediaSourceRebuilder.rebuild(capturedItem)
-            } catch (e: Exception) {
-                Timber.e(e, "PlaybackErrorRecoveryHandler: MediaSource rebuild failed")
-                null
-            }
-        if (newSource == null) {
-            Timber.w("PlaybackErrorRecoveryHandler: rebuilder returned null; aborting recovery")
+        if (capturedItems.isEmpty()) {
+            Timber.w("PlaybackErrorRecoveryHandler: no queued media items captured; aborting recovery")
             return false
+        }
+        val safeIndex = capturedIndex.coerceIn(0, capturedItems.size - 1)
+
+        // Rebuild a source for EVERY queued item. Rebuilding only the current track would leave
+        // the rest of a multi-file book pointing at the dead connection, and setting a single
+        // source would mask the playlist down to one item (playback ENDs at the file boundary
+        // and Play does nothing).
+        val newSources = mutableListOf<MediaSource>()
+        for (item in capturedItems) {
+            val source =
+                try {
+                    mediaSourceRebuilder.rebuild(item)
+                } catch (e: Exception) {
+                    Timber.e(e, "PlaybackErrorRecoveryHandler: MediaSource rebuild failed for ${item.mediaId}")
+                    null
+                }
+            if (source == null) {
+                Timber.w("PlaybackErrorRecoveryHandler: rebuilder returned null for ${item.mediaId}; aborting recovery")
+                return false
+            }
+            newSources.add(source)
         }
 
         return try {
-            playerHandle.setMediaSource(newSource, false)
-            playerHandle.seekTo(capturedPosition)
+            playerHandle.setMediaSources(newSources, safeIndex, capturedPosition)
             playerHandle.setPlayWhenReady(capturedPlayWhenReady)
             playerHandle.prepare()
             true
