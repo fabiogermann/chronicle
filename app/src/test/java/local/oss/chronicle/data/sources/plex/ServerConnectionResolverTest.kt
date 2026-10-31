@@ -73,6 +73,7 @@ class ServerConnectionResolverTest {
                 mockPlexPrefsRepo,
                 mockConnectionProber,
             )
+        resolver.resetForTesting()
     }
 
     // ===== Test 1: Resolve returns library-specific connection from database =====

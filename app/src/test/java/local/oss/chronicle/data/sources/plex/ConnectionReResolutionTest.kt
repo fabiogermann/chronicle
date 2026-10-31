@@ -94,6 +94,9 @@ class ConnectionReResolutionTest {
                 plexPrefsRepo,
                 connectionProber,
             )
+        // Instances share nothing but each test constructs a fresh one; reset any state a
+        // previous test's instance left behind in case the singleton scoping changes.
+        resolver.resetForTesting()
     }
 
     @Test
@@ -213,6 +216,91 @@ class ConnectionReResolutionTest {
             // Then: Prober runs on the next resolve
             coVerify(exactly = 1) { connectionProber.probe(any(), any()) }
             assertThat(result.serverUrl).isEqualTo(wanUri)
+        }
+
+    @Test
+    fun `invalidate(null) forces EVERY library to re-probe on its next resolve`() =
+        runTest {
+            // Given: TWO libraries, each with a fresh-TTL chosen LAN URI (no probe needed
+            // under normal TTL rules).
+            val libraryId2 = "plex:library:99"
+            val fresh1 =
+                library.copy(
+                    chosenConnectionUri = lanUri,
+                    serverUrl = lanUri,
+                    lastConnectionCheckAt = System.currentTimeMillis(),
+                )
+            val fresh2 =
+                fresh1.copy(
+                    id = libraryId2,
+                    name = "Podcasts",
+                )
+            coEvery { libraryRepository.getLibraryById(libraryId) } returns fresh1
+            coEvery { libraryRepository.getLibraryById(libraryId2) } returns fresh2
+            coEvery { libraryRepository.getServerConnection(libraryId) } returns
+                ServerConnection(lanUri, authToken)
+            coEvery { libraryRepository.getServerConnection(libraryId2) } returns
+                ServerConnection(lanUri, authToken)
+            coEvery { connectionProber.probe(any(), any()) } returns wanUri
+
+            // Prime the in-memory cache for both libraries (still no probes: TTL is fresh).
+            resolver.resolve(libraryId)
+            resolver.resolve(libraryId2)
+            coVerify(exactly = 0) { connectionProber.probe(any(), any()) }
+
+            // When: a GLOBAL invalidation arrives (network change) and each library is next
+            // resolved on demand.
+            resolver.invalidate(null)
+            val r1 = resolver.resolve(libraryId)
+            val r2 = resolver.resolve(libraryId2)
+
+            // Then: BOTH libraries re-probed (exactly twice in total — fresh1/fresh2 share the
+            // same connections list instance, so per-library verification cannot distinguish
+            // them) and now return the WAN URI — the second library must NOT be silently served
+            // from its fresh-TTL chosen URI just because the first resolve consumed the global
+            // invalidation.
+            coVerify(exactly = 2) { connectionProber.probe(fresh1.connections!!, authToken) }
+            assertThat(r1.serverUrl).isEqualTo(wanUri)
+            assertThat(r2.serverUrl).isEqualTo(wanUri)
+        }
+
+    @Test
+    fun `invalidate(null) forces re-probe for a library never resolved since the invalidation`() =
+        runTest {
+            // Given: library A resolved (primed), then a GLOBAL invalidation arrives (network
+            // change) BEFORE library B has ever been resolved on this instance — e.g. a second
+            // library the user only opens after leaving the house. Library B's stored choice is
+            // a LAN URI still inside the freshness TTL.
+            val libraryIdB = "plex:library:100"
+            val freshA =
+                library.copy(
+                    chosenConnectionUri = lanUri,
+                    serverUrl = lanUri,
+                    lastConnectionCheckAt = System.currentTimeMillis(),
+                )
+            val freshB = freshA.copy(id = libraryIdB, name = "Podcasts")
+            coEvery { libraryRepository.getLibraryById(libraryId) } returns freshA
+            coEvery { libraryRepository.getLibraryById(libraryIdB) } returns freshB
+            coEvery { libraryRepository.getServerConnection(libraryId) } returns
+                ServerConnection(lanUri, authToken)
+            coEvery { libraryRepository.getServerConnection(libraryIdB) } returns
+                ServerConnection(lanUri, authToken)
+            coEvery { connectionProber.probe(any(), any()) } returns wanUri
+
+            resolver.resolve(libraryId)
+            coVerify(exactly = 0) { connectionProber.probe(any(), any()) }
+
+            // When: the global invalidation fires and only THEN is library B first resolved.
+            resolver.invalidate(null)
+            val resultB = resolver.resolve(libraryIdB)
+
+            // Then: library B re-probes exactly once despite its fresh TTL — it must not reuse
+            // the DB-stored LAN connection from before the handover. And a SECOND resolve of B
+            // does not probe again (the invalidation is consumed exactly once per library).
+            coVerify(exactly = 1) { connectionProber.probe(freshB.connections!!, authToken) }
+            assertThat(resultB.serverUrl).isEqualTo(wanUri)
+            resolver.resolve(libraryIdB)
+            coVerify(exactly = 1) { connectionProber.probe(freshB.connections!!, authToken) }
         }
 
     @Test

@@ -82,10 +82,29 @@ class ServerConnectionResolver
          * [invalidate] so that callers like the NetworkMonitor (fix #2) can say "the network just
          * changed, re-evaluate the chosen connection on the next resolve" without having to launch
          * a coroutine themselves.
-         *
-         * A sentinel `"*"` entry means "force every library".
          */
         private val pendingReprobe: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+
+        /**
+         * Monotonic epoch bumped by every [invalidate]`(null)` (global) call. Each library
+         * remembers the epoch at which it last consumed a global invalidation in
+         * [reprobedAtGlobalEpoch]; a later global invalidation forces that library's next
+         * [resolve] to re-probe regardless of the freshness TTL.
+         *
+         * This replaces a one-shot `"*"` marker in [pendingReprobe], which the FIRST library to
+         * resolve consumed — every other library then skipped the forced re-probe even though
+         * the network had just changed underneath it.
+         *
+         * A library with no [reprobedAtGlobalEpoch] entry is treated as epoch 0: it has never
+         * consumed a global invalidation, so any invalidation that already happened (e.g. a
+         * handover that occurred before this library was first opened) still forces exactly one
+         * re-probe on its next [resolve]. Epoch 0 on a fresh instance forces nothing, because no
+         * global invalidation has happened yet.
+         */
+        private val globalReprobeEpoch = java.util.concurrent.atomic.AtomicLong(0)
+
+        /** Per-library epoch at which that library last honoured a global invalidation. */
+        private val reprobedAtGlobalEpoch = ConcurrentHashMap<String, Long>()
 
         /**
          * Per-library mutex map. Ensures that concurrent [resolve]s for the same library don't
@@ -126,11 +145,21 @@ class ServerConnectionResolver
             libraryId: String,
             forceReprobe: Boolean,
         ): ServerConnection {
-            // If invalidate() was called for this library (or globally) since the last resolve,
-            // treat this as a forced re-probe and consume the marker.
-            val invalidationPending =
-                pendingReprobe.remove(libraryId) || pendingReprobe.remove("*")
-            val effectiveForce = forceReprobe || invalidationPending
+            // If invalidate() was called for this library (or globally) since its last resolve,
+            // treat this as a forced re-probe and consume the marker. A library with no
+            // last-consumed epoch is treated as epoch 0, so a global invalidation that happened
+            // before this library was first resolved still forces exactly one re-probe; on a
+            // fresh instance epoch == 0 so nothing is forced.
+            val perLibraryPending = pendingReprobe.remove(libraryId)
+            val epoch = globalReprobeEpoch.get()
+            val lastConsumed = reprobedAtGlobalEpoch[libraryId] ?: 0L
+            val globalPending = lastConsumed != epoch
+            val effectiveForce = forceReprobe || perLibraryPending || globalPending
+            if (globalPending || !reprobedAtGlobalEpoch.containsKey(libraryId)) {
+                // Record up-front so a concurrent resolve on the same library doesn't double-probe;
+                // a failed probe still counts (per invalidate()'s once-per-library contract).
+                reprobedAtGlobalEpoch[libraryId] = epoch
+            }
 
             // Check cache first (skipped when effectiveForce)
             if (!effectiveForce) {
@@ -327,6 +356,19 @@ class ServerConnectionResolver
         }
 
         /**
+         * Resets every piece of mutable resolution state (cache, pending re-probe markers,
+         * global invalidation epoch). Tests construct many short-lived instances; without this
+         * a global invalidation in one test would leak into the next.
+         */
+        @androidx.annotation.VisibleForTesting
+        fun resetForTesting() {
+            cache.clear()
+            pendingReprobe.clear()
+            reprobedAtGlobalEpoch.clear()
+            globalReprobeEpoch.set(0)
+        }
+
+        /**
          * Invalidates the cached connection for a specific library, or for **all** libraries when
          * [libraryId] is null. The next [resolve] call will re-query the database AND force a
          * re-probe of the persisted [Library.connections] list (regardless of the freshness TTL).
@@ -340,7 +382,7 @@ class ServerConnectionResolver
             if (libraryId == null) {
                 val size = cache.size
                 cache.clear()
-                pendingReprobe.add("*")
+                globalReprobeEpoch.incrementAndGet()
                 Timber.d("Invalidated all cached server connections ($size entries); next resolve will re-probe")
             } else {
                 cache.remove(libraryId)
