@@ -113,8 +113,9 @@ class PlexProgressReporter
                 book.id.removePrefix("plex:").toIntOrNull()
                     ?: throw IllegalArgumentException("Invalid book ID: ${book.id}")
 
-            // Resolve play queue item ID from cache, fall back to -1 if not found
-            val playQueueItemId = playQueueItemCache[track.id] ?: -1L
+            // Resolve play queue item ID from cache; fall back to the track's own
+            // playQueueItemID (persisted locally from the last play queue), then -1
+            val playQueueItemId = playQueueItemCache[track.id] ?: track.playQueueItemID
 
             if (playQueueItemId == -1L) {
                 Timber.w(

@@ -31,7 +31,7 @@ import javax.inject.Singleton
  * @see ServerConnectionResolver
  */
 @Singleton
-class ScopedPlexServiceFactory
+open class ScopedPlexServiceFactory
     @Inject
     constructor(
         private val moshi: Moshi,
@@ -63,7 +63,7 @@ class ScopedPlexServiceFactory
          * @return PlexMediaService configured for this library
          * @throws IllegalStateException if serverUrl or authToken is null
          */
-        fun getOrCreateService(connection: ServerConnection): PlexMediaService {
+        open fun getOrCreateService(connection: ServerConnection): PlexMediaService {
             val serverUrl =
                 connection.serverUrl
                     ?: throw IllegalStateException("No server URL in connection")
@@ -115,13 +115,7 @@ class ScopedPlexServiceFactory
             authToken: String,
         ): PlexMediaService {
             // Create OkHttp client with scoped auth interceptor
-            val client =
-                OkHttpClient.Builder()
-                    .addInterceptor(createScopedInterceptor(authToken))
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
-                    .writeTimeout(30, TimeUnit.SECONDS)
-                    .build()
+            val client = createClient(authToken)
 
             // Create Retrofit with library-specific base URL and DI-provided Moshi
             val retrofit =
@@ -133,6 +127,19 @@ class ScopedPlexServiceFactory
 
             return retrofit.create(PlexMediaService::class.java)
         }
+
+        /**
+         * Builds the OkHttp client used for scoped services. Visible for tests so the
+         * same production interceptor stack can be exercised without a real network.
+         */
+        internal open fun createClient(authToken: String): OkHttpClient =
+            OkHttpClient
+                .Builder()
+                .addInterceptor(createScopedInterceptor(authToken))
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build()
 
         /**
          * Creates an OkHttp interceptor with scoped auth token.

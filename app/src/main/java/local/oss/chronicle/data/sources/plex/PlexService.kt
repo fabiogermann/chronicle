@@ -109,7 +109,7 @@ interface PlexMediaService {
         @Query("hasMDE") hasMde: Int,
         @Query("identifier") identifier: String = "com.plexapp.plugins.library",
         @Query("playbackTime") playbackTime: Long = 0L,
-        @Query("playQueueItemId") playQueueItemId: Long = 0L,
+        @Query("playQueueItemID") playQueueItemId: Long = 0L,
     )
 
     /**
