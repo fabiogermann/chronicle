@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.62.7] - 2026-10-31
+
+- fix(connection): global invalidate re-probes every library exactly once (f5dbdda)
+- fix(network): detect Wi-Fi to cellular handover when both networks are up (64334c4)
+- fix(player): playback recovery rebuilds the whole queue, not one item (f940b46)
+- fix(player): never consult network for cached tracks in PlaybackUrlResolver (9584907)
+- fix(downloads): recognise books downloaded before v0.61.1 (f269050)
+- fix(player): stream a cached track whose file is missing instead of Source error (effb061)
+- fix(sync): adopt newer server progress for cross-device resume (6284b04)
+- fix(progress): send playQueueItemID in timeline reports, pin request shape (dafe7eb)
+- feat(settings): secret-safe diagnostics report builder + tests (a4053d9)
+- feat(settings): Help & Diagnostics entry with copy/share report (00e0f21)
+- feat(player): offer connection test on terminal playback errors (9dcd1ef)
+- style(settings): ktlint fixes for diagnostics report builder and test (3535468)
+- style(player): ktlint chain-wrapping in playback-error Snackbar (c98451a)
+- fix(auth): offer manual plex.tv/link fallback immediately, not after 20s (f5e425d)
+- fix(auth): match OAuth callback intent filters on trailing-slash path too (d75e6fd)
+- fix(auth): use a non-strong PIN for manual plex.tv/link linking (83f81f5)
+- fix(auth): resume polling the persisted OAuth PIN after process death (035ca2a)
+- fix(auth): wire the login screen to the 4-char manual-linking code (029a776)
+- test(auth): make coordinator tests terminate in virtual time (3562a75)
+- docs(play): ship real release notes and fix listing requirements (2001b70)
+
 ## [0.62.0] - 2026-06-15
 
 - chore: bump version to 0.61.2-SNAPSHOT and update CHANGELOG.md (c4b3ad9)
