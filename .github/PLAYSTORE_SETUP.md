@@ -200,27 +200,44 @@ The workflow will:
 
 ## Release Notes Management
 
-### Version-Specific Release Notes
-
-Create version-specific changelogs:
-
-```
-app/src/main/play/listings/en-US/changelogs/29.txt  # For version code 29
-app/src/main/play/listings/en-US/changelogs/30.txt  # For version code 30
-```
-
-The plugin will automatically use the correct changelog for each version.
+The Play Publisher plugin (`com.github.triplet.play`) reads release notes ("What's new")
+**only** from `app/src/main/play/release-notes/<language>/<track>.txt`. Files under
+`listings/<language>/changelogs/` (the fastlane layout) are ignored. If no release notes
+are found, the plugin copies the notes of the previous release.
 
 ### Default Release Notes
 
-If no version-specific file exists, the plugin uses:
+Used for every track that has no track-specific file:
+
 ```
-app/src/main/play/listings/en-US/changelogs/default.txt
+app/src/main/play/release-notes/en-US/default.txt
 ```
+
+### Track-Specific Release Notes
+
+To use different notes on one track, add a file named after the track, e.g.:
+
+```
+app/src/main/play/release-notes/en-US/beta.txt        # used when publishing to beta
+app/src/main/play/release-notes/en-US/production.txt  # used when publishing to production
+```
+
+Update `default.txt` with every version bump: the same file is uploaded with each release.
 
 ### Character Limit
 
 Release notes are limited to **500 characters** including spaces.
+
+### Verify Locally
+
+```bash
+./gradlew :app:generateReleasePlayResources
+cat app/build/generated/gpp/release/res/release-notes/en-US/default.txt
+```
+
+`publishBundle` uploads the bundle and the release notes, but **not** the store listing
+(title, descriptions, graphics). Listing changes need `./gradlew publishListing` or an edit
+in the Play Console.
 
 ## Metadata Updates
 

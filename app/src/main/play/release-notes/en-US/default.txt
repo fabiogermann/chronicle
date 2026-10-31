@@ -1,0 +1,6 @@
+• Playback keeps going when your phone switches between Wi-Fi and mobile data
+• Downloaded books play offline right away, including books downloaded with older versions
+• Listening progress syncs more reliably between devices
+• Sign-in: if the browser doesn't return you to the app, link with a 4-character code at plex.tv/link
+• New: Settings → Help & Diagnostics, with a connection test and diagnostics you can copy or share
+• Stability fixes

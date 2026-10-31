@@ -18,7 +18,7 @@ Chronicle is designed specifically for Plex users who want a dedicated audiobook
 <b>🎯 Requirements</b>
 
 • A Plex server with audiobook content
-• Android 13 or higher
+• Android 11 or higher
 • Network access to your Plex server
 • For Android Auto: you must be logged into the app before you are able to use it in your vehicle
 
