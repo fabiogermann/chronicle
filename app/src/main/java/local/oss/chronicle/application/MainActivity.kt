@@ -133,12 +133,13 @@ class MainActivity : AppCompatActivity() {
         // Terminal playback failures (recovery gave up) additionally offer a "Run connection
         // test" action so users can self-diagnose without hunting through settings.
         viewModel.playbackErrorWithAction.observeEvent(this) { errorMessage ->
-            Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_LONG)
+            Snackbar
+                .make(binding.root, errorMessage, Snackbar.LENGTH_LONG)
                 .setAction(R.string.run_connection_test) {
-                    DebugInfoDialogFragment.newInstance()
+                    DebugInfoDialogFragment
+                        .newInstance()
                         .show(supportFragmentManager, DebugInfoDialogFragment.TAG)
-                }
-                .show()
+                }.show()
         }
 
         // TODO: show/hide this item on launch more performantly
