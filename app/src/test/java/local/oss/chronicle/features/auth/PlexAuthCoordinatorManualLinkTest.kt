@@ -23,8 +23,12 @@ import org.junit.Test
  * do not verify (e.g. some Vivo/Funtouch builds): the browser opens
  * auth.chronicleapp.net as a plain page and the deep-link back into the app
  * never fires. In that situation login must still succeed via polling alone,
- * and the manual-linking info (plex.tv/link + PIN code) must be available to
- * the UI from the very start of polling — not only after a 20 s timeout.
+ * and the manual-linking path (plex.tv/link) must be offered to the UI from
+ * the very start of polling — not only after a 20 s timeout.
+ *
+ * The Polling state's pinCode here is the STRONG PIN's code (the browser
+ * flow's PIN); the 4-char manual code only exists after the user requests it
+ * — that behaviour lives in PlexAuthCoordinatorManualPinTest.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlexAuthCoordinatorManualLinkTest {

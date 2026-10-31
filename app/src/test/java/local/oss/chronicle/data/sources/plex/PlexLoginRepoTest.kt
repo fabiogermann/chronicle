@@ -174,6 +174,75 @@ class PlexLoginRepoTest {
         }
 
     @Test
+    fun `postOAuthPin with strong=false requests a non-strong PIN and persists its id`() =
+        runTest {
+            // plex.tv/link only accepts the 4-char code of a NON-strong PIN; the manual
+            // linking path must therefore create its PIN with strong=false (the OAuth
+            // browser PIN is strong — its 25-char code cannot be entered at plex.tv/link).
+            val manualPin =
+                OAuthResponse(
+                    id = 2002L,
+                    clientIdentifier = "test-client-id",
+                    code = "K7XW",
+                    authToken = null,
+                )
+            coEvery { plexLoginService.postAuthPin(strong = false) } returns manualPin
+
+            val pin = plexLoginRepo.postOAuthPin(strong = false)
+
+            io.mockk.coVerify { plexLoginService.postAuthPin(strong = false) }
+            assertEquals(manualPin, pin)
+            assertEquals(
+                "the manual PIN id must be persisted so polling can pick it up",
+                2002L,
+                plexPrefsRepo.oAuthTempId,
+            )
+        }
+
+    @Test
+    fun `checkForOAuthAccessToken polls the explicitly given PIN id`() =
+        runTest {
+            // After the user switches to manual linking, polling must watch the MANUAL
+            // pin — the one the user is actually linking at plex.tv/link — even though
+            // the persisted oAuthTempId still holds the browser flow's pin.
+            plexPrefsRepo.oAuthTempId = 1001L // browser flow's strong pin
+            val manualPinId = 2002L
+            val validToken = "manual-link-token"
+            coEvery { plexLoginService.getAuthPin(manualPinId) } returns
+                OAuthResponse(
+                    id = manualPinId,
+                    clientIdentifier = "test-client-id",
+                    code = "K7XW",
+                    authToken = validToken,
+                )
+            coEvery { plexLoginService.getUsersForAccount() } throws IOException("Not testing user flow")
+
+            plexLoginRepo.checkForOAuthAccessToken(manualPinId)
+
+            io.mockk.coVerify { plexLoginService.getAuthPin(manualPinId) }
+            io.mockk.coVerify(exactly = 0) { plexLoginService.getAuthPin(1001L) }
+            assertEquals(validToken, plexPrefsRepo.accountAuthToken)
+        }
+
+    @Test
+    fun `checkForOAuthAccessToken with default argument still polls the persisted PIN id`() =
+        runTest {
+            val originalPinId = 12345L
+            plexPrefsRepo.oAuthTempId = originalPinId
+            coEvery { plexLoginService.getAuthPin(originalPinId) } returns
+                OAuthResponse(
+                    id = originalPinId,
+                    clientIdentifier = "test-client-id",
+                    code = "code",
+                    authToken = null,
+                )
+
+            plexLoginRepo.checkForOAuthAccessToken()
+
+            io.mockk.coVerify { plexLoginService.getAuthPin(originalPinId) }
+        }
+
+    @Test
     fun `chooseLibrary forwards the full server Connection list to AccountManager`() =
         kotlinx.coroutines.test.runTest {
             // Given: A fully-authenticated state with a known server / user / library

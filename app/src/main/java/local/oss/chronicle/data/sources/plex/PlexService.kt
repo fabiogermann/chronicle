@@ -10,8 +10,15 @@ const val PLEX_LOGIN_SERVICE_URL = "https://plex.tv"
 const val PLACEHOLDER_URL = "https://fake-base-url-should-never-be-called.yyy"
 
 interface PlexLoginService {
-    @POST("https://plex.tv/api/v2/pins.json?strong=true")
-    suspend fun postAuthPin(): OAuthResponse
+    /**
+     * Creates an OAuth PIN. `strong=true` yields a long (25-char) code for the
+     * app.plex.tv/auth browser flow; `strong=false` yields the 4-char code that
+     * plex.tv/link accepts for manual linking. Verified against the live API
+     * 2026-10-31: strong → code length 25 / expiresIn 1800 s, non-strong →
+     * code length 4 / expiresIn 900 s.
+     */
+    @POST("https://plex.tv/api/v2/pins.json")
+    suspend fun postAuthPin(@Query("strong") strong: Boolean = true): OAuthResponse
 
     @GET("https://plex.tv/api/v2/pins/{id}.json")
     suspend fun getAuthPin(

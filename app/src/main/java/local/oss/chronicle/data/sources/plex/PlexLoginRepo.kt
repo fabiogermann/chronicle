@@ -25,8 +25,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface IPlexLoginRepo {
-    /** POST the OAuth pin to start OAuth login process, and retrieve a default response */
-    suspend fun postOAuthPin(): OAuthResponse?
+    /**
+     * POST the OAuth pin to start OAuth login process, and retrieve a default response.
+     *
+     * [strong] selects the PIN kind: strong PINs (long code) back the app.plex.tv/auth
+     * browser flow; non-strong PINs (4-char code) are what plex.tv/link accepts for
+     * manual linking. The created PIN id is persisted to [PlexPrefsRepo.oAuthTempId].
+     */
+    suspend fun postOAuthPin(strong: Boolean = true): OAuthResponse?
 
     /**
      * Chooses a user, updates the auth token to match the user in the [PlexConfig], sets
@@ -68,7 +74,13 @@ interface IPlexLoginRepo {
         code: String,
     ): Uri
 
-    suspend fun checkForOAuthAccessToken()
+    /**
+     * Polls the OAuth PIN once; on success stores the auth token and advances login state.
+     *
+     * @param pinId The PIN to poll, or -1 to poll the id persisted in
+     *   [PlexPrefsRepo.oAuthTempId] (set by the most recent [postOAuthPin]).
+     */
+    suspend fun checkForOAuthAccessToken(pinId: Long = -1L)
 }
 
 /**
@@ -91,10 +103,10 @@ class PlexLoginRepo
         // Coroutine scope for database operations (uses SupervisorJob to prevent cancellation cascading)
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-        override suspend fun postOAuthPin(): OAuthResponse? {
+        override suspend fun postOAuthPin(strong: Boolean): OAuthResponse? {
             return try {
                 _loginState.postEvent(AWAITING_LOGIN_RESULTS)
-                val pin = plexLoginService.postAuthPin()
+                val pin = plexLoginService.postAuthPin(strong)
                 plexPrefsRepo.oAuthTempId = pin.id
                 pin
             } catch (e: Throwable) {
@@ -129,13 +141,17 @@ class PlexLoginRepo
             )
         }
 
-        override suspend fun checkForOAuthAccessToken() {
+        override suspend fun checkForOAuthAccessToken(pinId: Long) {
+            // -1 means "poll the persisted PIN id" (the default for legacy callers).
+            val polledPinId = if (pinId != -1L) pinId else plexPrefsRepo.oAuthTempId
             val authToken =
                 try {
-                    plexLoginService.getAuthPin(plexPrefsRepo.oAuthTempId).authToken ?: ""
+                    plexLoginService.getAuthPin(polledPinId).authToken ?: ""
                 } catch (t: Throwable) {
-                    // Only clear PIN ID if the PIN is truly expired (404), not on transient network errors
-                    if (t is HttpException && t.code() == 404) {
+                    // Only clear the persisted PIN ID if that PIN is truly expired (404),
+                    // not on transient network errors — and only when we actually polled
+                    // the persisted id.
+                    if (t is HttpException && t.code() == 404 && polledPinId == plexPrefsRepo.oAuthTempId) {
                         plexPrefsRepo.oAuthTempId = -1L
                     }
                     Timber.i("Failed to get OAuth access token: ${t.message}")

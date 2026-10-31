@@ -22,10 +22,12 @@ import org.junit.Test
  * where the App Link redirect doesn't fire, e.g. Vivo/Funtouch).
  *
  * When the OAuth browser page can't redirect back into the app, the user is
- * stuck: the page freezes and the app just keeps polling. The fix surfaces the
- * PIN code so the user can complete linking manually at plex.tv/link, and the
- * UI offers that path from the very start of polling — users in the loop must
- * not have to wait on the right screen at the right moment to discover it.
+ * stuck: the page freezes and the app just keeps polling. The fix offers the
+ * manual-linking path (plex.tv/link) from the very start of polling — users in
+ * the loop must not have to wait on the right screen at the right moment to
+ * discover it. The 4-char code itself only exists once the user asks for it
+ * (it needs a separate non-strong PIN), so Polling carries the strong PIN's
+ * code until then; the UI keys off [PlexAuthState.Polling.shouldShowManualFallback].
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlexAuthCoordinatorFallbackTest {
