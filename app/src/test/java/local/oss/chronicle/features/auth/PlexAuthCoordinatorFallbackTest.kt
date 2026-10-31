@@ -23,8 +23,9 @@ import org.junit.Test
  *
  * When the OAuth browser page can't redirect back into the app, the user is
  * stuck: the page freezes and the app just keeps polling. The fix surfaces the
- * PIN code so the user can complete linking manually at plex.tv/link, and
- * exposes a slow-poll hint so the UI knows to offer that fallback.
+ * PIN code so the user can complete linking manually at plex.tv/link, and the
+ * UI offers that path from the very start of polling — users in the loop must
+ * not have to wait on the right screen at the right moment to discover it.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlexAuthCoordinatorFallbackTest {
@@ -62,7 +63,7 @@ class PlexAuthCoordinatorFallbackTest {
         }
 
     @Test
-    fun `polling beyond the fallback threshold flags shouldShowManualFallback`() =
+    fun `manual fallback is flagged from the first polling emission`() =
         runTest {
             coEvery { plexLoginRepo.postOAuthPin() } returns
                 OAuthResponse(id = 7L, clientIdentifier = "client-x", code = "WXYZ", authToken = null)
@@ -70,15 +71,16 @@ class PlexAuthCoordinatorFallbackTest {
             val coordinator = PlexAuthCoordinator(plexLoginRepo, this)
             val flow = coordinator.startAuth()
 
-            // Before threshold: no fallback yet
+            // First Polling emission already offers plex.tv/link + the code: on devices
+            // with broken App Links the deep link never fires, so there is nothing to
+            // wait for.
             advanceTimeBy(PlexAuthCoordinator.POLLING_INTERVAL_MS + 100)
-            var state = flow.value as PlexAuthState.Polling
-            assertTrue("should not show fallback immediately", !state.shouldShowManualFallback)
-
-            // Past threshold: fallback surfaces so the UI can offer plex.tv/link + code
-            advanceTimeBy(PlexAuthCoordinator.MANUAL_FALLBACK_AFTER_MS + 1_000)
-            state = flow.value as PlexAuthState.Polling
-            assertTrue("expected manual fallback after threshold", state.shouldShowManualFallback)
+            val state = flow.value as PlexAuthState.Polling
+            assertTrue(
+                "manual fallback must be offered immediately, not only after " +
+                    "MANUAL_FALLBACK_AFTER_MS",
+                state.shouldShowManualFallback,
+            )
             coordinator.dispose()
         }
 }

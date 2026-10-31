@@ -59,8 +59,15 @@ class PlexAuthCoordinator
              * How long to poll before flagging that the manual-linking fallback should be
              * offered. Deep-link return is near-instant when it works, so if the user has
              * been waiting this long the App Link almost certainly didn't fire.
+             *
+             * Zero: the manual-linking info (plex.tv/link + PIN code) is harmless and is
+             * offered from the very first Polling emission. On devices where Android App
+             * Links never verified (e.g. some Vivo/Funtouch builds) the deep link NEVER
+             * fires and the user bounces between the frozen browser page and the app —
+             * they must not have to wait 20 s, on the right screen at the right moment,
+             * to learn there is another way in.
              */
-            const val MANUAL_FALLBACK_AFTER_MS = 20_000L
+            const val MANUAL_FALLBACK_AFTER_MS = 0L
         }
 
         private val _state = MutableStateFlow<PlexAuthState>(PlexAuthState.Idle)

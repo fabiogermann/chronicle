@@ -2,6 +2,7 @@ package local.oss.chronicle.features.login
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -72,6 +73,15 @@ class LoginFragment : Fragment() {
 
         binding.oauthLogin.setOnClickListener {
             startChromeCustomTabsAuth()
+        }
+
+        // Manual-linking fallback: open plex.tv/link in the browser so the user can
+        // enter the PIN code by hand when the OAuth deep link doesn't fire (broken
+        // App Links, e.g. some Vivo/Funtouch devices). Launched in a separate task so
+        // the plex.tv/link tab can't redirect back into the app while we're still
+        // polling for the deep-link token — that would re-trigger the OAuth flow.
+        binding.manualFallbackHint.setOnClickListener {
+            openPlexLinkPage()
         }
 
         loginViewModel.errorEvent.observe(viewLifecycleOwner) { errorEvent ->
@@ -200,6 +210,27 @@ class LoginFragment : Fragment() {
                 ).show()
                 loginViewModel.resetAuth()
             }
+        }
+    }
+
+    /**
+     * Opens https://plex.tv/link in a browser tab running in a NEW task.
+     *
+     * The separate task matters: while polling is in flight, any deep link arriving on
+     * MainActivity's task would be routed to the in-progress OAuth flow and could
+     * re-trigger it. Keeping the manual-linking browser on its own task prevents that.
+     */
+    private fun openPlexLinkPage() {
+        try {
+            val intent =
+                Intent(Intent.ACTION_VIEW, Uri.parse("https://plex.tv/link")).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            startActivity(intent)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to open plex.tv/link")
+            val toast = Toast.makeText(requireContext(), R.string.login_open_browser_failed, Toast.LENGTH_LONG)
+            toast.show()
         }
     }
 

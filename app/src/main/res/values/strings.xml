@@ -27,7 +27,8 @@
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
     <string name="login_succeeded">Successfully logged in!</string>
-    <string name="login_manual_fallback_hint">Trouble signing in? If the browser page froze, go to plex.tv/link and enter code: %1$s</string>
+    <string name="login_manual_fallback_hint">Trouble signing in? Tap here to open plex.tv/link and enter code: %1$s</string>
+    <string name="login_open_browser_failed">Failed to open browser. Go to plex.tv/link manually.</string>
     <string name="plex_login">Plex Login</string>
 
     <!-- Choose server/library pages -->

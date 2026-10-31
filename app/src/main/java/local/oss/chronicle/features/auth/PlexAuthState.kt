@@ -39,8 +39,10 @@ sealed class PlexAuthState {
      * @property pinCode The PIN code the user can enter at plex.tv/link if the deep-link
      *   redirect doesn't fire (e.g. on devices whose App Links are broken, such as some
      *   Vivo/Funtouch builds). Surfaced so the UI can offer a manual-linking fallback.
-     * @property shouldShowManualFallback True once polling has run long enough that the
-     *   deep link is unlikely to fire — the UI should then offer the manual-linking path.
+     * @property shouldShowManualFallback True once the UI should offer the manual-linking
+     *   path (plex.tv/link + PIN code). Set from the very first Polling emission: on
+     *   devices with broken App Links the deep link never fires, so the user must not
+     *   have to wait to discover the alternative.
      */
     data class Polling(
         val pinId: Long,

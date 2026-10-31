@@ -46,6 +46,7 @@ sequenceDiagram
 - **Chrome Custom Tabs**: Provides native browser security, password managers, and autofill
 - **Android App Links**: `https://auth.chronicleapp.net/callback` verified via Digital Asset Links—causes automatic browser dismissal
 - **Legacy Fallback**: `chronicle://auth/callback` custom URI scheme remains for edge cases where App Links fail
+- **Manual linking fallback**: On devices where App Link verification never happened (e.g. some Vivo/Funtouch builds, devices without full Play Services), the deep link never fires. From the very start of polling the login screen shows a tappable "Trouble signing in?" link with the PIN code that opens plex.tv/link in a separate browser task; entering the code there completes login via polling alone — no deep link required.
 - **Polling with Timeout**: Checks for token every 1.5s, expedited to 200ms after callback, 2-minute timeout
 
 ### Key Files
