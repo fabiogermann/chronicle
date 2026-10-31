@@ -7,9 +7,11 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlin.time.Duration.Companion.seconds
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo
 import local.oss.chronicle.util.Event
 import org.junit.Assert.assertEquals
@@ -47,9 +49,28 @@ class PlexAuthCoordinatorResumeTest {
         every { plexLoginRepo.loginEvent } returns loginEvent
     }
 
+    /**
+     * Coordinator under test runs in [backgroundScope] (auto-cancelled by runTest)
+     * and on the test's virtual clock (timeouts fire in virtual time), so a
+     * failing expectation can never spin the poll loop at full CPU speed and
+     * OOM the test worker; the 10 s dispatch timeout is a further guard.
+     */
+    private fun runCoordinatorTest(
+        block: suspend TestScope.(PlexAuthCoordinator) -> Unit,
+    ) = runTest(timeout = 10.seconds) {
+        val coordinator =
+            PlexAuthCoordinator(
+                plexLoginRepo,
+                backgroundScope,
+                ticker = PlexAuthCoordinator.Ticker { testScheduler.currentTime },
+            )
+        block(coordinator)
+        coordinator.dispose()
+    }
+
     @Test
     fun `resumeAuth polls the persisted PIN immediately and reaches Success on a linked PIN`() =
-        runTest {
+        runCoordinatorTest { coordinator ->
             val persistedPinId = 4242L
             var linked = false
             val polledPinIds = mutableListOf<Long>()
@@ -65,7 +86,6 @@ class PlexAuthCoordinatorResumeTest {
 
             // A brand-new coordinator, as constructed after a process restart — its
             // state is Idle, no PIN was created in this process.
-            val coordinator = PlexAuthCoordinator(plexLoginRepo, this)
             assertEquals(PlexAuthState.Idle, coordinator.state.value)
 
             val flow = coordinator.resumeAuth(persistedPinId)
@@ -95,33 +115,24 @@ class PlexAuthCoordinatorResumeTest {
                 flow.value,
             )
             coVerify(exactly = 0) { plexLoginRepo.postOAuthPin(any()) }
-            coordinator.dispose()
         }
 
     @Test
     fun `resumeAuth on an expired PIN ends in Timeout, not in an infinite poll`() =
-        runTest {
+        runCoordinatorTest { coordinator ->
             val persistedPinId = 7777L
             // PIN never gains a token (it expired server-side; getAuthPin 404s and the
             // repo keeps returning nothing useful) and login state never flips.
             coEvery { plexLoginRepo.checkForOAuthAccessToken(any()) } returns Unit
 
-            // Timeouts compare against the wall clock, so drive it from the test.
-            var fakeNow = 1_000_000L
-            val coordinator =
-                PlexAuthCoordinator(
-                    plexLoginRepo,
-                    this,
-                    ticker = PlexAuthCoordinator.Ticker { fakeNow },
-                )
             val flow = coordinator.resumeAuth(persistedPinId)
 
             // Resume is bounded by the PIN's remaining server-side lifetime, not the
             // full fresh-flow timeout — a dead PIN must fail fast so the user can retry.
-            // Timeout is checked per poll iteration, so advance poll by poll.
+            // The ticker is the test scheduler's virtual clock, so advancing past
+            // RESUME_TIMEOUT_MS in poll steps fires the timeout deterministically.
             var remaining = PlexAuthCoordinator.RESUME_TIMEOUT_MS + PlexAuthCoordinator.POLLING_INTERVAL_MS
             while (remaining > 0) {
-                fakeNow += PlexAuthCoordinator.POLLING_INTERVAL_MS
                 advanceTimeBy(PlexAuthCoordinator.POLLING_INTERVAL_MS)
                 runCurrent()
                 remaining -= PlexAuthCoordinator.POLLING_INTERVAL_MS
@@ -133,6 +144,5 @@ class PlexAuthCoordinatorResumeTest {
                     "fresh-flow timeout (${PlexAuthCoordinator.TIMEOUT_MS}ms)",
                 PlexAuthCoordinator.RESUME_TIMEOUT_MS <= PlexAuthCoordinator.TIMEOUT_MS,
             )
-            coordinator.dispose()
         }
 }

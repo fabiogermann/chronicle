@@ -8,9 +8,11 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlin.time.Duration.Companion.seconds
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo
 import local.oss.chronicle.data.sources.plex.model.OAuthResponse
 import local.oss.chronicle.util.Event
@@ -62,15 +64,33 @@ class PlexAuthCoordinatorManualPinTest {
         plexLoginRepo = mockk(relaxed = true)
         loginEvent = MutableLiveData(Event(IPlexLoginRepo.LoginState.AWAITING_LOGIN_RESULTS))
         every { plexLoginRepo.loginEvent } returns loginEvent
-        coEvery { plexLoginRepo.checkForOAuthAccessToken() } returns Unit
-        coEvery { plexLoginRepo.postOAuthPin() } returns strongPin
+        coEvery { plexLoginRepo.checkForOAuthAccessToken(any()) } returns Unit
+        coEvery { plexLoginRepo.postOAuthPin(strong = true) } returns strongPin
         coEvery { plexLoginRepo.postOAuthPin(strong = false) } returns manualPin
+    }
+
+    /**
+     * Coordinator under test runs in [backgroundScope] (auto-cancelled by runTest)
+     * and on the test's virtual clock (timeouts fire in virtual time), so a
+     * failing expectation can never spin the poll loop at full CPU speed and
+     * OOM the test worker; the 10 s dispatch timeout is a further guard.
+     */
+    private fun runCoordinatorTest(
+        block: suspend TestScope.(PlexAuthCoordinator) -> Unit,
+    ) = runTest(timeout = 10.seconds) {
+        val coordinator =
+            PlexAuthCoordinator(
+                plexLoginRepo,
+                backgroundScope,
+                ticker = PlexAuthCoordinator.Ticker { testScheduler.currentTime },
+            )
+        block(coordinator)
+        coordinator.dispose()
     }
 
     @Test
     fun `browser OAuth path requests a strong PIN`() =
-        runTest {
-            val coordinator = PlexAuthCoordinator(plexLoginRepo, this)
+        runCoordinatorTest { coordinator ->
             val flow = coordinator.startAuth()
 
             val state = flow.value
@@ -83,13 +103,11 @@ class PlexAuthCoordinatorManualPinTest {
             )
             assertEquals(strongPin.id, state.pinId)
             coVerify { plexLoginRepo.postOAuthPin(strong = true) }
-            coordinator.dispose()
         }
 
     @Test
     fun `manual-linking option requests a separate non-strong PIN with a 4-char code`() =
-        runTest {
-            val coordinator = PlexAuthCoordinator(plexLoginRepo, this)
+        runCoordinatorTest { coordinator ->
             val flow = coordinator.startAuth()
             assertTrue("expected WaitingForUser, was ${flow.value}", flow.value is PlexAuthState.WaitingForUser)
 
@@ -106,12 +124,11 @@ class PlexAuthCoordinatorManualPinTest {
                 "manual code must be the short plex.tv/link code, was: '${manual.pinCode}' (${manual.pinCode.length} chars)",
                 manual.pinCode.length <= 6,
             )
-            coordinator.dispose()
         }
 
     @Test
     fun `after choosing manual linking, polling watches the manual pin and reaches Success without browser return`() =
-        runTest {
+        runCoordinatorTest { coordinator ->
             val polledPinIds = mutableListOf<Long>()
             val pinIdSlot = slot<Long>()
             coEvery { plexLoginRepo.checkForOAuthAccessToken(capture(pinIdSlot)) } answers {
@@ -125,7 +142,6 @@ class PlexAuthCoordinatorManualPinTest {
                 }
             }
 
-            val coordinator = PlexAuthCoordinator(plexLoginRepo, this)
             val flow = coordinator.startAuth()
             advanceTimeBy(PlexAuthCoordinator.POLLING_INTERVAL_MS + 100)
             assertTrue("expected Polling, was ${flow.value}", flow.value is PlexAuthState.Polling)
@@ -154,7 +170,6 @@ class PlexAuthCoordinatorManualPinTest {
                     "${manualPin.id}, got: $polledPinIds",
                 polledPinIds.isNotEmpty() && polledPinIds.all { it == manualPin.id },
             )
-            coordinator.dispose()
         }
 
     @Test

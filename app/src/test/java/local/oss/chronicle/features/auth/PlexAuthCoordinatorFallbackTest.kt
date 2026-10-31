@@ -6,8 +6,10 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
+import kotlin.time.Duration.Companion.seconds
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo
 import local.oss.chronicle.data.sources.plex.model.OAuthResponse
 import local.oss.chronicle.util.Event
@@ -43,16 +45,37 @@ class PlexAuthCoordinatorFallbackTest {
         val loginEvent = MutableLiveData<Event<IPlexLoginRepo.LoginState>>()
         loginEvent.value = Event(IPlexLoginRepo.LoginState.AWAITING_LOGIN_RESULTS)
         every { plexLoginRepo.loginEvent } returns loginEvent
-        coEvery { plexLoginRepo.checkForOAuthAccessToken() } returns Unit
+        // Match the CURRENT signature — the coordinator polls with an explicit pin id.
+        coEvery { plexLoginRepo.checkForOAuthAccessToken(any()) } returns Unit
+    }
+
+    /**
+     * Runs [block] with a coordinator whose poll loop is (a) driven by the
+     * test's virtual clock so wall-clock timeouts fire in virtual time, and
+     * (b) launched in [backgroundScope], which runTest cancels at the end —
+     * both so a failing expectation can never spin the loop at full CPU speed
+     * and OOM the test worker (previously happened with no ticker + no
+     * cancellation). [runTest] itself is also given a 10 s dispatch timeout.
+     */
+    private fun runCoordinatorTest(
+        block: suspend TestScope.(PlexAuthCoordinator) -> Unit,
+    ) = runTest(timeout = 10.seconds) {
+        val coordinator =
+            PlexAuthCoordinator(
+                plexLoginRepo,
+                backgroundScope,
+                ticker = PlexAuthCoordinator.Ticker { testScheduler.currentTime },
+            )
+        block(coordinator)
+        coordinator.dispose()
     }
 
     @Test
     fun `polling state carries the pin code so the UI can offer manual linking`() =
-        runTest {
-            coEvery { plexLoginRepo.postOAuthPin() } returns
+        runCoordinatorTest { coordinator ->
+            coEvery { plexLoginRepo.postOAuthPin(any()) } returns
                 OAuthResponse(id = 42L, clientIdentifier = "client-x", code = "ABCD", authToken = null)
 
-            val coordinator = PlexAuthCoordinator(plexLoginRepo, this)
             val flow = coordinator.startAuth()
 
             // Move past the initial WaitingForUser into Polling
@@ -61,16 +84,14 @@ class PlexAuthCoordinatorFallbackTest {
             val state = flow.value
             assertTrue("expected Polling, was $state", state is PlexAuthState.Polling)
             assertEquals("ABCD", (state as PlexAuthState.Polling).pinCode)
-            coordinator.dispose()
         }
 
     @Test
     fun `manual fallback is flagged from the first polling emission`() =
-        runTest {
-            coEvery { plexLoginRepo.postOAuthPin() } returns
+        runCoordinatorTest { coordinator ->
+            coEvery { plexLoginRepo.postOAuthPin(any()) } returns
                 OAuthResponse(id = 7L, clientIdentifier = "client-x", code = "WXYZ", authToken = null)
 
-            val coordinator = PlexAuthCoordinator(plexLoginRepo, this)
             val flow = coordinator.startAuth()
 
             // First Polling emission already offers plex.tv/link + the code: on devices
@@ -83,6 +104,5 @@ class PlexAuthCoordinatorFallbackTest {
                     "MANUAL_FALLBACK_AFTER_MS",
                 state.shouldShowManualFallback,
             )
-            coordinator.dispose()
         }
 }

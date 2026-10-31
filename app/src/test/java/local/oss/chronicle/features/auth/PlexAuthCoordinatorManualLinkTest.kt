@@ -6,9 +6,11 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlin.time.Duration.Companion.seconds
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo
 import local.oss.chronicle.data.sources.plex.model.OAuthResponse
 import local.oss.chronicle.util.Event
@@ -43,15 +45,34 @@ class PlexAuthCoordinatorManualLinkTest {
         plexLoginRepo = mockk(relaxed = true)
         loginEvent = MutableLiveData(Event(IPlexLoginRepo.LoginState.AWAITING_LOGIN_RESULTS))
         every { plexLoginRepo.loginEvent } returns loginEvent
-        coEvery { plexLoginRepo.checkForOAuthAccessToken() } returns Unit
-        coEvery { plexLoginRepo.postOAuthPin() } returns
+        // Match the CURRENT signature — the coordinator polls with an explicit pin id.
+        coEvery { plexLoginRepo.checkForOAuthAccessToken(any()) } returns Unit
+        coEvery { plexLoginRepo.postOAuthPin(any()) } returns
             OAuthResponse(id = 42L, clientIdentifier = "client-x", code = "ABCD", authToken = null)
+    }
+
+    /**
+     * Coordinator under test runs in [backgroundScope] (auto-cancelled by runTest)
+     * and on the test's virtual clock (timeouts fire in virtual time), so a
+     * failing expectation can never spin the poll loop at full CPU speed and
+     * OOM the test worker; the 10 s dispatch timeout is a further guard.
+     */
+    private fun runCoordinatorTest(
+        block: suspend TestScope.(PlexAuthCoordinator) -> Unit,
+    ) = runTest(timeout = 10.seconds) {
+        val coordinator =
+            PlexAuthCoordinator(
+                plexLoginRepo,
+                backgroundScope,
+                ticker = PlexAuthCoordinator.Ticker { testScheduler.currentTime },
+            )
+        block(coordinator)
+        coordinator.dispose()
     }
 
     @Test
     fun `manual-linking code is available from the very start of polling`() =
-        runTest {
-            val coordinator = PlexAuthCoordinator(plexLoginRepo, this)
+        runCoordinatorTest { coordinator ->
             val flow = coordinator.startAuth()
 
             // Move past WaitingForUser into the first Polling emission.
@@ -66,20 +87,18 @@ class PlexAuthCoordinatorManualLinkTest {
                     "${PlexAuthCoordinator.MANUAL_FALLBACK_AFTER_MS}ms",
                 state.shouldShowManualFallback,
             )
-            coordinator.dispose()
         }
 
     @Test
     fun `polling alone reaches success without the browser ever returning`() =
-        runTest {
+        runCoordinatorTest { coordinator ->
             var tokenIssued = false
-            coEvery { plexLoginRepo.checkForOAuthAccessToken() } answers {
+            coEvery { plexLoginRepo.checkForOAuthAccessToken(any()) } answers {
                 if (tokenIssued) {
                     loginEvent.value = Event(IPlexLoginRepo.LoginState.LOGGED_IN_FULLY)
                 }
             }
 
-            val coordinator = PlexAuthCoordinator(plexLoginRepo, this)
             val flow = coordinator.startAuth()
             advanceTimeBy(PlexAuthCoordinator.POLLING_INTERVAL_MS + 100)
             assertTrue("expected Polling, was ${flow.value}", flow.value is PlexAuthState.Polling)
@@ -88,13 +107,13 @@ class PlexAuthCoordinatorManualLinkTest {
             // (e.g. at plex.tv/link). No deep link fires, onBrowserReturned() is
             // never called — polling alone must still carry the flow to Success.
             tokenIssued = true
-            advanceUntilIdle()
+            advanceTimeBy(PlexAuthCoordinator.POLLING_INTERVAL_MS + 100)
+            runCurrent()
 
             assertEquals(
                 "polling alone must reach Success with no onBrowserReturned() call",
                 PlexAuthState.Success(),
                 flow.value,
             )
-            coordinator.dispose()
         }
 }
