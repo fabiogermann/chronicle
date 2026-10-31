@@ -50,7 +50,11 @@
             android:excludeFromRecents="true"
             android:noHistory="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
-            <!-- Primary: HTTPS App Link (auto-closes Chrome Custom Tab) -->
+            <!-- Primary: HTTPS App Link (auto-closes Chrome Custom Tab).
+                 pathPrefix covers both /callback and /callback/ — the site
+                 301-redirects /callback to /callback/ (GitHub Pages serves the
+                 page at the trailing-slash URL), and android:path="/callback"
+                 would NOT match the redirected URL. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -58,9 +62,10 @@
                 <data
                     android:scheme="https"
                     android:host="auth.chronicleapp.net"
-                    android:path="/callback" />
+                    android:pathPrefix="/callback" />
             </intent-filter>
-            <!-- Fallback: Custom scheme (legacy support) -->
+            <!-- Fallback: Custom scheme (legacy support). Same trailing-slash
+                 rationale as the App Link filter above. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -68,7 +73,7 @@
                 <data
                     android:scheme="chronicle"
                     android:host="auth"
-                    android:path="/callback" />
+                    android:pathPrefix="/callback" />
             </intent-filter>
         </activity>
 
