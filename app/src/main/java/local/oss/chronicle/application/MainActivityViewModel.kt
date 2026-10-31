@@ -113,6 +113,11 @@ class MainActivityViewModel(
     val errorMessage: LiveData<Event<String>>
         get() = _errorMessage
 
+    /** Terminal playback errors (recovery gave up) — rendered with a "Run connection test" action. */
+    private var _playbackErrorWithAction = MutableLiveData<Event<String>>()
+    val playbackErrorWithAction: LiveData<Event<String>>
+        get() = _playbackErrorWithAction
+
     val hasCollections = collectionsRepository.hasCollections()
 
     // Used to cache tracks.asChapterList when tracks changes
@@ -264,6 +269,15 @@ class MainActivityViewModel(
     fun showUserMessage(errorMessage: String) {
         Timber.i("Showing error message: $errorMessage")
         _errorMessage.postEvent(errorMessage)
+    }
+
+    /**
+     * Posts a terminal playback error. Rendered by MainActivity as a Snackbar with an inline
+     * "Run connection test" action that opens the connection-test screen.
+     */
+    fun showPlaybackErrorWithAction(errorMessage: String) {
+        Timber.i("Showing terminal playback error: $errorMessage")
+        _playbackErrorWithAction.postEvent(errorMessage)
     }
 
     /** Minimize the currently playing modal/overlay if it is expanded */

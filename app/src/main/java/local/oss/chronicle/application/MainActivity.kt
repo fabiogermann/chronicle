@@ -21,6 +21,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -38,8 +39,11 @@ import local.oss.chronicle.data.sources.plex.PlexPrefsRepo
 import local.oss.chronicle.databinding.ActivityMainBinding
 import local.oss.chronicle.features.currentlyplaying.CurrentlyPlayingFragment
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.ACTION_PLAYBACK_ERROR
+import local.oss.chronicle.features.player.MediaPlayerService.Companion.EXTRA_IS_RECOVERING
 import local.oss.chronicle.features.player.MediaPlayerService.Companion.PLAYBACK_ERROR_MESSAGE
 import local.oss.chronicle.features.player.MediaServiceConnection
+import local.oss.chronicle.features.player.PlaybackErrorUiDecider
+import local.oss.chronicle.features.settings.DebugInfoDialogFragment
 import local.oss.chronicle.injection.components.ActivityComponent
 import local.oss.chronicle.injection.components.DaggerActivityComponent
 import local.oss.chronicle.injection.modules.ActivityModule
@@ -124,6 +128,17 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.errorMessage.observeEvent(this) { errorMessage ->
             Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+        }
+
+        // Terminal playback failures (recovery gave up) additionally offer a "Run connection
+        // test" action so users can self-diagnose without hunting through settings.
+        viewModel.playbackErrorWithAction.observeEvent(this) { errorMessage ->
+            Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_LONG)
+                .setAction(R.string.run_connection_test) {
+                    DebugInfoDialogFragment.newInstance()
+                        .show(supportFragmentManager, DebugInfoDialogFragment.TAG)
+                }
+                .show()
         }
 
         // TODO: show/hide this item on launch more performantly
@@ -299,7 +314,17 @@ class MainActivity : AppCompatActivity() {
                                 ) -> getString(R.string.playback_error_401)
                                 else -> errorMessage
                             }
-                        viewModel.showUserMessage(userMessage)
+                        // While PlaybackErrorRecoveryHandler is retrying in the background, show
+                        // a plain toast; the terminal (recovery-gave-up) error gets a Snackbar
+                        // with a "Run connection test" action so users can self-diagnose.
+                        if (PlaybackErrorUiDecider.offersConnectionTest(
+                                intent.getBooleanExtra(EXTRA_IS_RECOVERING, false),
+                            )
+                        ) {
+                            viewModel.showPlaybackErrorWithAction(userMessage)
+                        } else {
+                            viewModel.showUserMessage(userMessage)
+                        }
                     }
                     else -> throw NoWhenBranchMatchedException(
                         getString(R.string.playback_error_unknown),
