@@ -46,6 +46,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import timber.log.Timber
+import java.nio.file.Files
 
 /**
  * Tests for AudiobookMediaSessionCallback.onSeekTo() to ensure correct handling
@@ -930,5 +931,89 @@ class AudiobookMediaSessionCallbackTest {
 
         // Verify the implementation includes the call (documented in source code)
         // Full testing requires instrumentation tests due to Android framework dependencies
+    }
+
+    // ========================================
+    // GitHub #9 — stale cached flag with missing file must not be played from disk
+    // ========================================
+
+    /**
+     * The startup reconcile (CachedFileManager.refreshTrackDownloadedStatus) is launched async
+     * on Dispatchers.IO from ChronicleApplication.updateDownloadedFileState(), so a play command
+     * issued right after app start can run BEFORE it finishes. A track still flagged cached=true
+     * whose file is missing (deleted, or never fully downloaded) would then be played from its
+     * file:// URI and ExoPlayer's FileDataSource throws — the user-facing 'Source error'.
+     *
+     * playBook must instead treat that track as not cached (streaming path) and return its id
+     * so the caller can correct the stale DB flag.
+     */
+    @Test
+    fun `reconcileCachedFlagsWithFiles evicts cached track whose file is missing`() {
+        val tempDir = Files.createTempDirectory("reconcileRace").toFile()
+        val staleTrack =
+            MediaItemTrack(
+                id = "plex:111",
+                parentKey = "plex:222",
+                libraryId = "plex:library:1",
+                title = "Ch 1",
+                media = "/library/parts/1/1/file.mp3",
+                duration = 1000L,
+                cached = true, // stale — file missing
+            )
+
+        val (normalized, markedCached, evicted) =
+            AudiobookMediaSessionCallback.reconcileCachedFlagsWithFiles(listOf(staleTrack), tempDir)
+
+        // The track is demoted to the streaming path (cached=false → played from the network,
+        // never from the missing file) and reported for DB correction.
+        assertThat(normalized.single().cached, `is`(false))
+        assertThat(evicted, `is`(listOf("plex:111")))
+        assertThat(markedCached, `is`(emptyList()))
+    }
+
+    @Test
+    fun `reconcileCachedFlagsWithFiles keeps genuinely cached tracks on the local file`() {
+        val tempDir = Files.createTempDirectory("reconcileOk").toFile()
+        val track =
+            MediaItemTrack(
+                id = "plex:111",
+                parentKey = "plex:222",
+                libraryId = "plex:library:1",
+                title = "Ch 1",
+                media = "/library/parts/1/1/file.mp3",
+                duration = 1000L,
+                cached = true,
+            )
+        java.io.File(tempDir, track.getCachedFileName()).writeBytes(ByteArray(10) { 1 })
+
+        val (normalized, markedCached, evicted) =
+            AudiobookMediaSessionCallback.reconcileCachedFlagsWithFiles(listOf(track), tempDir)
+
+        assertThat(normalized.single().cached, `is`(true))
+        assertThat(evicted, `is`(emptyList()))
+        assertThat(markedCached, `is`(emptyList()))
+    }
+
+    @Test
+    fun `reconcileCachedFlagsWithFiles promotes track whose file exists but flag was lost`() {
+        val tempDir = Files.createTempDirectory("reconcilePromote").toFile()
+        val track =
+            MediaItemTrack(
+                id = "plex:111",
+                parentKey = "plex:222",
+                libraryId = "plex:library:1",
+                title = "Ch 1",
+                media = "/library/parts/1/1/file.mp3",
+                duration = 1000L,
+                cached = false, // stale — file IS on disk
+            )
+        java.io.File(tempDir, track.getCachedFileName()).writeBytes(ByteArray(10) { 1 })
+
+        val (normalized, markedCached, evicted) =
+            AudiobookMediaSessionCallback.reconcileCachedFlagsWithFiles(listOf(track), tempDir)
+
+        assertThat(normalized.single().cached, `is`(true))
+        assertThat(markedCached, `is`(listOf("plex:111")))
+        assertThat(evicted, `is`(emptyList()))
     }
 }

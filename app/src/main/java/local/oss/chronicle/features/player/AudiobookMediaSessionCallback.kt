@@ -80,6 +80,45 @@ class AudiobookMediaSessionCallback
 
             // Timeout for resuming from empty state
             private const val RESUME_TIMEOUT_MILLIS = 10_000L // 10 seconds
+
+            /**
+             * Reconciles each track's [MediaItemTrack.cached] flag against the filesystem before
+             * building the playlist.
+             *
+             * Both stale directions are fixed:
+             *  - cached=false but file present → play from the local file (flag corrected by caller)
+             *  - cached=true but file MISSING → must NOT be played from its file:// URI (ExoPlayer's
+             *    FileDataSource would throw the user-facing 'Source error', GitHub #9). This happens
+             *    in practice because the startup reconcile
+             *    ([local.oss.chronicle.data.sources.plex.CachedFileManager.refreshTrackDownloadedStatus])
+             *    is launched async on Dispatchers.IO and a play command issued right after app start
+             *    can run before it finishes. The track is streamed instead and the flag corrected.
+             */
+            internal fun reconcileCachedFlagsWithFiles(
+                tracks: List<MediaItemTrack>,
+                cacheDir: java.io.File,
+            ): Triple<List<MediaItemTrack>, List<String>, List<String>> {
+                val markedCached = mutableListOf<String>()
+                val evicted = mutableListOf<String>()
+                val normalized =
+                    tracks.map { track ->
+                        val cachedFile = java.io.File(cacheDir, track.getCachedFileName())
+                        if (track.cached) {
+                            if (cachedFile.exists()) {
+                                track
+                            } else {
+                                evicted += track.id
+                                track.copy(cached = false)
+                            }
+                        } else if (cachedFile.exists()) {
+                            markedCached += track.id
+                            track.copy(cached = true)
+                        } else {
+                            track
+                        }
+                    }
+                return Triple(normalized, markedCached, evicted)
+            }
         }
 
         /**
@@ -729,21 +768,20 @@ class AudiobookMediaSessionCallback
                     return@launch
                 }
 
-                val updatedCacheTrackIds = mutableListOf<String>()
-                val normalizedTracks =
-                    tracks.map { track ->
-                        if (track.cached) {
-                            return@map track
-                        }
+                val (normalizedTracks, updatedCacheTrackIds, evictedCacheTrackIds) =
+                    reconcileCachedFlagsWithFiles(tracks, prefsRepo.cachedMediaDir)
 
-                        val cachedFile = File(prefsRepo.cachedMediaDir, track.getCachedFileName())
-                        if (cachedFile.exists()) {
-                            updatedCacheTrackIds += track.id
-                            track.copy(cached = true)
-                        } else {
-                            track
+                if (evictedCacheTrackIds.isNotEmpty()) {
+                    Timber.w(
+                        "Detected ${evictedCacheTrackIds.size} tracks flagged cached with missing files " +
+                            "for book $bookId; streaming them and clearing the stale flags",
+                    )
+                    withContext(Dispatchers.IO) {
+                        evictedCacheTrackIds.forEach { trackId ->
+                            trackRepository.updateCachedStatus(trackId, false)
                         }
                     }
+                }
 
                 if (updatedCacheTrackIds.isNotEmpty()) {
                     Timber.i(

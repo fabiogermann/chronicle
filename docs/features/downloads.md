@@ -69,7 +69,11 @@ When offline mode is enabled:
 
 ### Offline Playback Guarantee
 
-Downloaded tracks must play without any server round-trip. `PlaybackUrlResolver.resolveStreamingUrl` and `preResolveUrls` short-circuit cached tracks to the local file URI before any connection probe, `/transcode/universal/decision` call, or auth-token resolution. This is the fix for the "cannot connect to server / Source Error on downloaded book" reports.
+Downloaded tracks must play without any server round-trip. `PlaybackUrlResolver.resolveStreamingUrl` and `preResolveUrls` short-circuit cached tracks to the local file URI before any connection probe, `/transcode/universal/decision` call, or auth-token resolution (defense-in-depth — `AudiobookMediaSessionCallback.playBook` already filters cached tracks out of pre-resolution). If a track is flagged cached but its file is missing, playBook falls back to streaming and corrects the stale flag instead of failing with ExoPlayer's "Source error".
+
+### Upgrading from v0.60.x or earlier
+
+Up to v0.60.20, downloaded files were named `<trackId>.<ext>` (e.g. `123.mp3`). v0.61.1 renamed track ids to `plex:<id>` in the database but could not rename the files, so upgraded libraries lost their "downloaded" flags. Both reconcile paths (`CachedFileManager.refreshTrackDownloadedStatus` at startup / pull-to-refresh and `refreshDownloadedStatusForBook` when a book is opened) now adopt legacy files by renaming them to the current format, after which the tracks and book are flagged downloaded again.
 
 ### Enabling Offline Mode
 1. Go to Settings
