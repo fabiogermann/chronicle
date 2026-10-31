@@ -50,6 +50,7 @@ class PlexAuthCoordinator
         fun interface Ticker {
             fun now(): Long
         }
+
         companion object {
             /** Default polling interval in milliseconds */
             const val POLLING_INTERVAL_MS = 1500L

@@ -18,7 +18,9 @@ interface PlexLoginService {
      * code length 4 / expiresIn 900 s.
      */
     @POST("https://plex.tv/api/v2/pins.json")
-    suspend fun postAuthPin(@Query("strong") strong: Boolean = true): OAuthResponse
+    suspend fun postAuthPin(
+        @Query("strong") strong: Boolean = true,
+    ): OAuthResponse
 
     @GET("https://plex.tv/api/v2/pins/{id}.json")
     suspend fun getAuthPin(

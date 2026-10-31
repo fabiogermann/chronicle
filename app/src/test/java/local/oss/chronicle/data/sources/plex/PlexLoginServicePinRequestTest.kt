@@ -36,7 +36,8 @@ class PlexLoginServicePinRequestTest {
         override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
             val request = chain.request()
             requests.add(request)
-            return okhttp3.Response.Builder()
+            return okhttp3.Response
+                .Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_1_1)
                 .code(200)
@@ -49,7 +50,8 @@ class PlexLoginServicePinRequestTest {
     private fun serviceWith(interceptor: RecordingInterceptor): PlexLoginService {
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-        return Retrofit.Builder()
+        return Retrofit
+            .Builder()
             // The interface methods carry absolute https://plex.tv URLs; the base
             // URL is never hit but Retrofit requires one.
             .baseUrl(PLEX_LOGIN_SERVICE_URL)

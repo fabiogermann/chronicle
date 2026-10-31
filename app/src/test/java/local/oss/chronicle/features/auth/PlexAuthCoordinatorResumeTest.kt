@@ -11,7 +11,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlin.time.Duration.Companion.seconds
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo
 import local.oss.chronicle.util.Event
 import org.junit.Assert.assertEquals
@@ -19,6 +18,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Regression test for the process-death OAuth loop (B2): the OS kills the app

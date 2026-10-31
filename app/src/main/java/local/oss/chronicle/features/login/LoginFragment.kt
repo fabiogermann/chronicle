@@ -111,11 +111,12 @@ class LoginFragment : Fragment() {
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error starting Chrome Custom Tabs auth")
-                Toast.makeText(
-                    requireContext(),
-                    "Failed to start authentication: ${e.message}",
-                    Toast.LENGTH_LONG,
-                ).show()
+                Toast
+                    .makeText(
+                        requireContext(),
+                        "Failed to start authentication: ${e.message}",
+                        Toast.LENGTH_LONG,
+                    ).show()
             }
         }
     }

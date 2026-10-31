@@ -73,9 +73,7 @@ class LoginViewModel(
      * polling to it. Returns the Polling state carrying the 4-char code, or null
      * when no flow is active or PIN creation failed.
      */
-    suspend fun requestManualLinkCode(): PlexAuthState.Polling? {
-        return authCoordinator?.requestManualLinkCode()
-    }
+    suspend fun requestManualLinkCode(): PlexAuthState.Polling? = authCoordinator?.requestManualLinkCode()
 
     /**
      * Resumes polling of a PIN persisted in [local.oss.chronicle.data.sources.plex.PlexPrefsRepo.oAuthTempId]
@@ -131,9 +129,7 @@ class LoginViewModel(
     fun makeOAuthLoginUrl(
         id: String,
         code: String,
-    ): Uri {
-        return plexLoginRepo.makeOAuthUrl(id, code)
-    }
+    ): Uri = plexLoginRepo.makeOAuthUrl(id, code)
 
     /** Whether the custom tab has been launched to login */
     fun setLaunched(b: Boolean) {
