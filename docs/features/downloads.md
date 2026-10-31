@@ -67,6 +67,10 @@ When offline mode is enabled:
 - Network requests are minimized
 - Playback uses cached files exclusively
 
+### Offline Playback Guarantee
+
+Downloaded tracks must play without any server round-trip. `PlaybackUrlResolver.resolveStreamingUrl` and `preResolveUrls` short-circuit cached tracks to the local file URI before any connection probe, `/transcode/universal/decision` call, or auth-token resolution. This is the fix for the "cannot connect to server / Source Error on downloaded book" reports.
+
 ### Enabling Offline Mode
 1. Go to Settings
 2. Toggle "Offline Mode" on

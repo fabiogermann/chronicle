@@ -138,6 +138,9 @@ class PlaybackUrlResolver
          * Resolves the best streaming URL for a track by calling Plex's decision endpoint.
          * Uses retry logic with exponential backoff for network resilience.
          *
+         * Offline-first: if [track.cached] is true, the local file is returned immediately
+         * without touching the network (no connection probe, no decision endpoint, no auth).
+         *
          * @param track The track to resolve
          * @param forceRefresh If true, ignores cache and fetches fresh URL
          * @return The streaming URL to use, or null if unavailable after retries
@@ -146,6 +149,13 @@ class PlaybackUrlResolver
             track: MediaItemTrack,
             forceRefresh: Boolean = false,
         ): String? {
+            // Offline short-circuit: a fully downloaded track needs no server round-trip.
+            if (track.cached) {
+                val localUri = track.getTrackSource()
+                Timber.d("Using local file for cached track ${track.id}: $localUri")
+                return localUri
+            }
+
             val libraryId = track.libraryId
             val trackKey = track.key
 
@@ -346,6 +356,9 @@ class PlaybackUrlResolver
          * Pre-resolves URLs for multiple tracks in parallel.
          * Limits concurrency to avoid overwhelming the server.
          *
+         * Offline-first: cached tracks are excluded up front — they play from local files
+         * and must not trigger network resolution.
+         *
          * @param tracks The tracks to pre-resolve
          * @param maxConcurrency Maximum concurrent resolution requests
          * @return Result containing success/failure counts and failed tracks
@@ -355,7 +368,9 @@ class PlaybackUrlResolver
             maxConcurrency: Int = 4,
         ): PreResolveResult =
             coroutineScope {
-                if (tracks.isEmpty()) {
+                val streamingTracks = tracks.filterNot { it.cached }
+                if (streamingTracks.isEmpty()) {
+                    Timber.d("Skipping URL pre-resolution: all ${tracks.size} tracks are cached locally")
                     return@coroutineScope PreResolveResult(
                         successCount = 0,
                         failedTracks = emptyList(),
@@ -364,17 +379,17 @@ class PlaybackUrlResolver
                 }
 
                 // Validate all tracks are from the same library
-                val libraryIds = tracks.map { it.libraryId }.distinct()
+                val libraryIds = streamingTracks.map { it.libraryId }.distinct()
                 if (libraryIds.size > 1) {
                     Timber.w("Pre-resolving URLs for tracks from multiple libraries: $libraryIds")
                 }
 
-                Timber.d("Pre-resolving URLs for ${tracks.size} tracks with max concurrency $maxConcurrency")
+                Timber.d("Pre-resolving URLs for ${streamingTracks.size} tracks with max concurrency $maxConcurrency")
                 val semaphore = Semaphore(maxConcurrency)
                 val failedTracks = mutableListOf<MediaItemTrack>()
 
                 val jobs =
-                    tracks.map { track ->
+                    streamingTracks.map { track ->
                         async {
                             semaphore.withPermit {
                                 try {
@@ -398,9 +413,9 @@ class PlaybackUrlResolver
 
                 val result =
                     PreResolveResult(
-                        successCount = tracks.size - failedTracks.size,
+                        successCount = streamingTracks.size - failedTracks.size,
                         failedTracks = failedTracks.toList(),
-                        totalTracks = tracks.size,
+                        totalTracks = streamingTracks.size,
                     )
 
                 Timber.i("Pre-resolved ${result.successCount}/${result.totalTracks} streaming URLs (${result.failureCount} failed)")
