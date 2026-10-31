@@ -75,13 +75,12 @@ class LoginFragment : Fragment() {
             startChromeCustomTabsAuth()
         }
 
-        // Manual-linking fallback: open plex.tv/link in the browser so the user can
-        // enter the PIN code by hand when the OAuth deep link doesn't fire (broken
-        // App Links, e.g. some Vivo/Funtouch devices). Launched in a separate task so
-        // the plex.tv/link tab can't redirect back into the app while we're still
-        // polling for the deep-link token — that would re-trigger the OAuth flow.
+        // Manual-linking fallback: creates a NON-strong PIN (plex.tv/link only takes
+        // its 4-char code — the strong OAuth PIN's 25-char code is rejected there),
+        // shows that code, and opens plex.tv/link in a separate browser task so the
+        // tab can't redirect back into the app while polling is in flight.
         binding.manualFallbackHint.setOnClickListener {
-            openPlexLinkPage()
+            startManualLinking()
         }
 
         loginViewModel.errorEvent.observe(viewLifecycleOwner) { errorEvent ->
@@ -122,6 +121,30 @@ class LoginFragment : Fragment() {
     }
 
     /**
+     * Starts the manual-linking path: asks the coordinator for a non-strong PIN
+     * (its 4-char code is the only thing plex.tv/link accepts), shows that code,
+     * then opens plex.tv/link. Polling is redirected to the manual PIN by the
+     * coordinator; Success is observed through the same state flow.
+     */
+    private fun startManualLinking() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val polling = loginViewModel.requestManualLinkCode()
+            if (polling == null) {
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.login_manual_pin_failed),
+                    Toast.LENGTH_LONG,
+                ).show()
+                return@launch
+            }
+            binding.manualFallbackHint.text =
+                getString(R.string.login_manual_fallback_hint, polling.pinCode)
+            binding.manualFallbackHint.visibility = View.VISIBLE
+            openPlexLinkPage()
+        }
+    }
+
+    /**
      * Handles PlexAuthState transitions and updates UI accordingly.
      */
     private fun handleAuthState(state: PlexAuthState) {
@@ -153,12 +176,20 @@ class LoginFragment : Fragment() {
                 // Show loading indicator while polling
                 binding.loading.visibility = View.VISIBLE
 
-                // If the deep link hasn't fired for a while (broken App Links, e.g. some
-                // Vivo/Funtouch devices), surface the manual-linking fallback so the user
-                // isn't stuck staring at a frozen browser page with no way forward.
-                if (state.shouldShowManualFallback && state.pinCode.isNotEmpty()) {
-                    binding.manualFallbackHint.text =
-                        getString(R.string.login_manual_fallback_hint, state.pinCode)
+                // Offer the manual-linking fallback from the first Polling emission: on
+                // devices with broken App Links the deep link never fires and the user
+                // must not have to wait to discover the alternative. The 4-char code
+                // only exists after the user taps the hint (it needs a separate
+                // non-strong PIN — see startManualLinking), so the Polling state
+                // re-renders the code text whenever it carries one.
+                if (state.shouldShowManualFallback) {
+                    if (state.pinCode.isNotEmpty()) {
+                        binding.manualFallbackHint.text =
+                            getString(R.string.login_manual_fallback_hint, state.pinCode)
+                    } else {
+                        binding.manualFallbackHint.text =
+                            getString(R.string.login_manual_fallback_offer)
+                    }
                     binding.manualFallbackHint.visibility = View.VISIBLE
                 }
             }
@@ -266,7 +297,35 @@ class LoginFragment : Fragment() {
 
     override fun onResume() {
         Timber.i("RESUMING LoginFragment")
-        // No need to call checkForAccess - PlexAuthCoordinator handles polling automatically
         super.onResume()
+        resumePersistedAuthIfNeeded()
+    }
+
+    /**
+     * Process-death recovery: if the OS killed the app while the user was in the
+     * OAuth browser flow (aggressive on Vivo/Oppo/Xiaomi — the reported loop), the
+     * coordinator died but its PIN id survived in PlexPrefsRepo.oAuthTempId. The
+     * callback deep link then restarts the app with no coordinator registered, and
+     * without this resume nothing would ever poll the (possibly already linked) PIN
+     * — the user would tap login again and loop.
+     *
+     * If the PIN is dead server-side the resumed flow times out within
+     * PlexAuthCoordinator.RESUME_TIMEOUT_MS and the user can simply tap login again
+     * for a fresh PIN — no loop.
+     */
+    private fun resumePersistedAuthIfNeeded() {
+        val persistedPinId = loginViewModel.persistedOAuthPinId()
+        if (persistedPinId == -1L) {
+            return
+        }
+        Timber.i("Found persisted OAuth PIN id=$persistedPinId — resuming polling after process restart")
+        val flow = loginViewModel.resumeAuthWithPersistedPin(persistedPinId)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                flow.collect { state ->
+                    handleAuthState(state)
+                }
+            }
+        }
     }
 }

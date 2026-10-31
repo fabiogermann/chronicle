@@ -276,7 +276,7 @@ Idle → CreatingPin → WaitingForUser → Polling → Success/Error/Timeout/Ca
 
 **Normal Polling**: Every 1.5 seconds
 **Expedited Polling**: Every 200ms (after browser returns)
-**Timeout**: 2 minutes
+**Timeout**: 2 minutes (browser flow) · 10 minutes once the user switches to manual linking (the non-strong PIN expires after 15) · 1 minute when resuming a persisted PIN after a process restart
 
 ```kotlin
 // From PlexAuthCoordinator.kt
@@ -284,6 +284,8 @@ companion object {
     const val POLLING_INTERVAL_MS = 1500L
     const val EXPEDITED_POLLING_INTERVAL_MS = 200L
     const val TIMEOUT_MS = 120_000L // 2 minutes
+    const val MANUAL_TIMEOUT_MS = 600_000L // 10 minutes, below the 900s non-strong PIN expiry
+    const val RESUME_TIMEOUT_MS = 60_000L // 1 minute for a persisted PIN after process death
 }
 
 fun onBrowserReturned() {
@@ -295,6 +297,34 @@ fun onBrowserReturned() {
 - Deep link indicates user completed auth
 - Reduces perceived latency
 - Still polls (doesn't assume success) for reliability
+
+### 4a. PIN kinds: strong vs non-strong
+
+`POST /api/v2/pins.json` takes a `strong` query param (previously hard-coded to
+`strong=true` in the URL). Verified against the live API (2026-10-31):
+
+| `strong` | code | `expiresIn` | accepted at |
+|---|---|---|---|
+| `true` | 25 chars | 1800 s | `app.plex.tv/auth` (the OAuth browser URL) |
+| `false` | 4 chars | 900 s | `plex.tv/link` (manual linking) |
+
+The browser OAuth flow keeps using the **strong** PIN. When the user taps the
+manual-linking hint, `PlexAuthCoordinator.requestManualLinkCode()` creates a
+separate **non-strong** PIN, displays its 4-char code, repoints polling at that
+PIN id, and stretches the timeout to `MANUAL_TIMEOUT_MS`. Displaying the strong
+PIN's code for plex.tv/link was a real defect: users were shown a code they
+could not enter anywhere.
+
+### 4b. Process death during login
+
+`PlexAuthCoordinator` lives in `LoginViewModel.viewModelScope`; if the OS kills
+the app while the user is in the browser, polling dies with it, while the PIN id
+survives in `PlexPrefsRepo.oAuthTempId`. `AuthReturnActivity` →
+`AuthCoordinatorSingleton.onBrowserReturned()` then has no coordinator to
+notify. On the next login-screen resume, `LoginFragment` checks for a persisted
+PIN id and calls `resumeAuth(pinId)`, which polls immediately (then every
+1.5 s) for up to `RESUME_TIMEOUT_MS`. A completed browser auth lands; a dead
+PIN times out quickly and the user starts a fresh flow — no login loop.
 
 ### 5. Cross-Component Communication
 

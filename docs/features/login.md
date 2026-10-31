@@ -46,8 +46,9 @@ sequenceDiagram
 - **Chrome Custom Tabs**: Provides native browser security, password managers, and autofill
 - **Android App Links**: `https://auth.chronicleapp.net/callback` verified via Digital Asset Links—causes automatic browser dismissal
 - **Legacy Fallback**: `chronicle://auth/callback` custom URI scheme remains for edge cases where App Links fail
-- **Manual linking fallback**: On devices where App Link verification never happened (e.g. some Vivo/Funtouch builds, devices without full Play Services), the deep link never fires. From the very start of polling the login screen shows a tappable "Trouble signing in?" link with the PIN code that opens plex.tv/link in a separate browser task; entering the code there completes login via polling alone — no deep link required.
-- **Polling with Timeout**: Checks for token every 1.5s, expedited to 200ms after callback, 2-minute timeout
+- **Manual linking fallback**: On devices where App Link verification never happened (e.g. some Vivo/Funtouch builds, devices without full Play Services), the deep link never fires. From the very start of polling the login screen shows a tappable "Trouble signing in?" link; tapping it creates a **non-strong PIN** (plex.tv/link only accepts its 4-character code — the strong OAuth PIN's 25-char code is rejected there), displays that code, and opens plex.tv/link in a separate browser task. Polling then watches the manual PIN and completes login with no deep link required. The manual path times out after 10 minutes (the non-strong PIN expires server-side after 15).
+- **Process-death recovery**: If the OS kills the app while the user is in the browser, the coordinator dies but the PIN id survives in `PlexPrefsRepo.oAuthTempId`. When the login screen resumes with a persisted PIN id, polling of that PIN resumes automatically (1-minute budget) so an already-completed browser auth still lands instead of looping the user through a fresh PIN.
+- **Polling with Timeout**: Checks for token every 1.5s, expedited to 200ms after callback; 2-minute timeout for the browser flow, 10 minutes once the user switches to manual linking
 
 ### Key Files
 - [`PlexAuthCoordinator`](../../app/src/main/java/local/oss/chronicle/features/auth/PlexAuthCoordinator.kt) - OAuth state machine coordinator
