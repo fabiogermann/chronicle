@@ -41,7 +41,9 @@ data class DiagnosticsReportInput(
 class DiagnosticsReportBuilder {
     companion object {
         const val REDACTED = "[redacted]"
-        private val PLEX_TOKEN_QUERY_PARAM = Regex("(?i)(X-Plex-Token=)[^&\\s]+")
+        // Token values are alphanumeric in practice; stop at URL delimiters (including ':' so a
+        // "uri: status" rendering keeps its colon separator).
+        private val PLEX_TOKEN_QUERY_PARAM = Regex("(?i)(X-Plex-Token=)[^&\\s:/?#]+")
     }
 
     fun build(input: DiagnosticsReportInput): String {

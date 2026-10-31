@@ -740,6 +740,22 @@ class SettingsViewModel(
                 ),
                 PreferenceModel(
                     PreferenceType.TITLE,
+                    FormattableString.from(R.string.settings_category_help_diagnostics),
+                ),
+                PreferenceModel(
+                    type = PreferenceType.CLICKABLE,
+                    title = FormattableString.from(R.string.settings_connection_test_title),
+                    explanation =
+                        FormattableString.from(R.string.settings_connection_test_explanation),
+                    click =
+                        object : PreferenceClick {
+                            override fun onClick() {
+                                _showDebugDialog.postEvent(Unit)
+                            }
+                        },
+                ),
+                PreferenceModel(
+                    PreferenceType.TITLE,
                     FormattableString.from(R.string.settings_category_etc),
                 ),
                 PreferenceModel(

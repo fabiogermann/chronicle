@@ -1,12 +1,16 @@
 package local.oss.chronicle.features.settings
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
@@ -82,9 +86,9 @@ class DebugInfoDialogFragment : DialogFragment() {
     private fun observeViewModel() {
         viewModel.debugInfo.observe(viewLifecycleOwner) { info ->
             binding.appVersionText.text = "${info.appVersion} (Build ${info.buildNumber})"
-            binding.serverNameText.text = info.serverName ?: "Not selected"
+            binding.serverNameText.text = info.serverName ?: getString(R.string.debug_info_server_not_selected)
             binding.connectionStateText.text = formatConnectionState(info.connectionState)
-            binding.activeUrlText.text = info.activeUrl ?: "Not connected"
+            binding.activeUrlText.text = info.activeUrl ?: getString(R.string.debug_info_not_connected)
         }
 
         viewModel.connectionResults.observe(viewLifecycleOwner) { connections ->
@@ -96,14 +100,42 @@ class DebugInfoDialogFragment : DialogFragment() {
         binding.testAllButton.setOnClickListener {
             viewModel.testAllConnections()
         }
+        binding.copyDiagnosticsButton.setOnClickListener {
+            copyDiagnosticsToClipboard()
+        }
+        binding.shareDiagnosticsButton.setOnClickListener {
+            shareDiagnostics()
+        }
+    }
+
+    /**
+     * Copies the secret-safe diagnostics report to the clipboard. The report is built by
+     * [DebugInfoViewModel.buildDiagnosticsReport], which redacts Plex tokens by construction.
+     */
+    private fun copyDiagnosticsToClipboard() {
+        val report = viewModel.buildDiagnosticsReport()
+        val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.diagnostics_copy), report))
+        Toast.makeText(requireContext(), R.string.diagnostics_copied, Toast.LENGTH_SHORT).show()
+    }
+
+    /** Shares the secret-safe diagnostics report via the system share sheet. */
+    private fun shareDiagnostics() {
+        val report = viewModel.buildDiagnosticsReport()
+        val sendIntent =
+            Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, report)
+            }
+        startActivity(Intent.createChooser(sendIntent, getString(R.string.diagnostics_share)))
     }
 
     private fun formatConnectionState(state: PlexConfig.ConnectionState): String {
         return when (state) {
-            PlexConfig.ConnectionState.CONNECTED -> "● Connected"
-            PlexConfig.ConnectionState.CONNECTING -> "⟳ Connecting..."
-            PlexConfig.ConnectionState.NOT_CONNECTED -> "○ Not Connected"
-            PlexConfig.ConnectionState.CONNECTION_FAILED -> "✗ Connection Failed"
+            PlexConfig.ConnectionState.CONNECTED -> getString(R.string.debug_info_state_connected)
+            PlexConfig.ConnectionState.CONNECTING -> getString(R.string.debug_info_state_connecting)
+            PlexConfig.ConnectionState.NOT_CONNECTED -> getString(R.string.debug_info_state_not_connected)
+            PlexConfig.ConnectionState.CONNECTION_FAILED -> getString(R.string.debug_info_state_connection_failed)
         }
     }
 

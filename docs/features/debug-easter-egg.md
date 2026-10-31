@@ -2,15 +2,17 @@
 
 ## Overview
 
-A hidden debug screen accessible via an Easter egg in Settings that displays connection debugging information. Users can view available server URLs, the currently connected URL, and test connections to diagnose connectivity issues.
+A debug screen that displays connection debugging information. Users can view available server URLs, the currently connected URL, and test connections to diagnose connectivity issues. It is reachable through a discoverable settings entry, the original easter egg, and an inline action on terminal playback errors.
 
 ## Usage
 
-To access the debug screen:
+There are three ways to open the connection-test screen:
 
-1. Navigate to **Settings**
-2. Tap the **version information** preference 10 times within 15 seconds
-3. A full-screen debug dialog will appear
+1. **Settings entry (discoverable):** Navigate to **Settings → Help & Diagnostics → Connection test**.
+2. **Easter egg (kept for backwards compatibility):** In **Settings**, tap the **version information** preference 10 times within 15 seconds.
+3. **Inline on playback failure:** when a playback error is shown after automatic recovery has given up (a *terminal* error), the error Snackbar includes a **Run connection test** action that opens the same screen. Errors that are still being retried in the background only show a plain toast, so a self-healing hiccup never nags with the action.
+
+In all cases a full-screen debug dialog appears.
 
 ## Features
 
@@ -28,6 +30,21 @@ The debug dialog displays:
     - `✗` (X) - Test failed
     - `⟳` (loading) - Test in progress
 - **Test All Connections** button - Tests each URL against the `/identity` endpoint
+- **Copy diagnostics** button - Copies a plain-text diagnostics report to the clipboard
+- **Share** button - Sends the same report through the system share sheet
+
+The diagnostics report contains: app version + build number, Android version + security patch
+level, device manufacturer/model, Plex server name + version (once a connection test has
+observed the `/identity` response), connection state, the chosen connection URI, and the last
+connection-test result.
+
+**The report is secret-safe by construction.** It is produced exclusively by
+`DiagnosticsReportBuilder` (`DebugInfoViewModel.buildDiagnosticsReport` is the single choke
+point used by both Copy and Share), which redacts every declared token (account/user/server)
+in both raw and percent-encoded form, and additionally strips any `X-Plex-Token=` URL query
+value by pattern — even a token that was never declared as a secret. Users paste these reports
+into public Reddit threads and GitHub issues, so the Plex token must never appear; unit tests
+(`DiagnosticsReportBuilderTest`, `DebugInfoViewModelTest`) pin that guarantee.
 
 This feature is available in **all builds** (production and debug).
 
@@ -76,9 +93,12 @@ graph TD
 **Modified Files:**
 
 - [`PlexConfig.kt`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlexConfig.kt) - Added `getAvailableConnections()` method to expose connection set
-- [`SettingsViewModel.kt`](../../app/src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt) - Added tap counter logic and `showDebugDialog` LiveData event
+- [`SettingsViewModel.kt`](../../app/src/main/java/local/oss/chronicle/features/settings/SettingsViewModel.kt) - Added tap counter logic and `showDebugDialog` LiveData event; also added the **Settings → Help & Diagnostics → Connection test** preference that posts the same event
 - [`SettingsFragment.kt`](../../app/src/main/java/local/oss/chronicle/features/settings/SettingsFragment.kt) - Observes debug dialog event and shows the dialog
 - [`ActivityComponent.kt`](../../app/src/main/java/local/oss/chronicle/injection/components/ActivityComponent.kt) - Added `inject(DebugInfoDialogFragment)` for dependency injection
+- [`MainActivity.kt`](../../app/src/main/java/local/oss/chronicle/application/MainActivity.kt) - Terminal playback errors (recovery gave up) render as a Snackbar with a **Run connection test** action that opens the dialog; transient errors still being recovered show a plain toast. The decision is delegated to `PlaybackErrorUiDecider`
+- [`PlaybackErrorUiDecider.kt`](../../app/src/main/java/local/oss/chronicle/features/player/PlaybackErrorUiDecider.kt) - Pure decision unit: only terminal (non-recovering) playback errors offer the inline connection-test action
+- [`PlexMediaContainer.kt`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/model/PlexMediaContainer.kt) - Added optional `version` field so the `/identity` response can supply the Plex server version shown in the diagnostics report
 
 ### Tap Detection
 

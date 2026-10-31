@@ -1,5 +1,6 @@
 package local.oss.chronicle.features.settings
 
+import android.os.Build
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -54,6 +55,9 @@ class DebugInfoViewModel(
     private val _isTesting = MutableLiveData(false)
     val isTesting: LiveData<Boolean> = _isTesting
 
+    /** Version reported by the server's `/identity` endpoint, once observed. Null if unknown. */
+    private var serverVersion: String? = null
+
     init {
         loadDebugInfo()
     }
@@ -88,6 +92,63 @@ class DebugInfoViewModel(
         _connectionResults.value = connections
     }
 
+    /**
+     * Builds the secret-safe diagnostics report for the "Copy diagnostics" / "Share" actions.
+     *
+     * Token values are collected from every prefs source and passed to
+     * [DiagnosticsReportBuilder], which redacts them — including tokens embedded in URLs as
+     * `X-Plex-Token=` query parameters or inside connection-test result messages.
+     */
+    fun buildDiagnosticsReport(): String {
+        val info = _debugInfo.value
+        val results = _connectionResults.value.orEmpty()
+        val summary =
+            if (results.isEmpty()) {
+                null
+            } else {
+                results.joinToString("\n") { result ->
+                    val status =
+                        when (result.status) {
+                            ConnectionStatus.UNTESTED -> "untested"
+                            ConnectionStatus.CONNECTED -> "connected (active)"
+                            ConnectionStatus.SUCCESSFUL -> "successful"
+                            ConnectionStatus.FAILED -> "failed"
+                            ConnectionStatus.BLOCKED -> "potentially blocked"
+                            ConnectionStatus.TESTING -> "testing"
+                        }
+                    "${result.uri}: $status"
+                }
+            }
+
+        return DiagnosticsReportBuilder().build(
+            DiagnosticsReportInput(
+                appVersion = BuildConfig.VERSION_NAME,
+                versionCode = BuildConfig.VERSION_CODE,
+                androidRelease = Build.VERSION.RELEASE ?: "unknown",
+                securityPatch =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        Build.VERSION.SECURITY_PATCH
+                    } else {
+                        null
+                    },
+                sdkInt = Build.VERSION.SDK_INT,
+                manufacturer = Build.MANUFACTURER ?: "unknown",
+                model = Build.MODEL ?: "unknown",
+                serverName = info?.serverName,
+                serverVersion = serverVersion,
+                activeUrl = info?.activeUrl,
+                connectionState = info?.connectionState?.name ?: PlexConfig.ConnectionState.NOT_CONNECTED.name,
+                connectionTestSummary = summary,
+                secrets =
+                    listOfNotNull(
+                        plexPrefsRepo.accountAuthToken,
+                        plexPrefsRepo.user?.authToken,
+                        plexPrefsRepo.server?.accessToken,
+                    ).filter { it.isNotBlank() },
+            ),
+        )
+    }
+
     fun testAllConnections() {
         viewModelScope.launch {
             _isTesting.value = true
@@ -120,6 +181,8 @@ class DebugInfoViewModel(
             val response = plexMediaService.checkServer(uri)
             if (response.isSuccessful) {
                 Timber.d("Connection test successful: $uri")
+                // Best-effort: the /identity payload carries the Plex server version.
+                response.body()?.version?.let { serverVersion = it }
                 ConnectionStatus.SUCCESSFUL
             } else {
                 // Check if this is a WAF/ban/block response by inspecting the body

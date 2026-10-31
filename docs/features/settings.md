@@ -128,6 +128,14 @@ When **enabled**, only whitelisted clients (Android Auto, Google Assistant, Wear
 - Usage: [`MediaPlayerService.onGetRoot()`](../../app/src/main/java/local/oss/chronicle/features/player/MediaPlayerService.kt)
 - Validation: [`PackageValidator`](../../app/src/main/java/local/oss/chronicle/util/PackageValidator.kt)
 
+### Help & Diagnostics
+
+- **Connection test**: Opens the connection-debug screen (server URLs, connection status,
+  per-URL connection tests) with **Copy diagnostics** / **Share** actions that produce a
+  secret-safe plain-text report for bug reports — the Plex token is always redacted. See
+  [Debug Easter Egg](debug-easter-egg.md) for details (the 10-tap version-number easter egg
+  still works, and terminal playback errors offer the same screen inline).
+
 ### Other Platform Settings
 
 - **Shake to Snooze**: Accelerometer-based sleep timer extension

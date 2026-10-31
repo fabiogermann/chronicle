@@ -118,6 +118,29 @@
     <string name="playback_error_401">Playback error (401): Not authorized</string>
     <string name="playback_error_503">Playback error (503): Server unavailable</string>
     <string name="playback_error_404">Playback error (404): Track not found</string>
+    <string name="run_connection_test">Run connection test</string>
+    <string name="settings_category_help_diagnostics">Help &amp; Diagnostics</string>
+    <string name="settings_connection_test_title">Connection test</string>
+    <string name="settings_connection_test_explanation">Test server connections and copy/share diagnostics for bug reports</string>
+    <string name="diagnostics_copy">Copy diagnostics</string>
+    <string name="diagnostics_share">Share</string>
+    <string name="diagnostics_copied">Diagnostics copied to clipboard</string>
+
+    <!-- Connection test / debug info dialog -->
+    <string name="debug_info_title">Connection Debug Info</string>
+    <string name="debug_info_app_version">App Version</string>
+    <string name="debug_info_server">Server</string>
+    <string name="debug_info_connection_status">Connection Status</string>
+    <string name="debug_info_active_url">Active URL</string>
+    <string name="debug_info_available_connections">Available Connections</string>
+    <string name="debug_info_legend">Legend: ● Connected  ✓ Successful  ✗ Failed  L=Local  R=Remote</string>
+    <string name="debug_info_test_all">Test All Connections</string>
+    <string name="debug_info_server_not_selected">Not selected</string>
+    <string name="debug_info_not_connected">Not connected</string>
+    <string name="debug_info_state_connected">● Connected</string>
+    <string name="debug_info_state_connecting">⟳ Connecting…</string>
+    <string name="debug_info_state_not_connected">○ Not Connected</string>
+    <string name="debug_info_state_connection_failed">✗ Connection Failed</string>
 
     <!-- Downloads -->
     <string name="download_all">Download all</string>

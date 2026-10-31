@@ -14,6 +14,8 @@ data class PlexMediaContainerWrapper(
 @JsonClass(generateAdapter = true)
 data class PlexMediaContainer(
     val playQueueSelectedItemID: Long = -1,
+    /** Server version string, present on the `/identity` response. */
+    val version: String? = null,
     @Json(name = "Directory")
     val plexDirectories: List<PlexDirectory> = emptyList(),
     @Json(name = "Metadata")
