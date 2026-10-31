@@ -76,7 +76,24 @@ class NetworkMonitor
                 }
 
                 override fun onLost(network: Network) {
-                    _networkState.value = NetworkState.Disconnected
+                    // This callback fires for EVERY INTERNET-capable network (see the
+                    // NetworkRequest in init), not just the default one. When mobile data was
+                    // already up alongside Wi-Fi, losing Wi-Fi leaves cellular CONNECTED — but
+                    // the old code unconditionally set Disconnected here, so the coordinator's
+                    // Connected->Connected filter never saw a WiFi->Cellular transition and no
+                    // connection refresh happened. Derive the state from the ACTIVE network
+                    // instead (exactly like onAvailable/onCapabilitiesChanged do).
+                    //
+                    // One race to guard against: during onLost the platform can still briefly
+                    // report the LOST network as the active one, which would resurrect it as a
+                    // bogus Connected state. If the active network is null or IS the lost
+                    // network, there is nothing left to derive state from -> Disconnected.
+                    val active = connectivityManager.activeNetwork
+                    if (active == null || active == network) {
+                        _networkState.value = NetworkState.Disconnected
+                    } else {
+                        updateNetworkState()
+                    }
                 }
 
                 override fun onCapabilitiesChanged(
