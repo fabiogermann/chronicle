@@ -44,7 +44,12 @@ class PlexAuthCoordinator
     constructor(
         private val plexLoginRepo: IPlexLoginRepo,
         private val scope: CoroutineScope,
+        private val ticker: Ticker = Ticker { System.currentTimeMillis() },
     ) {
+        /** Time source; fakeable so unit tests can drive wall-clock timeouts. */
+        fun interface Ticker {
+            fun now(): Long
+        }
         companion object {
             /** Default polling interval in milliseconds */
             const val POLLING_INTERVAL_MS = 1500L
@@ -60,14 +65,44 @@ class PlexAuthCoordinator
              * offered. Deep-link return is near-instant when it works, so if the user has
              * been waiting this long the App Link almost certainly didn't fire.
              *
-             * Zero: the manual-linking info (plex.tv/link + PIN code) is harmless and is
-             * offered from the very first Polling emission. On devices where Android App
-             * Links never verified (e.g. some Vivo/Funtouch builds) the deep link NEVER
-             * fires and the user bounces between the frozen browser page and the app —
-             * they must not have to wait 20 s, on the right screen at the right moment,
-             * to learn there is another way in.
+             * Zero: the manual-linking info (plex.tv/link) is harmless and is offered from
+             * the very first Polling emission. On devices where Android App Links never
+             * verified (e.g. some Vivo/Funtouch builds) the deep link NEVER fires and the
+             * user bounces between the frozen browser page and the app — they must not
+             * have to wait 20 s, on the right screen at the right moment, to learn there
+             * is another way in.
              */
             const val MANUAL_FALLBACK_AFTER_MS = 0L
+
+            /**
+             * Timeout once the user has switched to manual linking (plex.tv/link).
+             * Entering a code from another device takes far longer than the in-browser
+             * OAuth round-trip, so the 2-minute [TIMEOUT_MS] is too short; but the
+             * non-strong PIN used for manual linking expires server-side after 900 s,
+             * so we stop safely below that.
+             */
+            const val MANUAL_TIMEOUT_MS = 600_000L
+
+            /**
+             * Timeout when resuming polling of a PIN persisted before a process restart.
+             * The PIN was already created some time ago and expires server-side after
+             * 900–1800 s, so a resumed flow gets one minute: if the user finished auth
+             * in the browser the very first poll succeeds; anything else means the PIN
+             * is dead and the user should start a fresh flow.
+             */
+            const val RESUME_TIMEOUT_MS = 60_000L
+        }
+
+        /** The kind of PIN backing the current flow. */
+        private enum class PinMode {
+            /** Strong PIN for the app.plex.tv/auth browser flow (long code). */
+            STRONG,
+
+            /** Non-strong PIN for manual linking at plex.tv/link (4-char code). */
+            MANUAL,
+
+            /** A PIN persisted before a process restart, resumed via [resumeAuth]. */
+            RESUMED,
         }
 
         private val _state = MutableStateFlow<PlexAuthState>(PlexAuthState.Idle)
@@ -83,6 +118,16 @@ class PlexAuthCoordinator
         private var pollingJob: Job? = null
         private var startTime: Long = 0
         private var pollingInterval = POLLING_INTERVAL_MS
+        private var activePinMode = PinMode.STRONG
+        private var activePinId: Long = -1L
+        private var activePinCode: String = ""
+
+        private fun activeTimeoutMs(): Long =
+            when (activePinMode) {
+                PinMode.STRONG -> TIMEOUT_MS
+                PinMode.MANUAL -> MANUAL_TIMEOUT_MS
+                PinMode.RESUMED -> RESUME_TIMEOUT_MS
+            }
 
         /**
          * Starts the OAuth authentication flow.
@@ -112,8 +157,10 @@ class PlexAuthCoordinator
             _state.value = PlexAuthState.CreatingPin
 
             try {
-                // Create PIN via PlexLoginRepo
-                val oAuthResponse = plexLoginRepo.postOAuthPin()
+                // Create the STRONG PIN for the app.plex.tv/auth browser flow. Manual
+                // linking uses a separate non-strong PIN (see [requestManualLinkCode]) —
+                // plex.tv/link rejects the strong PIN's 25-char code.
+                val oAuthResponse = plexLoginRepo.postOAuthPin(strong = true)
                 if (oAuthResponse == null) {
                     Timber.e("Failed to create authentication PIN - received null response")
                     _state.value = PlexAuthState.Error("Failed to create authentication PIN")
@@ -140,6 +187,9 @@ class PlexAuthCoordinator
                     )
 
                 // Start polling automatically
+                activePinMode = PinMode.STRONG
+                activePinId = oAuthResponse.id
+                activePinCode = oAuthResponse.code
                 startPolling(oAuthResponse.id, oAuthResponse.code)
             } catch (e: Exception) {
                 Timber.e(e, "Error creating auth PIN")
@@ -154,6 +204,80 @@ class PlexAuthCoordinator
         }
 
         /**
+         * Switches the flow to manual linking at plex.tv/link.
+         *
+         * The browser OAuth PIN is *strong* — its code is 25 characters, which
+         * plex.tv/link does not accept (it wants the 4-character code of a
+         * non-strong PIN). So manual linking needs its own PIN: this creates a
+         * non-strong PIN, repoints polling at it, and stretches the timeout to
+         * [MANUAL_TIMEOUT_MS] (linking from another device takes longer than the
+         * in-browser round-trip, but the non-strong PIN expires after 900 s).
+         *
+         * @return A fresh [PlexAuthState.Polling] carrying the 4-char code to display,
+         *   or null if the PIN could not be created (network error) or the flow
+         *   already reached a terminal state.
+         */
+        suspend fun requestManualLinkCode(): PlexAuthState.Polling? {
+            if (_state.value.isTerminal()) {
+                Timber.w("requestManualLinkCode called in terminal state ${_state.value}, ignoring")
+                return null
+            }
+            val manualPin = plexLoginRepo.postOAuthPin(strong = false)
+            if (manualPin == null) {
+                Timber.e("Failed to create manual-linking PIN - received null response")
+                return null
+            }
+            Timber.i("Manual-linking PIN created: id=${manualPin.id}, code length=${manualPin.code.length}")
+
+            activePinMode = PinMode.MANUAL
+            activePinId = manualPin.id
+            activePinCode = manualPin.code
+            // Restart the clock: from here the flow has the full MANUAL_TIMEOUT_MS
+            // budget (the running poll loop reads startTime live).
+            startTime = ticker.now()
+
+            val polling =
+                PlexAuthState.Polling(
+                    pinId = manualPin.id,
+                    elapsedMs = 0L,
+                    pinCode = manualPin.code,
+                    shouldShowManualFallback = true,
+                )
+            _state.value = polling
+            return polling
+        }
+
+        /**
+         * Resumes polling a PIN that was persisted before a process restart.
+         *
+         * If the OS kills the app while the user is authenticating in the browser
+         * (aggressive on Vivo/Oppo/Xiaomi), the coordinator and its polling job die,
+         * but the PIN id survives in PlexPrefsRepo.oAuthTempId. When the login screen
+         * comes up again, polling that PIN lets an already-completed browser auth land
+         * without forcing the user through a fresh PIN + browser round-trip (which is
+         * the loop u/N3Pi_cs reported).
+         *
+         * Bounded by [RESUME_TIMEOUT_MS]: a PIN that yields nothing quickly is dead.
+         *
+         * @param pinId The persisted PIN id to resume polling
+         * @return The StateFlow that emits auth state changes
+         */
+        fun resumeAuth(pinId: Long): StateFlow<PlexAuthState> {
+            if (_state.value !is PlexAuthState.Idle) {
+                Timber.w("resumeAuth called while state is ${_state.value}, ignoring")
+                return state
+            }
+            Timber.i("Resuming polling of persisted OAuth PIN id=$pinId after process restart")
+            AuthCoordinatorSingleton.register(this)
+
+            activePinMode = PinMode.RESUMED
+            activePinId = pinId
+            activePinCode = ""
+            startPolling(pinId, "", pollImmediately = true)
+            return state
+        }
+
+        /**
          * Starts polling the Plex API for authentication token.
          *
          * Polls at [POLLING_INTERVAL_MS] intervals (1.5 seconds by default).
@@ -161,28 +285,38 @@ class PlexAuthCoordinator
          *
          * **Termination Conditions:**
          * - Token received (Success state)
-         * - Timeout after [TIMEOUT_MS] (2 minutes)
+         * - Timeout after [activeTimeoutMs] (mode-dependent)
          * - Job cancelled via [cancelAuth] or [dispose]
          *
          * @param pinId The PIN identifier to poll
-         * @param pinCode The PIN code for the manual-linking fallback (plex.tv/link)
+         * @param pinCode The PIN code shown for manual linking (empty while the browser
+         *   flow is in charge; the manual code only exists after [requestManualLinkCode])
+         * @param pollImmediately When true the first poll happens right away (used by
+         *   [resumeAuth], where the user just returned and the PIN may die any minute)
          */
-        private fun startPolling(pinId: Long, pinCode: String) {
-            startTime = System.currentTimeMillis()
+        private fun startPolling(
+            pinId: Long,
+            pinCode: String,
+            pollImmediately: Boolean = false,
+        ) {
+            startTime = ticker.now()
             pollingInterval = POLLING_INTERVAL_MS
 
             pollingJob =
                 scope.launch {
-                    // Give UI time to observe WaitingForUser and launch Chrome Custom Tab
-                    delay(POLLING_INTERVAL_MS)
+                    if (!pollImmediately) {
+                        // Give UI time to observe WaitingForUser and launch Chrome Custom Tab
+                        delay(POLLING_INTERVAL_MS)
+                    }
 
                     var pollIteration = 0L
                     while (isActive) {
                         pollIteration++
-                        val elapsed = System.currentTimeMillis() - startTime
+                        val elapsed = ticker.now() - startTime
 
-                        // Check timeout (2 minutes)
-                        if (elapsed > TIMEOUT_MS) {
+                        // Check timeout (mode-dependent: browser flow, manual linking,
+                        // or resumed-after-process-death)
+                        if (elapsed > activeTimeoutMs()) {
                             Timber.w("OAuth authentication timed out after ${elapsed}ms")
                             _state.value = PlexAuthState.Timeout
                             AuthCoordinatorSingleton.unregister()
@@ -196,15 +330,17 @@ class PlexAuthCoordinator
                         // under test virtual time and immune to clock skew.
                         _state.value =
                             PlexAuthState.Polling(
-                                pinId = pinId,
+                                pinId = activePinId,
                                 elapsedMs = elapsed,
-                                pinCode = pinCode,
+                                pinCode = activePinCode,
                                 shouldShowManualFallback = pollIteration * pollingInterval >= MANUAL_FALLBACK_AFTER_MS,
                             )
 
                         try {
-                            // Poll for token via PlexLoginRepo
-                            plexLoginRepo.checkForOAuthAccessToken()
+                            // Poll for token via PlexLoginRepo — the ACTIVE pin (strong for
+                            // the browser flow, the non-strong manual pin after the user
+                            // switched to plex.tv/link).
+                            plexLoginRepo.checkForOAuthAccessToken(activePinId)
 
                             // Check if login succeeded by inspecting login state
                             val loginState = plexLoginRepo.loginEvent.value?.peekContent()

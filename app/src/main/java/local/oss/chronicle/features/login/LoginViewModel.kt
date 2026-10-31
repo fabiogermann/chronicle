@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import local.oss.chronicle.application.Injector
 import local.oss.chronicle.data.sources.plex.IPlexLoginRepo
+import local.oss.chronicle.data.sources.plex.PlexPrefsRepo
 import local.oss.chronicle.data.sources.plex.model.OAuthResponse
 import local.oss.chronicle.features.auth.PlexAuthCoordinator
 import local.oss.chronicle.features.auth.PlexAuthState
@@ -13,15 +14,20 @@ import local.oss.chronicle.util.Event
 import local.oss.chronicle.util.postEvent
 import javax.inject.Inject
 
-class LoginViewModel(private val plexLoginRepo: IPlexLoginRepo) : ViewModel() {
+class LoginViewModel(
+    private val plexLoginRepo: IPlexLoginRepo,
+    private val plexPrefsRepo: PlexPrefsRepo,
+) : ViewModel() {
     class Factory
         @Inject
-        constructor(private val plexLoginRepo: IPlexLoginRepo) :
-        ViewModelProvider.Factory {
+        constructor(
+            private val plexLoginRepo: IPlexLoginRepo,
+            private val plexPrefsRepo: PlexPrefsRepo,
+        ) : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
-                    return LoginViewModel(plexLoginRepo) as T
+                    return LoginViewModel(plexLoginRepo, plexPrefsRepo) as T
                 }
                 throw IllegalArgumentException("Unknown ViewHolder class")
             }
@@ -61,6 +67,35 @@ class LoginViewModel(private val plexLoginRepo: IPlexLoginRepo) : ViewModel() {
         // Start authentication flow
         return authCoordinator!!.startAuth()
     }
+
+    /**
+     * Creates the non-strong PIN for manual linking at plex.tv/link and switches
+     * polling to it. Returns the Polling state carrying the 4-char code, or null
+     * when no flow is active or PIN creation failed.
+     */
+    suspend fun requestManualLinkCode(): PlexAuthState.Polling? {
+        return authCoordinator?.requestManualLinkCode()
+    }
+
+    /**
+     * Resumes polling of a PIN persisted in [local.oss.chronicle.data.sources.plex.PlexPrefsRepo.oAuthTempId]
+     * from before a process restart. If the OS killed the app mid-OAuth (the user
+     * comes back from the browser via the callback deep link and the coordinator
+     * is gone), the persisted PIN may already be linked — polling it completes
+     * login without another browser round-trip (the reported login loop).
+     */
+    fun resumeAuthWithPersistedPin(pinId: Long): StateFlow<PlexAuthState> {
+        if (authCoordinator == null) {
+            authCoordinator = PlexAuthCoordinator(plexLoginRepo, viewModelScope)
+        }
+        return authCoordinator!!.resumeAuth(pinId)
+    }
+
+    /**
+     * The PIN id persisted from a previous login attempt (survives process death),
+     * or -1 when there is none. -1L is also what the repo writes when a PIN 404s.
+     */
+    fun persistedOAuthPinId(): Long = plexPrefsRepo.oAuthTempId
 
     /**
      * Cancels the ongoing Chrome Custom Tabs authentication.
