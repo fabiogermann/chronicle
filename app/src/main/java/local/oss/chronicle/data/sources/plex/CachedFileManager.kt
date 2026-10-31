@@ -379,6 +379,39 @@ class CachedFileManager
         }
 
         /**
+         * Renames pre-v0.61.1 download files ("<numericId>.<ext>", e.g. "123.mp3") to the
+         * current "plex:<numericId>.<ext>" format.
+         *
+         * TrackDatabase MIGRATION_6_7 rewrote track ids from Int to "plex:<id>" in the DB but
+         * nothing renamed the files on disk, so after upgrading from ≤0.60.x every downloaded
+         * book silently became 'not downloaded' (the reconcile below parsed "123.mp3" as track
+         * id "123", found no DB row, and cleared the cached flag of "plex:123"). Adopting the
+         * legacy name here lets the existing reconcile logic re-flag the track and book.
+         *
+         * A legacy file is never renamed over an existing new-format file.
+         *
+         * @return the ids of the adopted tracks in "plex:<n>" form
+         */
+        private fun adoptLegacyDownloadFiles(cacheDir: File): List<String> {
+            val adopted = mutableListOf<String>()
+            cacheDir.listFiles()?.forEach { file ->
+                val match = LEGACY_CACHED_FILE_PATTERN.matchEntire(file.name) ?: return@forEach
+                val target = File(cacheDir, "plex:${match.groupValues[1]}.${match.groupValues[2]}")
+                if (target.exists()) {
+                    Timber.w("Leaving legacy file ${file.name} in place: ${target.name} already exists")
+                    return@forEach
+                }
+                if (file.renameTo(target)) {
+                    Timber.i("Adopted legacy download file ${file.name} -> ${target.name}")
+                    adopted.add("plex:${match.groupValues[1]}")
+                } else {
+                    Timber.e("Failed to rename legacy download file ${file.name}")
+                }
+            }
+            return adopted
+        }
+
+        /**
          * Update [trackRepository] and [bookRepository] to reflect downloaded files
          *
          * Deletes files for [Audiobook]s no longer in the database and updates [Audiobook.isCached]
@@ -386,6 +419,7 @@ class CachedFileManager
          */
         override suspend fun refreshTrackDownloadedStatus() {
             val idToFileMap = HashMap<String, File>()
+            adoptLegacyDownloadFiles(prefsRepo.cachedMediaDir)
             val trackIdsFoundOnDisk =
                 prefsRepo.cachedMediaDir.listFiles(
                     FileFilter {
@@ -460,10 +494,11 @@ class CachedFileManager
          */
         override suspend fun refreshDownloadedStatusForBook(bookId: String) {
             withContext(Dispatchers.IO) {
+                val cacheDir = prefsRepo.cachedMediaDir
+                adoptLegacyDownloadFiles(cacheDir)
                 val tracks = trackRepository.getTracksForAudiobookAsync(bookId)
                 if (tracks.isEmpty()) return@withContext
 
-                val cacheDir = prefsRepo.cachedMediaDir
                 tracks.forEach { track ->
                     val fileExists = File(cacheDir, track.getCachedFileName()).exists()
                     if (track.cached != fileExists) {
@@ -518,5 +553,13 @@ class CachedFileManager
          * the persistent part in [MediaItemTrack.media]
          */
         private fun migrateCachedFiles() {
+        }
+
+        companion object {
+            /**
+             * Pre-v0.61.1 download file names: "<numericTrackId>.<ext>" (single dot), e.g.
+             * "123.mp3". See [adoptLegacyDownloadFiles].
+             */
+            private val LEGACY_CACHED_FILE_PATTERN = Regex("""(\d+)\.([^.]+)""")
         }
     }
