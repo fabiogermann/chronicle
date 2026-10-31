@@ -41,6 +41,7 @@ data class DiagnosticsReportInput(
 class DiagnosticsReportBuilder {
     companion object {
         const val REDACTED = "[redacted]"
+
         // Token values are alphanumeric in practice; stop at URL delimiters (including ':' so a
         // "uri: status" rendering keeps its colon separator).
         private val PLEX_TOKEN_QUERY_PARAM = Regex("(?i)(X-Plex-Token=)[^&\\s:/?#]+")
@@ -81,9 +82,10 @@ class DiagnosticsReportBuilder {
                 .sortedByDescending { it.length }
 
         return { text ->
-            var result = PLEX_TOKEN_QUERY_PARAM.replace(text) { match ->
-                match.groupValues[1] + REDACTED
-            }
+            var result =
+                PLEX_TOKEN_QUERY_PARAM.replace(text) { match ->
+                    match.groupValues[1] + REDACTED
+                }
             for (secret in replacements) {
                 result = result.replace(secret, REDACTED)
             }

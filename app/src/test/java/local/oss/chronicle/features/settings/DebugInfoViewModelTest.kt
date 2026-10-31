@@ -86,6 +86,7 @@ class DebugInfoViewModelTest {
             DebugInfoViewModel::class.java.getDeclaredField("_connectionResults").apply {
                 isAccessible = true
             }
+
         @Suppress("UNCHECKED_CAST")
         val liveData = resultsField.get(vm) as MutableLiveData<List<ConnectionTestResult>>
         liveData.value =
