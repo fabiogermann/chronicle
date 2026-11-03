@@ -79,11 +79,23 @@ data class MediaItemTrack(
 
         val EMPTY_TRACK = MediaItemTrack(TRACK_NOT_FOUND)
 
-        /** The pattern representing a downloaded track on the file system - now format is "plex:123.mp3" */
+        /**
+         * The pattern representing a downloaded track on the file system - current format is
+         * "plex_123.mp3" (underscore, not colon: FAT/exFAT removable storage rejects ':').
+         */
         val cachedFilePattern = Regex("[^.]+\\..+")
 
+        /**
+         * Maps a cached download's file name back to the track id used in the DB ("plex:<n>").
+         * Handles every on-disk scheme: current "plex_123.mp3", the colon format
+         * "plex:123.mp3" (v0.61.1-v0.62.x), and legacy "123.mp3" (pre-v0.61.1).
+         */
         fun getTrackIdFromFileName(fileName: String): String {
-            return fileName.substringBefore('.')
+            val base = fileName.substringBefore('.')
+            return when {
+                base.startsWith("plex_") -> "plex:${base.removePrefix("plex_")}"
+                else -> base
+            }
         }
 
         /**
@@ -213,9 +225,15 @@ data class MediaItemTrack(
         const val PARENT_KEY_PREFIX = "/library/metadata/"
     }
 
-    /** The name of the track when it is written to the file system */
+    /**
+     * The name of the track when it is written to the file system.
+     *
+     * Uses "plex_123.mp3" (underscore), not "plex:123.mp3": the ':' in the track id is illegal
+     * on FAT/exFAT removable storage, so downloads to an SD card sync location failed at
+     * file-creation time. See [getTrackIdFromFileName] for the reverse mapping.
+     */
     fun getCachedFileName(): String {
-        return "$id.${File(media).extension}"
+        return "${id.replace(':', '_')}.${File(media).extension}"
     }
 
     /**

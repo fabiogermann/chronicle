@@ -119,13 +119,38 @@ class LegacyDownloadAdoptionTest {
 
             manager().refreshTrackDownloadedStatus()
 
-            // The file is renamed to the new-format name...
+            // The file is renamed to the new-format name (FAT/exFAT-safe, no colon)...
             assertFalse("legacy file should be renamed away", legacyFile.exists())
             assertTrue(
                 "adopted file should exist under the new name",
-                File(tempFolder.root, "plex:123.mp3").exists(),
+                File(tempFolder.root, "plex_123.mp3").exists(),
             )
             // ...and the track's cached flag is NOT cleared
+            coVerify(exactly = 0) { trackRepository.updateCachedStatus(trackId, false) }
+        }
+
+    @Test
+    fun `startup reconcile migrates colon-format file to FAT-safe name and keeps cached flag`() =
+        runTest {
+            // A download made by v0.61.1-v0.62.x ("plex:123.mp3"). The ':' is illegal on
+            // FAT/exFAT, so the canonical on-disk scheme is now "plex_123.mp3". The reconcile
+            // must rename it in place and keep the cached flag — no re-download.
+            val colonFile = tempFolder.newFile("plex:123.mp3")
+            colonFile.writeBytes(ByteArray(10) { 1 })
+
+            coEvery { trackRepository.getCachedTracks() } returns listOf(track(cached = true))
+            coEvery { trackRepository.getBookIdForTrack(trackId) } returns bookId
+            coEvery { trackRepository.getCachedTrackCountForBookAsync(bookId) } returns 1
+            coEvery { trackRepository.getTrackCountForBookAsync(bookId) } returns 1
+            coEvery { bookRepository.getAudiobookAsync(bookId) } returns book(isCached = true)
+
+            manager().refreshTrackDownloadedStatus()
+
+            assertFalse("colon-format file should be renamed away", colonFile.exists())
+            assertTrue(
+                "migrated file should exist under the FAT-safe name",
+                File(tempFolder.root, "plex_123.mp3").exists(),
+            )
             coVerify(exactly = 0) { trackRepository.updateCachedStatus(trackId, false) }
         }
 
@@ -156,7 +181,7 @@ class LegacyDownloadAdoptionTest {
             coVerify { bookRepository.update(any()) }
             assertTrue("book should be re-flagged cached, was: $updatedBook", updatedBook.captured.isCached)
             assertFalse(legacyFile.exists())
-            assertTrue(File(tempFolder.root, "plex:123.mp3").exists())
+            assertTrue(File(tempFolder.root, "plex_123.mp3").exists())
         }
 
     @Test
@@ -177,16 +202,16 @@ class LegacyDownloadAdoptionTest {
                 )
             }
             assertFalse(legacyFile.exists())
-            assertTrue(File(tempFolder.root, "plex:123.mp3").exists())
+            assertTrue(File(tempFolder.root, "plex_123.mp3").exists())
         }
 
     @Test
     fun `non-numeric and new-format names are left untouched`() =
         runTest {
-            // A new-format file, a non-numeric name and a multi-dot numeric name must not be
-            // renamed. Multi-dot names ("123.backup.mp3") are not legacy downloads (the old
-            // scheme was "<id>.<ext>", single dot), so they stay as-is.
-            val newFormat = tempFolder.newFile("plex:456.mp3")
+            // A FAT-safe new-format file, a non-numeric name and a multi-dot numeric name must
+            // not be renamed. Multi-dot names ("123.backup.mp3") are not legacy downloads (the
+            // old scheme was "<id>.<ext>", single dot), so they stay as-is.
+            val newFormat = tempFolder.newFile("plex_456.mp3")
             val nonNumeric = tempFolder.newFile("audiobook backup.mp3")
             val dotted = tempFolder.newFile("123.backup.mp3")
 
@@ -197,8 +222,39 @@ class LegacyDownloadAdoptionTest {
             assertTrue(newFormat.exists())
             assertTrue(nonNumeric.exists())
             assertTrue(dotted.exists())
-            // No rename of the multi-dot file into "plex:123.backup.mp3"
-            assertFalse(File(tempFolder.root, "plex:123.backup.mp3").exists())
+            // No rename of the multi-dot file into "plex_123.backup.mp3"
+            assertFalse(File(tempFolder.root, "plex_123.backup.mp3").exists())
+        }
+
+    @Test
+    fun `cached file name is FAT-safe and round-trips to the track id`() {
+        // getCachedFileName must not contain ':' (illegal on FAT/exFAT removable storage), and
+        // getTrackIdFromFileName must map it back to the "plex:<n>" track id used in the DB.
+        val name = track(cached = false).getCachedFileName()
+        assertFalse("cached file name must not contain ':'", name.contains(':'))
+        assertTrue("expected plex_123.mp3, was: $name", name == "plex_123.mp3")
+        assertTrue(
+            MediaItemTrack.getTrackIdFromFileName("plex_123.mp3") == "plex:123",
+        )
+    }
+
+    @Test
+    fun `colon file is not migrated when the FAT-safe target already exists`() =
+        runTest {
+            // Both a colon-format file and an already-correct FAT-safe file exist. The colon one
+            // must NOT overwrite the good target.
+            val colonFile = tempFolder.newFile("plex:123.mp3")
+            colonFile.writeBytes(ByteArray(10) { 1 })
+            val target = tempFolder.newFile("plex_123.mp3")
+            target.writeBytes(ByteArray(20) { 2 })
+
+            coEvery { trackRepository.getCachedTracks() } returns listOf(track(cached = true))
+
+            manager().refreshTrackDownloadedStatus()
+
+            assertTrue("colon file must be left in place when target exists", colonFile.exists())
+            assertTrue(target.exists())
+            assertTrue("target content untouched", target.length() == 20L)
         }
 
     @Test
@@ -207,7 +263,7 @@ class LegacyDownloadAdoptionTest {
             // Defensive: never clobber an existing new-format file.
             val legacyFile = tempFolder.newFile("123.mp3")
             legacyFile.writeBytes(ByteArray(10) { 1 })
-            val target = tempFolder.newFile("plex:123.mp3")
+            val target = tempFolder.newFile("plex_123.mp3")
             target.writeBytes(ByteArray(20) { 2 })
 
             coEvery { trackRepository.getCachedTracks() } returns listOf(track(cached = true))
