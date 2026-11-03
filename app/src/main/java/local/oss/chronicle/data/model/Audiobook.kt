@@ -93,10 +93,20 @@ data class Audiobook(
          * (see getMostRecentlyPlayed) would never reflect listening done on another device.
          *
          * Always retain fields from local copy: [duration], [progress], [isCached], [favorited],
-         * [chapters], [source]. We retain [chapters], [duration], and [progress] because they
-         * can be calculated only when all child [MediaItemTrack]'s of the Audiobook are loaded.
-         * We retain [duration], [source], and [isCached] because they are explicitly local
-         * values, they do not even exist on the server.
+         * [chapters], [source], [viewCount], [viewedLeafCount]. We retain [chapters], [duration],
+         * and [progress] because they can be calculated only when all child [MediaItemTrack]'s of
+         * the Audiobook are loaded. We retain [duration], [source], and [isCached] because they
+         * are explicitly local values, they do not even exist on the server.
+         *
+         * Played status ([viewCount], [viewedLeafCount]) is **local-retained** (like [favorited]),
+         * except under [forceNetwork]. Marking a book played/unplayed scrobbles the server AND
+         * writes the local row; the server then stamps the scrobble with a [lastViewedAt] newer
+         * than the local row, so on the next library refresh the network copy wins the recency
+         * branch. If we took the server's [viewCount] there, a not-yet-updated (or unplayed)
+         * server value would silently un-mark the book and the "hide played" library filter would
+         * show it again (GitHub #16). Keeping the local value makes the mark stick; another
+         * device's played state does not propagate here — the user pulls it explicitly with a
+         * manual "Always Refresh" ([forceNetwork] = true), which takes the server's [viewCount].
          */
         fun merge(
             network: Audiobook,
@@ -113,6 +123,8 @@ data class Audiobook(
                     chapters = local.chapters,
                     source = local.source,
                     lastViewedAt = networkViewedAtMs,
+                    viewCount = if (forceNetwork) network.viewCount else local.viewCount,
+                    viewedLeafCount = if (forceNetwork) network.viewedLeafCount else local.viewedLeafCount,
                 )
             } else {
                 network.copy(
@@ -123,6 +135,8 @@ data class Audiobook(
                     lastViewedAt = local.lastViewedAt,
                     favorited = local.favorited,
                     chapters = local.chapters,
+                    viewCount = local.viewCount,
+                    viewedLeafCount = local.viewedLeafCount,
                 )
             }
         }

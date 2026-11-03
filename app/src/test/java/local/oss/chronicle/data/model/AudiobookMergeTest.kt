@@ -18,6 +18,8 @@ class AudiobookMergeTest {
         id: String = "plex:678",
         lastViewedAt: Long = 0L,
         progress: Long = 0L,
+        viewCount: Long = 0L,
+        viewedLeafCount: Long = 0L,
     ) = Audiobook(
         id = id,
         libraryId = "plex:library:1",
@@ -26,6 +28,8 @@ class AudiobookMergeTest {
         duration = 7_200_000L,
         lastViewedAt = lastViewedAt,
         progress = progress,
+        viewCount = viewCount,
+        viewedLeafCount = viewedLeafCount,
     )
 
     @Test
@@ -63,5 +67,50 @@ class AudiobookMergeTest {
         val merged = Audiobook.merge(network = network, local = local, forceNetwork = true)
 
         assertThat(merged.lastViewedAt).isEqualTo(1_700_000_000_000L)
+    }
+
+    @Test
+    fun `merge keeps local played status when server copy is newer (mark-as-played sticks)`() {
+        // GitHub #16: the user marks the book played. setWatched scrobbles the server AND sets
+        // local viewCount=1, but Plex stamps the scrobble with a lastViewedAt NEWER than the
+        // local row, so the next library refresh used to take the network branch and reset
+        // viewCount to the server's (not-yet-updated or unplayed) value — the book reappeared
+        // as unplayed in the "hide played" library view.
+        val network = book(lastViewedAt = 1_700_000_000L, viewCount = 0L, viewedLeafCount = 0L)
+        val local = book(lastViewedAt = 1_600_000_000_000L, viewCount = 1L, viewedLeafCount = 12L)
+
+        val merged = Audiobook.merge(network = network, local = local)
+
+        // Played status is local-retained (like `favorited`): the server recency still wins for
+        // lastViewedAt, but it must NOT clobber the locally-marked played flag.
+        assertThat(merged.lastViewedAt).isEqualTo(1_700_000_000_000L)
+        assertThat(merged.viewCount).isEqualTo(1L)
+        assertThat(merged.viewedLeafCount).isEqualTo(12L)
+    }
+
+    @Test
+    fun `merge keeps local unplayed status when another device played the book (non-force)`() {
+        // Played status does not auto-propagate across devices: if the book was marked played on
+        // the tablet (server viewCount=1), the phone (local viewCount=0) keeps it visible until
+        // the user does a manual "Always Refresh" (forceNetwork). Documents the local-wins rule.
+        val network = book(lastViewedAt = 1_700_000_000L, viewCount = 1L, viewedLeafCount = 12L)
+        val local = book(lastViewedAt = 1_600_000_000_000L, viewCount = 0L, viewedLeafCount = 0L)
+
+        val merged = Audiobook.merge(network = network, local = local)
+
+        assertThat(merged.viewCount).isEqualTo(0L)
+        assertThat(merged.viewedLeafCount).isEqualTo(0L)
+    }
+
+    @Test
+    fun `merge with forceNetwork adopts the server's played status (manual Always Refresh)`() {
+        // The escape hatch: a manual refresh pulls the played state set on another device.
+        val network = book(lastViewedAt = 1_700_000_000L, viewCount = 1L, viewedLeafCount = 12L)
+        val local = book(lastViewedAt = 1_800_000_000_000L, viewCount = 0L, viewedLeafCount = 0L)
+
+        val merged = Audiobook.merge(network = network, local = local, forceNetwork = true)
+
+        assertThat(merged.viewCount).isEqualTo(1L)
+        assertThat(merged.viewedLeafCount).isEqualTo(12L)
     }
 }
