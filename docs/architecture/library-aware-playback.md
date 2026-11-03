@@ -1,8 +1,17 @@
 # Library-Aware Playback Design
 
-**Status:** Design Phase  
+**Status:** Implemented (core complete; connection-invalidation design updated 2026-11-02 for the
+epoch-based model shipped in v0.62.7)  
 **Author:** Architecture Mode  
-**Date:** 2026-02-25
+**Date:** 2026-02-25  
+**Last substantive update:** 2026-11-02
+
+> **Note on the invalidation design (2026-11-02):** the `ServerConnectionResolver` code sample in
+> the *Detailed Design* section below is the original 2026-02 sketch and shows an
+> `invalidateLibrary(libraryId)` / `invalidateAll()` cache-eviction API. That API was replaced in
+> v0.62.7 by an **epoch-based global invalidation** model. The *Implementation Status* and
+> *Connection Invalidation (current)* sections describe what the code actually does now — read
+> those for the truth; treat the Detailed Design code blocks as historical design narrative.
 
 ## Problem Statement
 
@@ -166,9 +175,52 @@ Layout XMLs now pass `libraryId` to the binding adapter:
 - Works seamlessly with multi-server setups
 - Consistent with library-aware pattern used throughout the data layer
 
+## Connection Invalidation (current — as of v0.62.7)
+
+The 2026-02 design sketch below shows `invalidateLibrary(libraryId)` / `invalidateAll()`. The
+shipped implementation instead uses an **epoch-based global invalidation** in
+[`ServerConnectionResolver.kt`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/ServerConnectionResolver.kt).
+
+**Why it changed:** the original per-library cache-eviction design had a real-world hole — on a
+Wi-Fi → mobile-data handover, the connection-refresh machinery only re-probed the *first* library,
+so playback of a book from any *other* library kept the dead Wi-Fi-bound connection and stalled
+(see the network-handover fix in v0.62.7). The epoch model makes a global invalidation cheap and
+complete: every library re-probes exactly once on its next resolve, on demand.
+
+**How it works now:**
+- `ServerConnectionResolver` holds a monotonic `globalReprobeEpoch` (AtomicLong) and a per-library
+  `reprobedAtGlobalEpoch` map recording the epoch at which that library last consumed a global
+  invalidation.
+- `invalidate(libraryId: String? = null)`:
+  - `invalidate(null)` (global) bumps `globalReprobeEpoch`. It does **not** eagerly clear the
+    cache — instead each library notices the newer epoch on its next `resolve` and re-probes once.
+  - `invalidate(libraryId)` (per-library) clears only that library's entry (used when a single
+    library/account is removed or its credentials change).
+- A library with no `reprobedAtGlobalEpoch` entry is treated as epoch 0 (never re-probed). On a
+  fresh process, epoch 0 == epoch 0, so nothing is spuriously forced on first launch.
+- `reResolve(libraryId)` forces an immediate re-probe of one library, bypassing the cache.
+- On a network change, [`ConnectionRefreshCoordinator`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/ConnectionRefreshCoordinator.kt)
+  clears the playback-URL cache (`PlaybackUrlResolver.urlCache` and `MediaItemTrack.streamingUrlCache`),
+  calls `invalidate(null)`, and then `reResolve`s each known library so the active connection is
+  re-established on the new network before playback resumes.
+- [`PlaybackUrlResolver`](../../app/src/main/java/local/oss/chronicle/data/sources/plex/PlaybackUrlResolver.kt)
+  additionally validates a cached streaming URL's `serverUrl` against the library's *current*
+  resolved server URL (not just its `libraryId`), so a stale URL bound to the old network interface
+  is discarded even within its cache TTL.
+
+**Testing hook:** `ServerConnectionResolver.resetForTesting()` clears the cache and resets the
+epoch so short-lived test instances don't leak state across the shared singleton.
+
 ## Detailed Design
 
 ### 1. New Component: `ServerConnectionResolver`
+
+> **⚠ Historical sketch (2026-02).** The code below is the original design sample. Its
+> invalidation API (`invalidateLibrary` / `invalidateAll`) and its `serverUrl`-placeholder body
+> were superseded by the epoch-based model described in *Connection Invalidation (current)*
+> above — `invalidate(null)` now bumps a global epoch instead of clearing the map, and
+> `serverUrl` is loaded from the library's account/server record, not hard-coded to
+> `plexConfig.url`. Read the source file for the current implementation.
 
 **Purpose:** Resolves server URL and auth token for a given library ID with caching.
 
@@ -1008,5 +1060,7 @@ fun `resolves URLs for tracks from different libraries correctly`() = runTest {
 
 ---
 
-**Last Updated:** 2026-02-27
-**Status:** ✅ Core implementation complete. Manual testing with multi-server setup pending.
+**Last Updated:** 2026-11-02
+**Status:** ✅ Core implementation complete. Connection invalidation redesigned to an epoch-based
+model (v0.62.7); see *Connection Invalidation (current)*. Manual testing with multi-server setup
+pending.
