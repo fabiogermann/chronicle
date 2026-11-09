@@ -37,6 +37,7 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="@dimen/margin_small"
         android:onClick="@{() -> audiobookClick.onClick(audiobook)}"
+        android:onLongClick="@{() -> audiobookClick.onLongClick(audiobook)}"
         android:padding="@dimen/margin_small"
         tools:background="@color/colorPrimaryDark"
         tools:layout_height="128dp"

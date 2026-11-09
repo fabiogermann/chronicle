@@ -6,10 +6,13 @@ import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import local.oss.chronicle.R
 import local.oss.chronicle.data.local.IBookRepository
 import local.oss.chronicle.data.local.ITrackRepository
 import local.oss.chronicle.data.local.LibrarySyncRepository
@@ -17,7 +20,9 @@ import local.oss.chronicle.data.local.PrefsRepo
 import local.oss.chronicle.data.model.Audiobook
 import local.oss.chronicle.data.model.MediaItemTrack
 import local.oss.chronicle.data.sources.plex.ICachedFileManager
+import local.oss.chronicle.views.BottomSheetChooser.FormattableString
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.notNullValue
 import org.junit.After
 import org.junit.Before
@@ -41,7 +46,7 @@ class LibraryViewModelTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private val mainThreadSurrogate = newSingleThreadContext("UI thread")
+    private val mainThreadSurrogate = StandardTestDispatcher()
 
     @Mock
     private lateinit var bookRepository: IBookRepository
@@ -125,7 +130,6 @@ class LibraryViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
-        mainThreadSurrogate.close()
     }
 
     @Test
@@ -290,4 +294,99 @@ class LibraryViewModelTest {
             assertThat(viewModel.tracks, notNullValue())
         }
     }
+
+    @Test
+    fun `promptToggleWatched on an unplayed book prompts Mark as played and confirming marks watched`() =
+        runTest {
+            val allBooksLiveData = MutableLiveData(testBooks)
+            `when`(bookRepository.getAllBooks()).thenReturn(allBooksLiveData)
+            viewModel = newViewModel()
+
+            // Given: an unplayed book (viewCount == 0)
+            val unplayed = testBooks[0].copy(viewCount = 0L)
+
+            // When: the user long-presses it
+            viewModel.promptToggleWatched(unplayed)
+
+            // Then: a confirmation for "Mark as played?" is shown
+            val state = viewModel.bottomChooserState.value
+            assertThat(state, notNullValue())
+            assertThat(state!!.shouldShow, `is`(true))
+            assertThat(
+                (state.title as FormattableString.ResourceString).stringRes,
+                `is`(R.string.prompt_mark_as_played),
+            )
+
+            // When: the user confirms with Yes (and the launched coroutine runs)
+            state.listener.onItemClicked(FormattableString.yes)
+            advanceUntilIdle()
+
+            // Then: the book and its tracks are marked watched, and it is NOT marked unwatched
+            verify(trackRepository).markTracksInBookAsWatched(unplayed.id)
+            verify(bookRepository).setWatched(unplayed.id)
+            verify(bookRepository, never()).setUnwatched(unplayed.id)
+        }
+
+    @Test
+    fun `promptToggleWatched on a played book prompts Mark as unplayed and confirming marks unwatched`() =
+        runTest {
+            val allBooksLiveData = MutableLiveData(testBooks)
+            `when`(bookRepository.getAllBooks()).thenReturn(allBooksLiveData)
+            viewModel = newViewModel()
+
+            // Given: a played book (viewCount > 0)
+            val played = testBooks[0].copy(viewCount = 1L)
+
+            // When: the user long-presses it
+            viewModel.promptToggleWatched(played)
+
+            // Then: a confirmation for "Mark as unplayed?" is shown
+            val state = viewModel.bottomChooserState.value
+            assertThat(state, notNullValue())
+            assertThat(state!!.shouldShow, `is`(true))
+            assertThat(
+                (state.title as FormattableString.ResourceString).stringRes,
+                `is`(R.string.prompt_mark_as_unplayed),
+            )
+
+            // When: the user confirms with Yes (and the launched coroutine runs)
+            state.listener.onItemClicked(FormattableString.yes)
+            advanceUntilIdle()
+
+            // Then: the book is marked unwatched; tracks are not bulk-marked (Plex cascades)
+            verify(bookRepository).setUnwatched(played.id)
+            verify(bookRepository, never()).setWatched(played.id)
+            verify(trackRepository, never()).markTracksInBookAsWatched(played.id)
+        }
+
+    @Test
+    fun `promptToggleWatched declining with No applies no change`() =
+        runTest {
+            val allBooksLiveData = MutableLiveData(testBooks)
+            `when`(bookRepository.getAllBooks()).thenReturn(allBooksLiveData)
+            viewModel = newViewModel()
+
+            val book = testBooks[0].copy(viewCount = 0L)
+            viewModel.promptToggleWatched(book)
+            val state = viewModel.bottomChooserState.value!!
+
+            // When: the user declines
+            state.listener.onItemClicked(FormattableString.no)
+            advanceUntilIdle()
+
+            // Then: nothing is written
+            verify(bookRepository, never()).setWatched(anyString())
+            verify(bookRepository, never()).setUnwatched(anyString())
+            verify(trackRepository, never()).markTracksInBookAsWatched(anyString())
+        }
+
+    private fun newViewModel(): LibraryViewModel =
+        LibraryViewModel(
+            bookRepository,
+            trackRepository,
+            prefsRepo,
+            cachedFileManager,
+            librarySyncRepository,
+            sharedPreferences,
+        )
 }

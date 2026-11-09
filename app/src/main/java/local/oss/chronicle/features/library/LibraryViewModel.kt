@@ -336,4 +336,62 @@ class LibraryViewModel(
         Timber.i("toggleHidePlayedAudiobooks")
         prefsRepo.hidePlayedAudiobooks = !prefsRepo.hidePlayedAudiobooks
     }
+
+    /**
+     * Long-press on a library item: ask whether to flip the book's played status, then apply it.
+     *
+     * Mirrors [local.oss.chronicle.features.bookdetails.AudiobookDetailsViewModel.toggleWatched]:
+     * the prompt matches the current state ("Mark as played?" for an unplayed book, "Mark as
+     * unplayed?" for a played one) and the action writes both local state and the Plex server.
+     */
+    fun promptToggleWatched(audiobook: Audiobook) {
+        val notPlayedYet = audiobook.viewCount == 0L
+        val prompt =
+            if (notPlayedYet) {
+                R.string.prompt_mark_as_played
+            } else {
+                R.string.prompt_mark_as_unplayed
+            }
+
+        showOptionsMenu(
+            title = FormattableString.from(prompt),
+            options = listOf(FormattableString.yes, FormattableString.no),
+            listener =
+                object : BottomSheetChooser.BottomChooserItemListener() {
+                    override fun onItemClicked(formattableString: FormattableString) {
+                        if (formattableString == FormattableString.yes) {
+                            if (notPlayedYet) {
+                                setAudiobookWatched(audiobook)
+                            } else {
+                                setAudiobookUnwatched(audiobook)
+                            }
+                        }
+                        hideBottomSheet()
+                    }
+                },
+        )
+    }
+
+    private fun setAudiobookWatched(audiobook: Audiobook) {
+        Timber.i("Marking audiobook ${audiobook.id} as watched")
+        viewModelScope.launch {
+            // Plex will set tracks as unwatched if their parent becomes unwatched, so no need
+            // for [ITrackRepository.setWatched]
+            trackRepository.markTracksInBookAsWatched(audiobook.id)
+            bookRepository.setWatched(audiobook.id)
+        }
+    }
+
+    private fun setAudiobookUnwatched(audiobook: Audiobook) {
+        Timber.i("Marking audiobook ${audiobook.id} as unwatched")
+        viewModelScope.launch {
+            bookRepository.setUnwatched(audiobook.id)
+        }
+    }
+
+    private fun hideBottomSheet() {
+        _bottomChooserState.postValue(
+            _bottomChooserState.value?.copy(shouldShow = false) ?: EMPTY_BOTTOM_CHOOSER,
+        )
+    }
 }

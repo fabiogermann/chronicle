@@ -84,6 +84,11 @@ class LibraryFragment : Fragment() {
                     override fun onClick(audiobook: Audiobook) {
                         openAudiobookDetails(audiobook)
                     }
+
+                    override fun onLongClick(audiobook: Audiobook): Boolean {
+                        viewModel.promptToggleWatched(audiobook)
+                        return true
+                    }
                 },
             ).apply {
                 stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY
@@ -161,6 +166,11 @@ class LibraryFragment : Fragment() {
                 object : AudiobookClick {
                     override fun onClick(audiobook: Audiobook) {
                         openAudiobookDetails(audiobook)
+                    }
+
+                    override fun onLongClick(audiobook: Audiobook): Boolean {
+                        viewModel.promptToggleWatched(audiobook)
+                        return true
                     }
                 },
             )
@@ -318,5 +328,14 @@ class LibraryFragment : Fragment() {
 
     interface AudiobookClick {
         fun onClick(audiobook: Audiobook)
+
+        /**
+         * Long-press on a library item: show the played/unplayed context menu.
+         *
+         * Returns `true` to consume the event so it does not also fire [onClick]. The default
+         * implementation is a no-op returning `false`, so screens that share this interface
+         * (Home, Collections) are unaffected unless they opt in.
+         */
+        fun onLongClick(audiobook: Audiobook): Boolean = false
     }
 }

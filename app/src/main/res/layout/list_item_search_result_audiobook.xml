@@ -26,6 +26,7 @@
         android:layout_height="wrap_content"
         android:background="?attr/selectableItemBackground"
         android:onClick="@{() -> searchResultClick.onClick(audiobook)}"
+        android:onLongClick="@{() -> searchResultClick.onLongClick(audiobook)}"
         android:paddingLeft="@dimen/screen_horizontal_padding"
         android:paddingTop="@dimen/margin_small"
         android:paddingRight="@dimen/screen_horizontal_padding"
